@@ -688,6 +688,36 @@ class Query
     }
 
     /**
+     * Insert a bulk of documents
+     * @param $data multidimensional array of [id => data] pairs
+     * @return object
+     */
+    public function bulk($data)
+    {
+
+        $params = [];
+
+        foreach ($data as $key => $value) {
+
+            $params["body"][] = [
+
+                'index' => [
+                    '_index' => $this->getIndex(),
+                    '_type' => $this->getType(),
+                    '_id' => $key
+                ]
+
+            ];
+
+            $params["body"][] = $value;
+
+        }
+
+        return (object)$this->connection->bulk($params);
+
+    }
+
+    /**
      * Update a document
      * @param $data
      * @param null $id

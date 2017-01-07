@@ -74,7 +74,7 @@ Index and type names setted in query will override values the configuration file
     
     ES::whereBetween("id", 100, 150)->get();
    
-  -
+  >
     
     // where not clause
     
@@ -95,26 +95,26 @@ Index and type names setted in query will override values the configuration file
     ES::whereNotBetween("id", 100, 150)->get();
     
     
-  -
+  >
   
     // Search the entire document
     
     ES::search("bar")->get();
     
     
-  -
+  >
   
     // Return only first record
     
     ES::search("bar")->first();
     
-  -
+  >
   
     // Return only count
     
     ES::search("bar")->count();
     
-  -
+  >
     
     // paginate results with per_page = 5
       
@@ -125,7 +125,7 @@ Index and type names setted in query will override values the configuration file
     $documents->links();
     
     
-  -
+  >
   
     // Executing elasticsearch raw queries
     
@@ -145,7 +145,7 @@ Index and type names setted in query will override values the configuration file
         ]);
   
   
-   -
+   >
    
     // insert a new document
     
@@ -159,8 +159,25 @@ Index and type names setted in query will override values the configuration file
   
     [id is optional] if not specified, a unique hash key will be generated 
 
-   
-   -
+  
+  >
+    
+     // Bulk insert a multiple of documents at once using multidimensional array of [id => data] pairs
+     
+     ES::bulk(
+         10 => [
+            "title" => "Test document 1",
+            "content" => "sample content 1"
+         ],
+         11 => [
+            "title" => "Test document 2",
+            "content" => "sample content 2"
+         ],
+     );
+     
+     The two given documents will be inserted with its associated ids
+  
+   >
    
     // Update an existing document
        
@@ -174,7 +191,7 @@ Index and type names setted in query will override values the configuration file
     
     [id is required]
     
-   -
+   >
    
     // delete a document
        
