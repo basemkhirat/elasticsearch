@@ -43,20 +43,20 @@ Index and type names setted in query will override values the configuration file
 #### Available methods:
 
 
-    // sorting
+##### Sorting
     
     $documents = ES::orderBy("created_at", "desc")->get();
     $documents = ES::orderBy("_score")->get();
     
-    // limit and offset
+##### Limit and offset
     
     $documents = ES::take(10)->skip(5)->get();
     
-    // select only specific fields
+##### Select only specific fields
     
     $documents = ES::select("title", "content")->take(10)->skip(5)->get();
     
-    // where clause
+##### Where clause
     
     ES::where("id", 150)->get(); or ES::where("id", "=", 150)->get();
     ES::where("id", ">", 150)->get();
@@ -66,17 +66,17 @@ Index and type names setted in query will override values the configuration file
     ES::where("title", "like", "foo")->get();
     ES::where("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
     
-    // where in clause
+##### Where in clause
     
     ES::whereIn("id", [100, 150])->get();
     
-    // where between clause 
+##### Where between clause 
     
     ES::whereBetween("id", 100, 150)->get();
    
   >
     
-    // where not clause
+##### Where not clause
     
     ES::whereNot("id", 150)->get(); or ES::where("id", "=", 150)->get();
     ES::whereNot("id", ">", 150)->get();
@@ -86,37 +86,37 @@ Index and type names setted in query will override values the configuration file
     ES::whereNot("title", "like", "foo")->get();
     ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
     
-    // where not in clause
+##### Where not in clause
     
     ES::whereNotIn("id", [100, 150])->get();
     
-    // where not between clause 
+##### Where not between clause 
     
     ES::whereNotBetween("id", 100, 150)->get();
     
     
   >
   
-    // Search the entire document
+##### Search the entire document
     
     ES::search("bar")->get();
     
     
   >
   
-    // Return only first record
+##### Return only first record
     
     ES::search("bar")->first();
     
   >
   
-    // Return only count
+##### Return only count
     
     ES::search("bar")->count();
     
   >
     
-    // paginate results with per_page = 5
+##### Paginate results with per_page = 5
       
     $documents = ES::search("bar")->paginate(5);
     
@@ -127,7 +127,7 @@ Index and type names setted in query will override values the configuration file
     
   >
   
-    // Executing elasticsearch raw queries
+##### Executing elasticsearch raw queries
     
     ES::raw()->search([
         "index" => "my_index",
@@ -147,7 +147,7 @@ Index and type names setted in query will override values the configuration file
   
    >
    
-    // insert a new document
+##### Insert a new document
     
     ES::insert([
         "title" => "Test document",
@@ -162,7 +162,7 @@ Index and type names setted in query will override values the configuration file
   
   >
     
-     // Bulk insert a multiple of documents at once using multidimensional array of [id => data] pairs
+##### Bulk insert a multiple of documents at once using multidimensional array of [id => data] pairs
      
      ES::bulk(
          10 => [
@@ -179,7 +179,7 @@ Index and type names setted in query will override values the configuration file
   
    >
    
-    // Update an existing document
+##### Update an existing document
        
     ES::update([
        "title" => "Test document",
@@ -193,7 +193,7 @@ Index and type names setted in query will override values the configuration file
     
    >
    
-    // delete a document
+##### Delete a document
        
     ES::delete(3);
         
