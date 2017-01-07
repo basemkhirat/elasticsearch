@@ -10,7 +10,7 @@
 	
 #####3) Add package alias:
 
-	'ES' => Basemkhirat\API\Facades\ES::class
+	'ES' => Basemkhirat\Elasticsearch\Facades\ES::class
 	
 #####4) Publishing:
     
