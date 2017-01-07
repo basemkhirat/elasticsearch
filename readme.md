@@ -162,7 +162,7 @@ Index and type names setted in query will override values the configuration file
    
    -
    
-   // Update an existing document
+    // Update an existing document
        
     ES::update([
        "title" => "Test document",
@@ -176,7 +176,7 @@ Index and type names setted in query will override values the configuration file
     
    -
    
-   // delete a document
+    // delete a document
        
     ES::delete(3);
         
