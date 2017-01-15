@@ -61,12 +61,30 @@ Index and type names setted in query will override values the configuration file
     
 ##### Where clause
     
-    ES::where("id", 150)->get(); or ES::where("id", "=", 150)->get();
-    ES::where("id", ">", 150)->get();
-    ES::where("id", ">=", 150)->get();
-    ES::where("id", "<", 150)->get();
-    ES::where("id", "<=", 150)->get();
+    ES::where("views", 150)->get(); or ES::where("views", "=", 150)->get();
+
+##### Where greater than
+
+    ES::where("views", ">", 150)->get();
+    
+##### Where greater than or equal
+
+    ES::where("views", ">=", 150)->get();
+    
+##### Where less than
+
+    ES::where("views", "<", 150)->get();
+    
+##### Where greater than or equal
+
+    ES::where("views", "<=", 150)->get();
+    
+##### Where like
+
     ES::where("title", "like", "foo")->get();
+    
+##### Where field exists
+
     ES::where("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
     
 ##### Where in clause
@@ -81,29 +99,29 @@ Index and type names setted in query will override values the configuration file
     
 ##### Where not clause
     
-    ES::whereNot("id", 150)->get(); or ES::where("id", "=", 150)->get();
+    ES::whereNot("views", 150)->get(); or ES::where("views", "=", 150)->get();
 
-##### Where greater than
+##### Where not greater than
 
-    ES::whereNot("id", ">", 150)->get();
+    ES::whereNot("views", ">", 150)->get();
 
-##### Where greater than or equal
+##### Where not greater than or equal
 
-    ES::whereNot("id", ">=", 150)->get();
+    ES::whereNot("views", ">=", 150)->get();
     
-##### Where less than
+##### Where not less than
 
-    ES::whereNot("id", "<", 150)->get();
+    ES::whereNot("views", "<", 150)->get();
     
-##### Where less than or equal
+##### Where not less than or equal
 
-    ES::whereNot("id", "<=", 150)->get();
+    ES::whereNot("views", "<=", 150)->get();
     
-##### Where like
+##### Where not like
 
     ES::whereNot("title", "like", "foo")->get();
     
-##### Where field exists
+##### Where not field exists
 
     ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
     
