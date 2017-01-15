@@ -53,6 +53,12 @@ class Query
     protected $type;
 
     /**
+     * Query type key
+     * @var
+     */
+    protected $_id;
+
+    /**
      * Query body
      * @var array
      */
@@ -291,6 +297,22 @@ class Query
     }
 
     /**
+     * Filter by _id
+     * @param bool $_id
+     * @return $this
+     */
+    public function _id($_id = false)
+    {
+
+        $this->_id = $_id;
+
+        $this->filter[] = ["term" => ["_id" => $_id]];
+
+        return $this;
+
+    }
+
+    /**
      * set the query where clause
      * @param $name
      * @param string $operator
@@ -311,6 +333,11 @@ class Query
         }
 
         if ($operator == "=") {
+
+            if ($name == "_id") {
+                return $this->_id($value);
+            }
+
             $this->filter[] = ["term" => [$name => $value]];
         }
 
@@ -489,13 +516,21 @@ class Query
     /**
      * Search the entire document fields
      * @param null $q
+     * @param int $boost
      * @return $this
      */
-    public function search($q = NULL)
+    public function search($q = NULL, $boost = 1)
     {
 
         if ($q) {
-            $this->must[] = ["query_string" => ["query" => $q]];
+
+            $this->must[] = [
+                "query_string" => [
+                    "query" => $q,
+                    "boost" => $boost
+                ]
+            ];
+
         }
 
         return $this;
@@ -604,6 +639,7 @@ class Query
             $original = $row["_source"];
 
             $original["_id"] = $row["_id"];
+            $original["_score"] = $row["_score"];
 
             $new[] = (object)$original;
 
@@ -636,6 +672,7 @@ class Query
             $original = $data[0]["_source"];
 
             $original["_id"] = $data[0]["_id"];
+            $original["_score"] = $data[0]["_score"];
 
             $new = (object)$original;
 
@@ -667,21 +704,22 @@ class Query
     /**
      * Insert a document
      * @param $data
-     * @param null $id
+     * @param null $_id
      * @return object
      */
-    public function insert($data, $id = NULL)
+    public function insert($data, $_id = NULL)
     {
+
+        if ($_id) {
+            $this->_id = $_id;
+        }
 
         $parameters = [
             "index" => $this->getIndex(),
             "type" => $this->getType(),
+            "id" => $this->_id,
             "body" => $data
         ];
-
-        if ($id) {
-            $parameters["id"] = $id;
-        }
 
         return (object)$this->connection->index($parameters);
 
@@ -720,21 +758,79 @@ class Query
     /**
      * Update a document
      * @param $data
-     * @param null $id
+     * @param null $_id
      * @return object
      */
-    public function update($data, $id = NULL)
+    public function update($data, $_id = NULL)
+    {
+
+        if ($_id) {
+            $this->_id = $_id;
+        }
+
+        $parameters = [
+            "index" => $this->getIndex(),
+            "type" => $this->getType(),
+            "id" => $this->_id,
+            "body" => ['doc' => $data]
+        ];
+
+        return (object)$this->connection->update($parameters);
+
+    }
+
+
+    /**
+     * Increment a document field
+     * @param $field
+     * @param int $count
+     * @return object
+     */
+    public function increment($field, $count = 1)
+    {
+
+        return $this->script("ctx._source.$field += params.count", [
+            "count" => $count
+        ]);
+
+    }
+
+    /**
+     * Increment a document field
+     * @param $field
+     * @param int $count
+     * @return object
+     */
+    public function decrement($field, $count = 1)
+    {
+
+        return $this->script("ctx._source.$field -= params.count", [
+            "count" => $count
+        ]);
+
+    }
+
+
+    /**
+     * Update by script
+     * @param $script
+     * @param array $params
+     * @return object
+     */
+    public function script($script, $params = [])
     {
 
         $parameters = [
             "index" => $this->getIndex(),
             "type" => $this->getType(),
-            "body" => ['doc' => $data]
+            "id" => $this->_id,
+            "body" => [
+                "script" => [
+                    "inline" => $script,
+                    "params" => $params
+                ]
+            ]
         ];
-
-        if ($id) {
-            $parameters["id"] = $id;
-        }
 
         return (object)$this->connection->update($parameters);
 
@@ -742,16 +838,20 @@ class Query
 
     /**
      * Delete a document
-     * @param null $id
+     * @param null $_id
      * @return object
      */
-    public function delete($id = NULL)
+    public function delete($_id = NULL)
     {
+
+        if ($_id) {
+            $this->_id = $_id;
+        }
 
         $parameters = [
             "index" => $this->getIndex(),
             "type" => $this->getType(),
-            "id" => $id,
+            "id" => $this->_id,
             'client' => ['ignore' => [400, 404]]
         ];
 
@@ -768,8 +868,6 @@ class Query
     {
         return $this->connection;
     }
-
-
 
 
 }

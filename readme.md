@@ -42,6 +42,9 @@ Index and type names setted in query will override values the configuration file
 
 #### Available methods:
 
+##### Getting document by id
+
+    $documents = ES::_id(3)->get();
 
 ##### Sorting
     
@@ -79,11 +82,29 @@ Index and type names setted in query will override values the configuration file
 ##### Where not clause
     
     ES::whereNot("id", 150)->get(); or ES::where("id", "=", 150)->get();
+
+##### Where greater than
+
     ES::whereNot("id", ">", 150)->get();
+
+##### Where greater than or equal
+
     ES::whereNot("id", ">=", 150)->get();
+    
+##### Where less than
+
     ES::whereNot("id", "<", 150)->get();
+    
+##### Where less than or equal
+
     ES::whereNot("id", "<=", 150)->get();
+    
+##### Where like
+
     ES::whereNot("title", "like", "foo")->get();
+    
+##### Where field exists
+
     ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
     
 ##### Where not in clause
@@ -99,8 +120,12 @@ Index and type names setted in query will override values the configuration file
   
 ##### Search the entire document
     
+    
     ES::search("bar")->get();
     
+    # search with Boost = 2
+    
+    ES::search("bar", 2)->get();
     
   >
   
@@ -120,7 +145,7 @@ Index and type names setted in query will override values the configuration file
       
     $documents = ES::search("bar")->paginate(5);
     
-    // getting pagination links
+    # getting pagination links
     
     $documents->links();
     
@@ -133,26 +158,26 @@ Index and type names setted in query will override values the configuration file
         "index" => "my_index",
         "type"  => "my_type",
         "body"  => [
-             "query": [
-               "bool": [
-                 "must": [
-                   [ "match": [ "address": "mill" ] ],
-                   [ "match": [ "address": "lane" ] ] 
-                 ]
-               ]
-             ]
-           ]
-        ]);
+            "query": [
+            "bool": [
+                    "must": [
+                        [ "match": [ "address": "mill" ] ],
+                        [ "match": [ "address": "lane" ] ] 
+                    ]
+                ]
+            ]
+        ]
+    ]);
   
   
    >
    
 ##### Insert a new document
     
-    ES::insert([
+    ES::_id(3)->insert([
         "title" => "Test document",
-        "content" => "sample content"
-    ], 3);
+        "content" => "Sample content"
+    ]);
     
     
     A new document will be inserted with _id = 3.
@@ -167,11 +192,11 @@ Index and type names setted in query will override values the configuration file
      ES::bulk(
          10 => [
             "title" => "Test document 1",
-            "content" => "sample content 1"
+            "content" => "Sample content 1"
          ],
          11 => [
             "title" => "Test document 2",
-            "content" => "sample content 2"
+            "content" => "Sample content 2"
          ],
      );
      
@@ -181,11 +206,10 @@ Index and type names setted in query will override values the configuration file
    
 ##### Update an existing document
        
-    ES::update([
+    ES::_id(3)->update([
        "title" => "Test document",
        "content" => "sample content"
-    ], 3);
-        
+    ]);
         
     Document has _id = 3 will be updated.
     
@@ -193,9 +217,63 @@ Index and type names setted in query will override values the configuration file
     
    >
    
+##### Incrementing field
+       
+    ES::_id(3)->increment("views");
+        
+    Document has _id = 3 will be incremented by 1.
+    
+    ES::_id(3)->increment("views", 3);
+    
+    Document has _id = 3 will be incremented by 3.
+
+    [id is required]
+    
+   >
+   
+##### Decrementing field
+       
+    ES::_id(3)->decrement("views");
+        
+    Document has _id = 3 will be decremented by 1.
+    
+    ES::_id(3)->decrement("views", 3);
+    
+    Document has _id = 3 will be decremented by 3.
+
+    [id is required]
+    
+   >
+   
+##### Update using script
+       
+
+    # icrement field by script
+    
+    ES::_id(3)->script(
+        "ctx._source.$field -= params.count",
+        ["count" => 1]
+    );
+    
+    # add php tag to tags array list
+    
+    ES::_id(3)->script(
+        "ctx._source.tags.add(params.tag)",
+        ["tag" => "php"]
+    );
+    
+    # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
+    
+    ES::_id(3)->script(
+        "if (ctx._source.tags.contains(params.tag)) { ctx.op = \"delete\" } else { ctx.op = \"none\" }",
+        ["tag" => "mongodb"]
+    );
+    
+   >
+   
 ##### Delete a document
        
-    ES::delete(3);
+    ES::_id(3)->delete();
         
     Document has _id = 3 will be deleted.
     
