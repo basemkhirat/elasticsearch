@@ -22,9 +22,67 @@
 
   
   After publishing, the config file is placed here `config/es.php`
-  where you can add more than one elasticsearch server.
+  where you can add more than one elasticsearch node.
 
 
+#### Creating a new index
+
+    ES::index("my_index")->create();
+    
+    # or 
+    
+    ES::create("my_index");
+    
+    
+>
+
+    # [optional] you can create index with custom options
+    
+    ES::index("my_index")->create(function($index){
+            
+        $index->shards(5)->replicas(1)->mappping([
+            'my_type' => [
+                'properties' => [
+                    'first_name' => [
+                        'type' => 'string',
+                    ],
+                    'age' => [
+                        'type' => 'integer'
+                    ]
+                ]
+            ]
+        ])
+        
+    });
+    
+    # or
+    
+    ES::create("my_index", function($index){
+      
+          $index->shards(5)->replicas(1)->mappping([
+              'my_type' => [
+                  'properties' => [
+                      'first_name' => [
+                          'type' => 'string',
+                      ],
+                      'age' => [
+                          'type' => 'integer'
+                      ]
+                  ]
+              ]
+          ])
+      
+    });
+
+
+#### Dropping index
+
+    ES::index("my_index")->drop();
+        
+    # or
+    
+    ES::drop("my_index");
+    
 #### Running queries:
 
     $documents = ES::connection("default")
@@ -39,6 +97,7 @@ you can rewite the above query to
 the query builder will use the default connection, index, and type names setted in configuration file `es.php`. 
  
 Index and type names setted in query will override values the configuration file
+
 
 #### Available methods:
 

@@ -20,6 +20,12 @@ class Query
     public $connection;
 
     /**
+     * Ignored HTTP errors
+     * @var array
+     */
+    public $ignores = [400, 404, 500];
+
+    /**
      * Filter operators
      * @var array
      */
@@ -554,7 +560,9 @@ class Query
 
             "from" => $this->getSkip(),
 
-            "size" => $this->getTake()
+            "size" => $this->getTake(),
+
+            'client' => ['ignore' => $this->ignores]
 
         ];
 
@@ -718,7 +726,8 @@ class Query
             "index" => $this->getIndex(),
             "type" => $this->getType(),
             "id" => $this->_id,
-            "body" => $data
+            "body" => $data,
+            'client' => ['ignore' => $this->ignores]
         ];
 
         return (object)$this->connection->index($parameters);
@@ -772,7 +781,8 @@ class Query
             "index" => $this->getIndex(),
             "type" => $this->getType(),
             "id" => $this->_id,
-            "body" => ['doc' => $data]
+            "body" => ['doc' => $data],
+            'client' => ['ignore' => $this->ignores]
         ];
 
         return (object)$this->connection->update($parameters);
@@ -829,7 +839,8 @@ class Query
                     "inline" => $script,
                     "params" => $params
                 ]
-            ]
+            ],
+            'client' => ['ignore' => $this->ignores]
         ];
 
         return (object)$this->connection->update($parameters);
@@ -852,13 +863,12 @@ class Query
             "index" => $this->getIndex(),
             "type" => $this->getType(),
             "id" => $this->_id,
-            'client' => ['ignore' => [400, 404]]
+            'client' => ['ignore' => $this->ignores]
         ];
 
         return (object)$this->connection->delete($parameters);
 
     }
-
 
     /**
      * Return the native connection to execute native query
@@ -869,5 +879,67 @@ class Query
         return $this->connection;
     }
 
+
+    /**
+     * Create a new index
+     * @param $name
+     * @param bool $callback
+     * @return mixed
+     */
+    function createIndex($name, $callback = false){
+
+        $index = new Index($name, $callback);
+
+        $index->connection = $this->connection;
+
+        return $index->create();
+
+    }
+
+
+    /**
+     * Drop index
+     * @param $name
+     * @return mixed
+     */
+    function dropIndex($name){
+
+        $index = new Index($name);
+
+        $index->connection = $this->connection;
+
+        return $index->drop();
+
+    }
+
+
+    /**
+     * create a new index [alias to createIndex method]
+     * @param bool $callback
+     * @return mixed
+     */
+    function create($callback = false){
+
+        $index = new Index($this->index, $callback);
+
+        $index->connection = $this->connection;
+
+        return $index->create();
+
+    }
+
+    /**
+     * Drop index [alias to dropIndex method]
+     * @return mixed
+     */
+    function drop(){
+
+        $index = new Index($this->index);
+
+        $index->connection = $this->connection;
+
+        return $index->drop();
+
+    }
 
 }
