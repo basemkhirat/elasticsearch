@@ -40,7 +40,7 @@
     
     ES::index("my_index")->create(function($index){
             
-        $index->shards(5)->replicas(1)->mappping([
+        $index->shards(5)->replicas(1)->mapping([
             'my_type' => [
                 'properties' => [
                     'first_name' => [
@@ -59,7 +59,7 @@
     
     ES::create("my_index", function($index){
       
-          $index->shards(5)->replicas(1)->mappping([
+          $index->shards(5)->replicas(1)->mapping([
               'my_type' => [
                   'properties' => [
                       'first_name' => [
