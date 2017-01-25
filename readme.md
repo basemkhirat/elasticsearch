@@ -182,7 +182,7 @@ Index and type names setted in query will override values the configuration file
     
 ##### Where not field exists
 
-    ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
+    ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", false)->get();
     
 ##### Where not in clause
     
