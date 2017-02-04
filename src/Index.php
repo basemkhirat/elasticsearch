@@ -94,7 +94,6 @@ class Index
     }
 
     /**
-<<<<<<< HEAD
      * Ignore bad HTTP requests
      * @param array|int $code
      * @return $this
@@ -121,8 +120,6 @@ class Index
     }
 
     /**
-=======
->>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * Create a new index
      * @return mixed
      */
