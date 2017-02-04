@@ -40,7 +40,11 @@
     
     ES::index("my_index")->create(function($index){
             
+<<<<<<< HEAD
         $index->shards(5)->replicas(1)->mappping([
+=======
+        $index->shards(5)->replicas(1)->mapping([
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
             'my_type' => [
                 'properties' => [
                     'first_name' => [
@@ -59,7 +63,11 @@
     
     ES::create("my_index", function($index){
       
+<<<<<<< HEAD
           $index->shards(5)->replicas(1)->mappping([
+=======
+          $index->shards(5)->replicas(1)->mapping([
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
               'my_type' => [
                   'properties' => [
                       'first_name' => [
@@ -182,7 +190,11 @@ Index and type names setted in query will override values the configuration file
     
 ##### Where not field exists
 
+<<<<<<< HEAD
     ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", true)->get();
+=======
+    ES::whereNot("hobbies", "exists", true)->get(); or ES::whereExists("hobbies", false)->get();
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
     
 ##### Where not in clause
     
@@ -216,6 +228,7 @@ Index and type names setted in query will override values the configuration file
     
     ES::search("bar")->count();
     
+<<<<<<< HEAD
     
 ##### Scan-and-Scroll queries
     
@@ -245,6 +258,8 @@ Index and type names setted in query will override values the configuration file
     ES::scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
     
+=======
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
   >
     
 ##### Paginate results with per_page = 5
@@ -258,6 +273,7 @@ Index and type names setted in query will override values the configuration file
     
   >
   
+<<<<<<< HEAD
 ##### Ignoring bad HTTP response
       
     $documents = ES::ignore(404, 500)->_id(5)->first();
@@ -265,6 +281,8 @@ Index and type names setted in query will override values the configuration file
     
   >
   
+=======
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 ##### Executing elasticsearch raw queries
     
     ES::raw()->search([
@@ -395,4 +413,8 @@ Index and type names setted in query will override values the configuration file
 
 `Good luck`
 
+<<<<<<< HEAD
 `Dont forget to send a feedback..`
+=======
+`Dont forget to send a feedback..`
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44

@@ -2,8 +2,13 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+<<<<<<< HEAD
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+=======
+use Illuminate\Support\Collection;
+use Illuminate\Pagination\LengthAwarePaginator;
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 use Illuminate\Support\Facades\Request;
 
 /**
@@ -101,6 +106,7 @@ class Query
     protected $sort = [];
 
     /**
+<<<<<<< HEAD
      * Query scroll time
      * @var string
      */
@@ -119,6 +125,8 @@ class Query
     protected $search_type;
 
     /**
+=======
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * Query limit
      * @var int
      */
@@ -181,6 +189,7 @@ class Query
      */
     protected function getType()
     {
+<<<<<<< HEAD
 
         return $this->type;
 
@@ -245,6 +254,9 @@ class Query
 
         return $this->scroll;
 
+=======
+        return $this->type;
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
     }
 
     /**
@@ -261,6 +273,7 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Ignore bad HTTP response
      * @param array|int $code
      * @return $this
@@ -288,6 +301,9 @@ class Query
 
     /**
      * Get the query limit
+=======
+     * get the query limit
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @return int
      */
     protected function getTake()
@@ -426,7 +442,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query where clause
+=======
+     * set the query where clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param string $operator
      * @param null $value
@@ -483,7 +503,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query inverse where clause
+=======
+     * set the query inverse where clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param string $operator
      * @param null $value
@@ -535,7 +559,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query where between clause
+=======
+     * set the query where between clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param $first_value
      * @param $last_value
@@ -551,7 +579,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query where not between clause
+=======
+     * set the query where not between clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param $first_value
      * @param $last_value
@@ -567,7 +599,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query where in clause
+=======
+     * set the query where in clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param array $value
      * @return $this
@@ -587,7 +623,11 @@ class Query
     }
 
     /**
+<<<<<<< HEAD
      * Set the query where not in clause
+=======
+     * set the query where not in clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param array $value
      * @return $this
@@ -608,7 +648,11 @@ class Query
 
 
     /**
+<<<<<<< HEAD
      * Set the query where exists clause
+=======
+     * set the query where exists clause
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
      * @param $name
      * @param bool $exists
      * @return $this
@@ -673,6 +717,7 @@ class Query
 
         ];
 
+<<<<<<< HEAD
         $search_type = $this->getSearchType();
 
         if($search_type){
@@ -686,6 +731,8 @@ class Query
         }
 
 
+=======
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
         return $query;
 
     }
@@ -707,6 +754,7 @@ class Query
     }
 
 
+<<<<<<< HEAD
 
     /**
      * Clear scroll query id
@@ -750,6 +798,20 @@ class Query
 
             $result = $this->connection->search($query);
         }
+=======
+    /**
+     * Get the collection of results
+     * @return array|Collection
+     */
+    public function get()
+    {
+
+        $query = $this->query();
+
+        $this->validate($query);
+
+        $result = $this->connection->search($query);
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         return $this->getAll($result);
 
@@ -810,8 +872,12 @@ class Query
         $new->max_score = $result["hits"]["max_score"];
         $new->took = $result["took"];
         $new->timed_out = $result["timed_out"];
+<<<<<<< HEAD
         $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
         $new->shards = (object)$result["_shards"];
+=======
+        $new->_shards = (object)$result["_shards"];
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         return $new;
     }
@@ -1038,8 +1104,12 @@ class Query
      * @param bool $callback
      * @return mixed
      */
+<<<<<<< HEAD
     function createIndex($name, $callback = false)
     {
+=======
+    function createIndex($name, $callback = false){
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         $index = new Index($name, $callback);
 
@@ -1055,8 +1125,12 @@ class Query
      * @param $name
      * @return mixed
      */
+<<<<<<< HEAD
     function dropIndex($name)
     {
+=======
+    function dropIndex($name){
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         $index = new Index($name);
 
@@ -1072,8 +1146,12 @@ class Query
      * @param bool $callback
      * @return mixed
      */
+<<<<<<< HEAD
     function create($callback = false)
     {
+=======
+    function create($callback = false){
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         $index = new Index($this->index, $callback);
 
@@ -1087,8 +1165,12 @@ class Query
      * Drop index [alias to dropIndex method]
      * @return mixed
      */
+<<<<<<< HEAD
     function drop()
     {
+=======
+    function drop(){
+>>>>>>> 6fdc2f25787d06ee7bcbcfcd82f36e727c753e44
 
         $index = new Index($this->index);
 
