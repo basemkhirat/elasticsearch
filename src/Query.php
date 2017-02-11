@@ -426,6 +426,18 @@ class Query
     }
 
     /**
+     * Just an alias for _id() method
+     * @param bool $_id
+     * @return $this
+     */
+    public function id($_id = false)
+    {
+
+        return $this->_id($_id);
+
+    }
+
+    /**
      * Set the query where clause
      * @param $name
      * @param string $operator
