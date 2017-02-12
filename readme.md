@@ -11,9 +11,7 @@
 <p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png"></p>
 
 
-## Laravel elasticseach query builder to run complex queries with an elegant syntax
-
-
+## Laravel elasticseach query builder to build complex queries using an elegant syntax
 
 - Laravel [elasticsearch](https://www.elastic.co/products/elasticsearch) query builder inspired from Eloquent.
 - Keep away from wasting your time by replacing array queries with simple and elegant syntax you will love.
@@ -23,7 +21,6 @@
 - Awesome Pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
 - Feeling free to create, drop and mapping index fields.
 - Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
-
 
 
 ## Installation
