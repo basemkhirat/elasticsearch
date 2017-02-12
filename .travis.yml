@@ -5,6 +5,7 @@ language: php
 # Versions of PHP you want your project run with.
 
 php:
+  - 5.6.29
   - 7.0
   - 7.1
   - hhvm
