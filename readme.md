@@ -157,13 +157,13 @@ Have a look at [laravel Scout documentation](https://laravel.com/docs/5.4/scout#
                     ->type("my_type")
                     ->get();    # return collection of results
 
-You can rewite the above query to
+You can rewrite the above query to
 
-    $documents = ES::get();    // return collection of results
+    $documents = ES::get();    # return collection of results
     
 The query builder will use the default connection, index, and type names setted in configuration file `es.php`. 
  
-Index and type names setted in query will override values the configuration file.
+Index and type names setted in query overrides their values in `es.php`.
 
 
 ---
@@ -334,7 +334,7 @@ Index and type names setted in query will override values the configuration file
   
 ##### Getting the query array without execution
 
-	   $documents = ES::search("foo")->where("views", ">", 150)->query();
+	$documents = ES::search("foo")->where("views", ">", 150)->query();
   
 ##### Ignoring bad HTTP response
       
