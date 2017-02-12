@@ -492,6 +492,15 @@ Package comes with a built-in caching layer based on laravel cache.
 #### Author
 [Basem Khirat](http://basemkhirat.com) - [basemkhirat@gmail.com](mailto:basemkhirat@gmail.com) - [@basemkhirat](https://twitter.com/basemkhirat)  
 
+
+#### Bugs, Suggestions and Contributions
+
+Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors)
+who has contributed to this project!
+
+Please use [Github](https://github.com/basemkhirat/elasticsearch) for reporting bugs, 
+and making comments or suggestions.
+
 #### License
 
 MIT
