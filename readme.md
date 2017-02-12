@@ -1,6 +1,34 @@
-### Flexible elasticseach builder to run complex queries with an easier way.
+<p align="center">
 
-#####1) Install package via composer:
+<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
+
+<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/d/total.svg" alt="Total Downloads"></a>
+
+<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/license.svg" alt="License"></a>
+
+</p>
+
+<p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png"></p>
+
+
+## Laravel elasticseach query builder to run complex queries with an elegant syntax.
+
+
+
+- Laravel [elasticsearch](https://www.elastic.co/products/elasticsearch) query builder inspired from Eloquent.
+- Keep away from wasting your time by replacing array queries with simple and elegant syntax you will love.
+- Comes with [laravel 5.4](https://laravel.com/docs/5.4) and [laravel scout 3](https://laravel.com/docs/5.4/scout) support.
+- Dealing with multiple elasticsearch connections at the same time.
+- Support scan and scroll queries for dealing big data.
+- Awesome Pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
+- Feeling free to create, drop and mapping index fields.
+- Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
+
+
+
+## Installation
+
+#####1) Install package using composer:
 
 	composer require basemkhirat/elasticsearch
 
@@ -14,29 +42,71 @@
 	
 #####4) Publishing:
     
-    php artisan vendor:publish --provider="Basemkhirat\Elasticsearch\ElasticsearchServiceProvider"
+    php artisan vendor:publish
+
 	
-### Usage:
+## Configuration
+
 
 #### Setting your connections
 
   
-  After publishing, the config file is placed here `config/es.php`
-  where you can add more than one elasticsearch node.
+  After publishing, two configuration files will be created.
+  
+  - `config/es.php` where you can add more than one elasticsearch server.
 
+```
+
+ 'default' => env('ELASTIC_CONNECTION', 'default'),
+
+ 'connections' => [
+    'default' => [
+        'servers' => [
+            [
+                "host" => env("ELASTIC_HOST", "127.0.0.1"),
+                "port" => env("ELASTIC_PORT", 9200),
+                'user' => env('ELASTIC_USER', ''),
+                'pass' => env('ELASTIC_PASS', ''),
+                'scheme' => env('ELASTIC_SCHEME', 'http'),
+            ]
+        ],
+        'index' => env('ELASTIC_INDEX', 'my_index'),
+        'type' => env('ELASTIC_TYPE', 'my_type'),
+    ]
+]
+
+```
+  
+  - `config/scout.php` where you can use package as a laravel scout driver.
+
+
+All you have to do is updating these lines in `config/scout.php` configuration file.
+
+	
+	# change the default driver to `es`
+	
+	'driver' => env('SCOUT_DRIVER', 'es'),
+	
+	# link `es` driver with default elasticsearch connection in config/es.php
+	
+	'es' => [
+        'connection' => env('ELASTIC_CONNECTION', 'default'),
+    ],
+
+Have a look at [laravel Scout documentation](https://laravel.com/docs/5.4/scout#configuration).
+
+## Usage
 
 #### Creating a new index
 
-    ES::index("my_index")->create();
+    ES::create("my_index");
     
     # or 
     
-    ES::create("my_index");
+    ES::index("my_index")->create();
     
     
->
-
-    # [optional] you can create index with custom options
+##### Creating index with custom options (optional)
     
     ES::index("my_index")->create(function($index){
             
@@ -77,37 +147,44 @@
 
 #### Dropping index
 
-    ES::index("my_index")->drop();
+    ES::drop("my_index");
         
     # or
     
-    ES::drop("my_index");
+    ES::index("my_index")->drop();
     
-#### Running queries:
+#### Running queries
 
     $documents = ES::connection("default")
                     ->index("my_index")
                     ->type("my_type")
-                    ->get();    // return collection of results
+                    ->get();    # return collection of results
 
-you can rewite the above query to
+You can rewite the above query to
 
     $documents = ES::get();    // return collection of results
     
-the query builder will use the default connection, index, and type names setted in configuration file `es.php`. 
+The query builder will use the default connection, index, and type names setted in configuration file `es.php`. 
  
-Index and type names setted in query will override values the configuration file
+Index and type names setted in query will override values the configuration file.
 
 
-#### Available methods:
+---
 
 ##### Getting document by id
 
+    $documents = ES::id(3)->get();
+    
+    # or
+    
     $documents = ES::_id(3)->get();
 
 ##### Sorting
     
     $documents = ES::orderBy("created_at", "desc")->get();
+    
+    # Sorting with text search score
+    
     $documents = ES::orderBy("_score")->get();
     
 ##### Limit and offset
@@ -219,7 +296,7 @@ Index and type names setted in query will override values the configuration file
     
 ##### Scan-and-Scroll queries
     
-    These queries are suitable for large amount of data. 
+ These queries are suitable for large amount of data. 
     A scrolled search allows you to do an initial search and to keep pulling batches of results
     from Elasticsearch until there are no more results left. It’s a bit like a cursor in a traditional database
     
@@ -228,19 +305,19 @@ Index and type names setted in query will override values the configuration file
                     ->take(1000)
                     ->get();
                     
-    Response will contain a hashed code `scroll_id` will be used to get the next result by running
+  Response will contain a hashed code `scroll_id` will be used to get the next result by running
     
     $documents = ES::search("my_index")
                         ->scroll("2m")
                         ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                         ->get();
                         
-    And so on ...
+   And so on ...
     
-    NOTE: you don't need to write the query parameters in every scroll.
+   Note that you don't need to write the query parameters in every scroll.
     All you need the `scroll_id` and query scroll time.
     
-    To clear scroll id 
+   To clear `scroll_id` 
     
     ES::scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
@@ -258,13 +335,38 @@ Index and type names setted in query will override values the configuration file
     
   >
   
+##### Getting the query array without execution
+
+	   $documents = ES::search("foo")->where("views", ">", 150)->query();
+  
 ##### Ignoring bad HTTP response
       
-    $documents = ES::ignore(404, 500)->_id(5)->first();
+    $documents = ES::ignore(404, 500)->id(5)->first();
     
     
   >
   
+  
+##### Query Caching 
+
+Package comes with a built-in caching layer based on laravel cache.
+
+	ES::search("foo")->remember(10)->get();
+	
+	# you can specify a custom cache key
+
+	ES::search("foo")->remember(10, "last_documents")->get();
+	
+	# Caching using other available driver
+	
+	ES::search("foo")->cacheDriver("redis")->remember(10, "last_documents")->get();
+	
+	# Caching with cache key prefix
+	
+	ES::search("foo")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
+	
+   
+
 ##### Executing elasticsearch raw queries
     
     ES::raw()->search([
@@ -287,7 +389,7 @@ Index and type names setted in query will override values the configuration file
    
 ##### Insert a new document
     
-    ES::_id(3)->insert([
+    ES::id(3)->insert([
         "title" => "Test document",
         "content" => "Sample content"
     ]);
@@ -319,7 +421,7 @@ Index and type names setted in query will override values the configuration file
    
 ##### Update an existing document
        
-    ES::_id(3)->update([
+    ES::id(3)->update([
        "title" => "Test document",
        "content" => "sample content"
     ]);
@@ -332,11 +434,11 @@ Index and type names setted in query will override values the configuration file
    
 ##### Incrementing field
        
-    ES::_id(3)->increment("views");
+    ES::id(3)->increment("views");
         
     Document has _id = 3 will be incremented by 1.
     
-    ES::_id(3)->increment("views", 3);
+    ES::id(3)->increment("views", 3);
     
     Document has _id = 3 will be incremented by 3.
 
@@ -346,11 +448,11 @@ Index and type names setted in query will override values the configuration file
    
 ##### Decrementing field
        
-    ES::_id(3)->decrement("views");
+    ES::id(3)->decrement("views");
         
     Document has _id = 3 will be decremented by 1.
     
-    ES::_id(3)->decrement("views", 3);
+    ES::id(3)->decrement("views", 3);
     
     Document has _id = 3 will be decremented by 3.
 
@@ -363,22 +465,22 @@ Index and type names setted in query will override values the configuration file
 
     # icrement field by script
     
-    ES::_id(3)->script(
+    ES::id(3)->script(
         "ctx._source.$field -= params.count",
         ["count" => 1]
     );
     
     # add php tag to tags array list
     
-    ES::_id(3)->script(
+    ES::id(3)->script(
         "ctx._source.tags.add(params.tag)",
         ["tag" => "php"]
     );
     
     # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
     
-    ES::_id(3)->script(
-        "if (ctx._source.tags.contains(params.tag)) { ctx.op = \"delete\" } else { ctx.op = \"none\" }",
+    ES::id(3)->script(
+        "if (ctx._source.tags.contains(params.tag)) { ctx.op = "delete" } else { ctx.op = "none" }",
         ["tag" => "mongodb"]
     );
     
@@ -386,13 +488,11 @@ Index and type names setted in query will override values the configuration file
    
 ##### Delete a document
        
-    ES::_id(3)->delete();
+    ES::id(3)->delete();
         
     Document has _id = 3 will be deleted.
     
     [id is required]
     
 
-`Good luck`
-
-`Dont forget to send a feedback..`
+`Have a happy searching.. `

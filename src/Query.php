@@ -4,6 +4,7 @@ namespace Basemkhirat\Elasticsearch;
 
 use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Request;
 
 /**
@@ -129,6 +130,35 @@ class Query
      * @var int
      */
     protected $skip = 0;
+
+    /**
+     * The key that should be used when caching the query.
+     *
+     * @var string
+     */
+    protected $cacheKey;
+
+    /**
+     * The number of minutes to cache the query.
+     *
+     * @var int
+     */
+    protected $cacheMinutes;
+
+    /**
+     * The cache driver to be used.
+     *
+     * @var string
+     */
+    protected $cacheDriver;
+
+    /**
+     * A cache prefix.
+     *
+     * @var string
+     */
+    protected $cachePrefix = 'es';
+
 
     /**
      * Query constructor.
@@ -687,13 +717,13 @@ class Query
 
         $search_type = $this->getSearchType();
 
-        if($search_type){
+        if ($search_type) {
             $query["search_type"] = $search_type;
         }
 
         $scroll = $this->getScroll();
 
-        if($scroll){
+        if ($scroll) {
             $query["scroll"] = $scroll;
         }
 
@@ -717,7 +747,6 @@ class Query
             return $this->app->abort(500, "Type missing " . json_encode($query));
         }
     }
-
 
 
     /**
@@ -745,6 +774,61 @@ class Query
     public function get($scroll_id = NULL)
     {
 
+        $result = $this->getResult($scroll_id);
+
+        return $this->getAll($result);
+
+    }
+
+    /**
+     * Get the first object of results
+     * @param string $scroll_id
+     * @return object
+     */
+    public function first($scroll_id = NULL)
+    {
+
+        $this->take(1);
+
+        $result = $this->getResult($scroll_id);
+
+        return $this->getFirst($result);
+
+    }
+
+
+    /**
+     * Get query result
+     * @param $scroll_id
+     * @return mixed
+     */
+    protected function getResult($scroll_id)
+    {
+
+        if (is_null($this->cacheMinutes)) {
+
+            $result = $this->getLiveResult($scroll_id);
+
+        } else {
+
+            $result = Cache::driver($this->cacheDriver)->get($this->getCacheKey());
+
+            if (is_null($result)) {
+
+                $result = $this->getLiveResult($scroll_id);
+
+            }
+
+        }
+
+        return $result;
+
+    }
+
+
+    protected function getLiveResult($scroll_id = NULL)
+    {
+
         $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
 
         if ($scroll_id) {
@@ -763,7 +847,11 @@ class Query
             $result = $this->connection->search($query);
         }
 
-        return $this->getAll($result);
+        if (!is_null($this->cacheMinutes)) {
+            Cache::driver($this->cacheDriver)->put($this->getCacheKey(), $result, $this->cacheMinutes);
+        }
+
+        return $result;
 
     }
 
@@ -776,25 +864,6 @@ class Query
         return $this->get()->total;
     }
 
-
-    /**
-     * Get the first object of results
-     * @return object
-     */
-    public function first()
-    {
-
-        $this->take(1);
-
-        $query = $this->query();
-
-        $this->validate($query);
-
-        $result = $this->connection->search($query);
-
-        return $this->getFirst($result);
-
-    }
 
     /**
      * @param array $result
@@ -1078,7 +1147,6 @@ class Query
 
     }
 
-
     /**
      * create a new index [alias to createIndex method]
      * @param bool $callback
@@ -1107,6 +1175,86 @@ class Query
         $index->connection = $this->connection;
 
         return $index->drop();
+
+    }
+
+    /* Caching Methods */
+
+    /**
+     * Indicate that the results, if cached, should use the given cache driver.
+     *
+     * @param  string $cacheDriver
+     * @return $this
+     */
+    public function cacheDriver($cacheDriver)
+    {
+        $this->cacheDriver = $cacheDriver;
+        return $this;
+    }
+
+    /**
+     * Set the cache prefix.
+     *
+     * @param string $prefix
+     *
+     * @return $this
+     */
+    public function CachePrefix($prefix)
+    {
+        $this->cachePrefix = $prefix;
+        return $this;
+    }
+
+
+    /**
+     * Get a unique cache key for the complete query.
+     *
+     * @return string
+     */
+    public function getCacheKey()
+    {
+        return $this->cachePrefix . ':' . ($this->cacheKey ?: $this->generateCacheKey());
+    }
+
+
+    /**
+     * Generate the unique cache key for the query.
+     *
+     * @return string
+     */
+    public function generateCacheKey()
+    {
+
+        return md5(json_encode($this->query()));
+
+    }
+
+    /**
+     * Indicate that the query results should be cached.
+     *
+     * @param  \DateTime|int $minutes
+     * @param  string $key
+     * @return $this
+     */
+    public function remember($minutes, $key = null)
+    {
+
+        list($this->cacheMinutes, $this->cacheKey) = [$minutes, $key];
+
+        return $this;
+
+    }
+
+    /**
+     * Indicate that the query results should be cached forever.
+     *
+     * @param  string $key
+     * @return \Illuminate\Database\Query\Builder|static
+     */
+    public function rememberForever($key = null)
+    {
+
+        return $this->remember(-1, $key);
 
     }
 

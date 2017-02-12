@@ -1,9 +1,14 @@
 {
     "name": "basemkhirat/elasticsearch",
-    "description": "Elasticsearch query builder",
-    "keywords": ["elasticsearch", "full text", "builder", "laravel"],
+
+    "description": "laravel elasticsearch query builder",
+
+    "keywords": ["elasticsearch", "laravel", "scout", "fulltext", "indexing",  "builder"],
+
     "license": "MIT",
+
     "type": "package",
+
     "authors": [
         {
             "name": "basemkhirat",
@@ -19,6 +24,7 @@
 
     "require": {
         "elasticsearch/elasticsearch": "5.0.0",
+        "laravel/scout": "3.0.0",
         "illuminate/pagination": "*",
         "illuminate/support": "*"
     }
