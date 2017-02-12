@@ -1,21 +1,11 @@
-# Required to run your project under the correct environment.
-
 language: php
 
-# Versions of PHP you want your project run with.
-
 php:
-  - 5.6.29
   - 7.0
   - 7.1
-  - hhvm
-
-# Commands to be run before your environment runs.
 
 before_script:
   - composer self-update
   - composer install --prefer-source --no-interaction
-
-# Commands you want to run that will verify your build.
 
 script: phpunit tests/ESTest
