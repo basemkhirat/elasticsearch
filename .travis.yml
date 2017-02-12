@@ -1,0 +1,21 @@
+# Required to run your project under the correct environment.
+
+language: php
+
+# Versions of PHP you want your project run with.
+
+php:
+  - 5.4
+  - 5.5
+  - 5.6
+  - hhvm
+
+# Commands to be run before your environment runs.
+
+before_script:
+  - composer self-update
+  - composer install --prefer-source --no-interaction --dev
+
+# Commands you want to run that will verify your build.
+
+script: phpunit
