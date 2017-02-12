@@ -25,19 +25,19 @@
 
 ## Installation
 
-#####1) Install package using composer:
+##### 1) Install package using composer:
 
 	composer require basemkhirat/elasticsearch
 
-#####2) Add package service provider:
+##### 2) Add package service provider:
 
 	Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class
 	
-#####3) Add package alias:
+##### 3) Add package alias:
 
 	'ES' => Basemkhirat\Elasticsearch\Facades\ES::class
 	
-#####4) Publishing:
+##### 4) Publishing:
     
     php artisan vendor:publish
 
