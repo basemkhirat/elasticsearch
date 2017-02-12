@@ -491,5 +491,11 @@ Package comes with a built-in caching layer based on laravel cache.
     
     [id is required]
     
+#### Author
+[Basem Khirat](http://basemkhirat.com) - [basemkhirat@gmail.com](mailto:basemkhirat@gmail.com) - [@basemkhirat](https://twitter.com/basemkhirat)  
+
+#### License
+
+MIT
 
 `Have a happy searching.. `
