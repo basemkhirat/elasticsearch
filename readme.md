@@ -44,9 +44,6 @@
 	
 ## Configuration
 
-
-#### Setting your connections
-
   
   After publishing, two configuration files will be created.
   
