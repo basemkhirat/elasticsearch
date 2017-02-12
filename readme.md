@@ -11,7 +11,7 @@
 <p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png"></p>
 
 
-## Laravel elasticseach query builder to run complex queries with an elegant syntax.
+## Laravel elasticseach query builder to run complex queries with an elegant syntax
 
 
 
