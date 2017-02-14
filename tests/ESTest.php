@@ -1,8 +1,6 @@
 <?php
 
-use PHPUnit\Framework\TestCase;
-
-class ESTest extends TestCase
+class ESTest extends PHPUnit_Framework_TestCase
 {
 
     /**
