@@ -15,7 +15,7 @@
 
 ## Laravel elasticseach query builder to build complex queries using an elegant syntax
 
-- Keep away from wasting your time by replacing array queries with simple and elegant syntax you will love.
+- Keep away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
 - Comes with [laravel 5.4](https://laravel.com/docs/5.4) and [laravel scout 3](https://laravel.com/docs/5.4/scout) support.
 - Dealing with multiple elasticsearch connections at the same time.
 - Support scan and scroll queries for dealing big data.
@@ -332,7 +332,7 @@ Index and type names setted in query overrides their values in `es.php`.
   
 ##### Getting the query array without execution
 
-	$documents = ES::search("foo")->where("views", ">", 150)->query();
+	$query = ES::search("foo")->where("views", ">", 150)->query();
   
 ##### Ignoring bad HTTP response
       
