@@ -25,7 +25,7 @@
     "require": {
         "php": ">=5.6.7",
         "elasticsearch/elasticsearch": "5.0.0",
-        "laravel/scout": "*",
+        "laravel/scout": "2.*",
         "illuminate/pagination": "*",
         "illuminate/support": "*"
     },
