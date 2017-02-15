@@ -13,9 +13,10 @@
 <p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png"></p>
 
 
-## Laravel elasticseach query builder to build complex queries using an elegant syntax
+## Laravel and Lumen elasticseach query builder to build complex queries using an elegant syntax
 
 - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
+- Lumen framework support.
 - Supports [laravel 5.4](https://laravel.com/docs/5.4) and can be used as a  [laravel scout](https://laravel.com/docs/5.4/scout) driver.
 - Dealing with multiple elasticsearch connections at the same time.
 - Supports scan and scroll queries for dealing big data.
@@ -25,30 +26,55 @@
 
 ## Requirements
 
-- php >= 5.6.6 
+- `php` >= 5.6.6 
   
   See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
 
-- laravel/laravel >= 5.3
+- `laravel/laravel` >= 5.3 or `laravel/lumen` >= 5.3
 
 ## Installation
 
-##### 1) Install package using composer:
+### <u>Laravel Installation</u>
+
+
+##### 1) Install package using composer.
 
 	composer require basemkhirat/elasticsearch
 
-##### 2) Add package service provider:
+##### 2) Add package service provider.
 
 	Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class
 	
-##### 3) Add package alias:
+##### 3) Add package alias.
 
 	'ES' => Basemkhirat\Elasticsearch\Facades\ES::class
 	
-##### 4) Publishing:
+##### 4) Publishing.
     
     php artisan vendor:publish --provider="Basemkhirat\Elasticsearch\ElasticsearchServiceProvider"
 
+
+### <u>Lumen Installation</u>
+
+##### 1) Install package using composer.
+
+	composer require basemkhirat/elasticsearch
+
+##### 2) Add package service provider in `bootstrap/app.php`.
+
+	$app->register(Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class);
+	
+##### 3) Copy package config directory `vendor/basemkhirat/elasticsearch/src/config` to root folder alongside with `app` directory.
+	
+##### 4) Making Lumen read our configuration files by adding these lines in `bootstrap/app.php` before returning Lumen `$app` instance.
+
+	$app->configure("es");
+	$app->configure("scout");
+	
+##### 5) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
+
+	$app->withFacades();
+   
 	
 ## Configuration
 
