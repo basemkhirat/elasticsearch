@@ -15,10 +15,10 @@
 
 ## Laravel elasticseach query builder to build complex queries using an elegant syntax
 
-- Keep away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
+- Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
 - Supports [laravel 5.4](https://laravel.com/docs/5.4) and can be used as a  [laravel scout](https://laravel.com/docs/5.4/scout) driver.
 - Dealing with multiple elasticsearch connections at the same time.
-- Support scan and scroll queries for dealing big data.
+- Supports scan and scroll queries for dealing big data.
 - Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
 - Feeling free to create, drop and mapping index fields.
 - Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
@@ -465,10 +465,10 @@ Package comes with a built-in caching layer based on laravel cache.
 ##### Update using script
        
 
-    # icrement field by script
+    # increment field by script
     
     ES::id(3)->script(
-        "ctx._source.$field -= params.count",
+        "ctx._source.$field += params.count",
         ["count" => 1]
     );
     
@@ -482,7 +482,7 @@ Package comes with a built-in caching layer based on laravel cache.
     # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
     
     ES::id(3)->script(
-        "if (ctx._source.tags.contains(params.tag)) { ctx.op = "delete" } else { ctx.op = "none" }",
+        "if (ctx._source.tags.contains(params.tag)) { ctx.op = 'delete' } else { ctx.op = 'none' }",
         ["tag" => "mongodb"]
     );
     
