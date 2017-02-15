@@ -3,7 +3,7 @@
 
     "description": "laravel elasticsearch query builder",
 
-    "keywords": ["elasticsearch", "laravel", "scout", "fulltext", "indexing",  "builder"],
+    "keywords": ["elasticsearch", "laravel", "lumen", "scout", "fulltext", "indexing",  "builder"],
 
     "license": "MIT",
 
