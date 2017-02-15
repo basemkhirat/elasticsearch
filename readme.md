@@ -499,13 +499,13 @@ Package comes with a built-in caching layer based on laravel cache.
 
 ## Releases
 
-  See [Chanage Log](https://github.com/basemkhirat/elasticsearch/blob/master/CHANGELOG.md)
+  See [Change Log](https://github.com/basemkhirat/elasticsearch/blob/master/CHANGELOG.md).
 
-### Author
+## Author
 [Basem Khirat](http://basemkhirat.com) - [basemkhirat@gmail.com](mailto:basemkhirat@gmail.com) - [@basemkhirat](https://twitter.com/basemkhirat)  
 
 
-### Bugs, Suggestions and Contributions
+## Bugs, Suggestions and Contributions
 
 Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors)
 who has contributed to this project!
@@ -513,8 +513,8 @@ who has contributed to this project!
 Please use [Github](https://github.com/basemkhirat/elasticsearch) for reporting bugs, 
 and making comments or suggestions.
 
-### License
+## License
 
 MIT
 
-`Have a happy searching.. `
+`Have a happy searching..`
