@@ -496,6 +496,11 @@ Package comes with a built-in caching layer based on laravel cache.
     
     [id is required]
     
+
+## Releases
+
+  See [Chanage Log](https://github.com/basemkhirat/elasticsearch/blob/master/CHANGELOG.md)
+
 ### Author
 [Basem Khirat](http://basemkhirat.com) - [basemkhirat@gmail.com](mailto:basemkhirat@gmail.com) - [@basemkhirat](https://twitter.com/basemkhirat)  
 
