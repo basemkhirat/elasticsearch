@@ -57,11 +57,11 @@ All notable changes to this project will be documented in this file.
 
 
 [Released]: https://github.com/basemkhirat/elasticsearch/compare/0.7.2...HEAD
-[0.7.2]: https://github.com/basemkhirat/elasticsearch/compare/0.7.2...0.7.1
-[0.7.1]: https://github.com/basemkhirat/elasticsearch/compare/0.7.2...0.7
-[0.7]: https://github.com/basemkhirat/elasticsearch/compare/0.7...0.6
-[0.6]: https://github.com/basemkhirat/elasticsearch/compare/0.6...0.5
-[0.5]: https://github.com/basemkhirat/elasticsearch/compare/0.5...0.4
-[0.4]: https://github.com/basemkhirat/elasticsearch/compare/0.4...0.3
-[0.3]: https://github.com/basemkhirat/elasticsearch/compare/0.3...0.2
-[0.2]: https://github.com/basemkhirat/elasticsearch/compare/0.2...0.1
+[0.7.2]: https://github.com/basemkhirat/elasticsearch/compare/0.7.1...0.7.2
+[0.7.1]: https://github.com/basemkhirat/elasticsearch/compare/0.7...0.7.1
+[0.7]: https://github.com/basemkhirat/elasticsearch/compare/0.6...0.7
+[0.6]: https://github.com/basemkhirat/elasticsearch/compare/0.5...0.6
+[0.5]: https://github.com/basemkhirat/elasticsearch/compare/0.4...0.5
+[0.4]: https://github.com/basemkhirat/elasticsearch/compare/0.3...0.4
+[0.3]: https://github.com/basemkhirat/elasticsearch/compare/0.2...0.3
+[0.2]: https://github.com/basemkhirat/elasticsearch/compare/0.1...0.2
