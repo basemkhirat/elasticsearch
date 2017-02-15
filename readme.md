@@ -47,7 +47,7 @@
 	
 ##### 4) Publishing:
     
-    php artisan vendor:publish
+    php artisan vendor:publish --provider="Basemkhirat\Elasticsearch\ElasticsearchServiceProvider"
 
 	
 ## Configuration
