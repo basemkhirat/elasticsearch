@@ -465,10 +465,10 @@ Package comes with a built-in caching layer based on laravel cache.
 ##### Update using script
        
 
-    # icrement field by script
+    # increment field by script
     
     ES::id(3)->script(
-        "ctx._source.$field -= params.count",
+        "ctx._source.$field += params.count",
         ["count" => 1]
     );
     
@@ -482,7 +482,7 @@ Package comes with a built-in caching layer based on laravel cache.
     # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
     
     ES::id(3)->script(
-        "if (ctx._source.tags.contains(params.tag)) { ctx.op = "delete" } else { ctx.op = "none" }",
+        "if (ctx._source.tags.contains(params.tag)) { ctx.op = 'delete' } else { ctx.op = 'none' }",
         ["tag" => "mongodb"]
     );
     
