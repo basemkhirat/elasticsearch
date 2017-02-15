@@ -18,7 +18,7 @@
 - Keep away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
 - Supports [laravel 5.4](https://laravel.com/docs/5.4) and can be used as a  [laravel scout](https://laravel.com/docs/5.4/scout) driver.
 - Dealing with multiple elasticsearch connections at the same time.
-- Support scan and scroll queries for dealing big data.
+- Supports scan and scroll queries for dealing big data.
 - Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
 - Feeling free to create, drop and mapping index fields.
 - Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
