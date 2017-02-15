@@ -34,7 +34,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         // Resolve Laravel Scout engine.
 
-        resolve(EngineManager::class)->extend('es', function () {
+        $this->app->make(EngineManager::class)->extend('es', function () {
 
             $config = config('es.connections.' . config('scout.es.connection'));
 

@@ -17,9 +17,14 @@
     ],
 
     "autoload": {
+
         "psr-4" : {
             "Basemkhirat\\Elasticsearch\\": "src/"
-        }
+        },
+
+        "files": [
+            "src/helpers.php"
+        ]
     },
 
     "require": {
