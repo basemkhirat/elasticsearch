@@ -74,6 +74,12 @@
 ##### 5) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
 
 	$app->withFacades();
+
+If you don't want to enable working with Lumen facades you can access the query builder using `app("es")`.
+
+	app("es")->index("my_index")->type("my_type")->get();
+	# is similar to 
+	ES::index("my_index")->type("my_type")->get();
    
 	
 ## Configuration
