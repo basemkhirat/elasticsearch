@@ -5,15 +5,15 @@ namespace Basemkhirat\Elasticsearch;
 use Elasticsearch\ClientBuilder;
 
 /**
- * Class Builder
- * @package Basemkhirat\Elasticsearch\Builder
+ * Class Connection
+ * @package Basemkhirat\Elasticsearch
  */
 class Connection
 {
 
     /**
      * Laravel app instance
-     * @var \Illuminate\Foundation\Application
+     * @var \Illuminate\Foundation\Application|mixed
      */
     protected $app;
 
@@ -46,9 +46,36 @@ class Connection
         $this->config = $this->app['config']['es'];
     }
 
+    /**
+     * Create a native connection
+     * suitable for any non-laravel or non-lumen apps
+     * any composer based frameworks
+     * @param $config
+     * @return Query
+     */
+    public static function create($config)
+    {
+
+        $clientBuilder = ClientBuilder::create();
+
+        $clientBuilder->setHosts($config["servers"]);
+
+        $query = new Query($clientBuilder->build());
+
+        if (array_key_exists("index", $config) and $config["index"] != "") {
+            $query->index($config["index"]);
+        }
+
+        if (array_key_exists("type", $config) and $config["type"] != "") {
+            $query->type($config["type"]);
+        }
+
+        return $query;
+    }
+
 
     /**
-     * Create a connection
+     * Create a connection for laravel or lumen frameworks
      * @param $name
      * @return Query
      */
@@ -90,7 +117,7 @@ class Connection
 
 
     /**
-     * route the request to query class
+     * route the request to the query class
      * @param $connection
      * @return Query
      */

@@ -166,7 +166,6 @@ class Query
      */
     function __construct($connection)
     {
-        $this->app = app();
         $this->connection = $connection;
     }
 
@@ -703,8 +702,6 @@ class Query
 
             'index' => $this->getIndex(),
 
-            'type' => $this->getType(),
-
             'body' => $this->getBody(),
 
             "from" => $this->getSkip(),
@@ -714,6 +711,10 @@ class Query
             'client' => ['ignore' => $this->ignores]
 
         ];
+
+        if ($this->getType()) {
+            $query["type"] = $this->getType();
+        }
 
         $search_type = $this->getSearchType();
 
@@ -731,23 +732,6 @@ class Query
         return $query;
 
     }
-
-
-    /**
-     * Validate index and type names
-     * @param $query
-     */
-    protected function validate($query)
-    {
-        if (!$this->index) {
-            return $this->app->abort(500, "Index missing " . json_encode($query));
-        }
-
-        if (!$this->type) {
-            return $this->app->abort(500, "Type missing " . json_encode($query));
-        }
-    }
-
 
     /**
      * Clear scroll query id
@@ -841,8 +825,6 @@ class Query
         } else {
 
             $query = $this->query();
-
-            $this->validate($query);
 
             $result = $this->connection->search($query);
         }
