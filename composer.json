@@ -1,9 +1,9 @@
 {
     "name": "basemkhirat/elasticsearch",
 
-    "description": "laravel elasticsearch query builder",
+    "description": "Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax",
 
-    "keywords": ["elasticsearch", "laravel", "lumen", "scout", "fulltext", "indexing",  "builder"],
+    "keywords": ["elasticsearch", "php", "laravel", "lumen", "scout", "fulltext", "indexing",  "builder"],
 
     "license": "MIT",
 

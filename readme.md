@@ -13,10 +13,11 @@
 <p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png"></p>
 
 
-## Laravel and Lumen elasticseach query builder to build complex queries using an elegant syntax
+## Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax
 
 - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
 - Lumen framework support.
+- Native php and composer based applications support.
 - Supports [laravel 5.4](https://laravel.com/docs/5.4) and can be used as a  [laravel scout](https://laravel.com/docs/5.4/scout) driver.
 - Dealing with multiple elasticsearch connections at the same time.
 - Supports scan and scroll queries for dealing big data.
@@ -81,7 +82,44 @@ If you don't want to enable working with Lumen facades you can access the query 
 	# is similar to 
 	ES::index("my_index")->type("my_type")->get();
    
-	
+   
+
+### <u>Composer Installation</u>
+
+You can install package with any composer-based applications
+
+##### 1) Install package using composer.
+
+	composer require basemkhirat/elasticsearch
+
+##### 2) Creating a connection.
+
+```
+require "vendor/autoload.php";
+
+use Basemkhirat\Elasticsearch\Connection;
+
+$connection = Connection::create([
+    'servers' => [
+        [
+            "host" => '127.0.0.1',
+            "port" => 9200,
+            'user' => '',
+            'pass' => '',
+            'scheme' => 'http',
+        ]
+    ],
+    'index' => 'my_index',
+    'type' => 'my_type',
+]);
+
+# access the query builder using created connection
+
+$documents = $connection->search("hello")->get();
+
+```
+
+
 ## Configuration
 
   
