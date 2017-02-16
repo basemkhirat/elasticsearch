@@ -197,8 +197,6 @@ The query builder will use the default connection, index, and type names setted 
 Index and type names setted in query overrides their values in `es.php`.
 
 
----
-
 ##### Getting document by id
 
     $documents = ES::id(3)->get();
