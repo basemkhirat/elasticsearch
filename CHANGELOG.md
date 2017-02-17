@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.7.5] - 2017-02-17
+### fixed
+- fix query caching for lumen.
+
 ## [0.7.4] - 2017-02-17
 ### Added
 - add composer based applications support.
