@@ -795,7 +795,7 @@ class Query
 
         } else {
 
-            $result = Cache::driver($this->cacheDriver)->get($this->getCacheKey());
+            $result = app("cache")->driver($this->cacheDriver)->get($this->getCacheKey());
 
             if (is_null($result)) {
 
@@ -830,7 +830,7 @@ class Query
         }
 
         if (!is_null($this->cacheMinutes)) {
-            Cache::driver($this->cacheDriver)->put($this->getCacheKey(), $result, $this->cacheMinutes);
+            app("cache")->driver($this->cacheDriver)->put($this->getCacheKey(), $result, $this->cacheMinutes);
         }
 
         return $result;
