@@ -417,7 +417,7 @@ Index and type names setted in query overrides their values in `es.php`.
   >
   
   
-##### Query Caching 
+##### Query Caching (Laravel & Lumen)
 
 Package comes with a built-in caching layer based on laravel cache.
 
