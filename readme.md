@@ -120,7 +120,7 @@ $documents = $connection->search("hello")->get();
 ```
 
 
-## Configuration
+## Configuration (Laravel & Lumen)
 
   
   After publishing, two configuration files will be created.
