@@ -31,7 +31,7 @@
   
   See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
 
-- `laravel/laravel` >= 5.3 or `laravel/lumen` >= 5.3
+- `laravel/laravel` >= 5.3 or `laravel/lumen` >= 5.3 or `composer application`
 
 ## Installation
 
