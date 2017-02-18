@@ -34,16 +34,20 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         // Resolve Laravel Scout engine.
 
-        $this->app->make(EngineManager::class)->extend('es', function () {
+        if(class_exists("Laravel\\Scout\\EngineManager")) {
 
-            $config = config('es.connections.' . config('scout.es.connection'));
+            $this->app->make(EngineManager::class)->extend('es', function () {
 
-            return new ScoutEngine(
-                ElasticBuilder::create()->setHosts($config["servers"])->build(),
-                $config["index"]
-            );
+                $config = config('es.connections.' . config('scout.es.connection'));
 
-        });
+                return new ScoutEngine(
+                    ElasticBuilder::create()->setHosts($config["servers"])->build(),
+                    $config["index"]
+                );
+
+            });
+
+        }
 
 
     }
@@ -56,12 +60,9 @@ class ElasticsearchServiceProvider extends ServiceProvider
     public function register()
     {
 
-        // Register laravel scout service provider.
-
-        $this->app->register("Laravel\\Scout\\ScoutServiceProvider");
-
         $this->app->bind('es', function () {
             return new Connection();
         });
+
     }
 }
