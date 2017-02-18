@@ -147,6 +147,7 @@ $documents = $connection->search("hello")->get();
   
   - `config/scout.php` where you can use package as a laravel scout driver.
 
+## Usage as a Laravel Scout driver
 
 First, follow [Laravel Scout installation](https://laravel.com/docs/5.4/scout#installation).
 
@@ -165,7 +166,7 @@ All you have to do is updating these lines in `config/scout.php` configuration f
 
 Have a look at [laravel Scout documentation](https://laravel.com/docs/5.4/scout#configuration).
 
-## Usage
+## Usage as a query builder
 
 #### Creating a new index
 
