@@ -30,13 +30,13 @@
     "require": {
         "php": ">=5.6.6",
         "elasticsearch/elasticsearch": "5.0.0",
-        "laravel/scout": "*",
         "illuminate/pagination": "*",
         "illuminate/support": "*"
     },
 
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "laravel/scout": "*",
+        "phpunit/phpunit": "*",
     }
 
 }
