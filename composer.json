@@ -36,7 +36,7 @@
 
     "require-dev": {
         "laravel/scout": "*",
-        "phpunit/phpunit": "*",
+        "phpunit/phpunit": "*"
     }
 
 }
