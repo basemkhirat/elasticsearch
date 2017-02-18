@@ -31,7 +31,7 @@
   
   See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
 
-- `laravel/laravel` >= 5.3 or `laravel/lumen` >= 5.3 or `composer application`
+- `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
 
 ## Installation
 
@@ -151,6 +151,8 @@ $documents = $connection->search("hello")->get();
   
   - `config/scout.php` where you can use package as a laravel scout driver.
 
+
+First, follow [Laravel Scout installation](https://laravel.com/docs/5.4/scout#installation).
 
 All you have to do is updating these lines in `config/scout.php` configuration file.
 
