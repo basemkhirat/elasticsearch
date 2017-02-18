@@ -68,7 +68,7 @@
 ##### 3) Copy package config directory `vendor/basemkhirat/elasticsearch/src/config` to root folder alongside with `app` directory.
 	
 	
-##### 5) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
+##### 4) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
 
 	$app->withFacades();
 
