@@ -67,10 +67,6 @@
 	
 ##### 3) Copy package config directory `vendor/basemkhirat/elasticsearch/src/config` to root folder alongside with `app` directory.
 	
-##### 4) Making Lumen read our configuration files by adding these lines in `bootstrap/app.php` before returning Lumen `$app` instance.
-
-	$app->configure("es");
-	$app->configure("scout");
 	
 ##### 5) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
 

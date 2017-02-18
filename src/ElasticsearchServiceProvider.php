@@ -31,6 +31,11 @@ class ElasticsearchServiceProvider extends ServiceProvider
             $this->path . '/config/' => config_path(),
         ], "es.config");
 
+        // Auto configuration with lumen framework.
+
+        if (str_contains($this->app->version(), 'Lumen')) {
+            $this->app->configure("es");
+        }
 
         // Resolve Laravel Scout engine.
 
