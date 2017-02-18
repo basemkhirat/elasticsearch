@@ -9,6 +9,13 @@
 
     "type": "package",
 
+    "homepage": "http://basemkhirat.com",
+
+    "support": {
+        "issues": "https://github.com/basemkhirat/elasticsearch/issues",
+        "source": "https://github.com/basemkhirat/elasticsearch"
+    },
+
     "authors": [
         {
             "name": "basemkhirat",
