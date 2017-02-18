@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.8.1] - 2017-02-18
+
+### Added
+- add lumen auto configuration.
+
 ## [0.8] - 2017-02-18
 
 ### Added
