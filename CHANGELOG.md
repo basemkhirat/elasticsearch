@@ -102,7 +102,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.2...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.3...HEAD
+[0.8.3]: https://github.com/basemkhirat/elasticsearch/compare/0.8.2...0.8.3
 [0.8.2]: https://github.com/basemkhirat/elasticsearch/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/basemkhirat/elasticsearch/compare/0.8...0.8.1
 [0.8]: https://github.com/basemkhirat/elasticsearch/compare/0.7.5...0.8
