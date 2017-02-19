@@ -2,10 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-use Illuminate\Pagination\LengthAwarePaginator;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Cache;
-use Illuminate\Support\Facades\Request;
 
 /**
  * Class Query
@@ -331,7 +328,6 @@ class Query
      */
     public function skip($skip = 0)
     {
-
         $this->skip = $skip;
 
         return $this;
@@ -810,6 +806,11 @@ class Query
     }
 
 
+    /**
+     * Get non cached results
+     * @param null $scroll_id
+     * @return mixed
+     */
     protected function getLiveResult($scroll_id = NULL)
     {
 
@@ -905,22 +906,24 @@ class Query
     }
 
     /**
-     * Paginate the collection of results
+     * Paginate collection of results
      * @param int $per_page
-     * @return LengthAwarePaginator
+     * @param $page_name
+     * @param null $page
+     * @return Pagination
      */
-    public function paginate($per_page = 10)
+    public function paginate($per_page = 10, $page_name = "page", $page = null)
     {
 
         $this->take($per_page);
 
-        $page = (int)Request::get('page', 1);
+        $page = $page ?: Request::get($page_name, 1);
 
         $this->skip(($page * $per_page) - $per_page);
 
         $objects = $this->get();
 
-        return new LengthAwarePaginator($objects, $objects->total, $per_page, Request::get("page"), ['path' => Request::url(), 'query' => Request::query()]);
+        return new Pagination($objects, $objects->total, $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
 
     }
 
