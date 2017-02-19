@@ -16,19 +16,6 @@ class Pagination extends LengthAwarePaginator
      */
     public function links($view = "default", $data = [])
     {
-        return $this->render($view, $data);
-    }
-
-    /**
-     * Render the paginator using the given view.
-     *
-     * @param  string $view
-     * @param  array $data
-     * @return string
-     */
-    public function render($view = "default", $data = [])
-    {
-
         extract($data);
 
         $paginator = $this;
@@ -36,7 +23,6 @@ class Pagination extends LengthAwarePaginator
         $elements = $this->elements();
 
         require dirname(__FILE__) . "/pagination/" . $view . ".php";
-
     }
 
 }
