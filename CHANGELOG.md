@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.8.3] - 2017-02-19
+
+### Fixed
+- fix laravel scout non resolved class.
+
 ## [0.8.2] - 2017-02-19
 
 ### Fixed
