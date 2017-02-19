@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.8.2] - 2017-02-19
+
+### Added
+- fix pagination for non-laravel apps.
+
 ## [0.8.1] - 2017-02-18
 
 ### Added
@@ -92,7 +97,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.1...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.2...HEAD
+[0.8.2]: https://github.com/basemkhirat/elasticsearch/compare/0.8.1...0.8.2
 [0.8.1]: https://github.com/basemkhirat/elasticsearch/compare/0.8...0.8.1
 [0.8]: https://github.com/basemkhirat/elasticsearch/compare/0.7.5...0.8
 [0.7.5]: https://github.com/basemkhirat/elasticsearch/compare/0.7.4...0.7.5
