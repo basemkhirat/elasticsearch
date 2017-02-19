@@ -5,7 +5,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.8.2] - 2017-02-19
 
-### Added
+### Fixed
 - fix pagination for non-laravel apps.
 
 ## [0.8.1] - 2017-02-18
@@ -23,7 +23,7 @@ All notable changes to this project will be documented in this file.
 
 ## [0.7.5] - 2017-02-17
 
-### fixed
+### Fixed
 - fix query caching for lumen.
 
 ## [0.7.4] - 2017-02-17

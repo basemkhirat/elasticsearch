@@ -3,6 +3,7 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Elasticsearch\ClientBuilder as ElasticBuilder;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 
@@ -39,18 +40,27 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         // Resolve Laravel Scout engine.
 
-        if(class_exists("Laravel\\Scout\\EngineManager")) {
+        if (class_exists("Laravel\\Scout\\EngineManager")) {
 
-            $this->app->make(EngineManager::class)->extend('es', function () {
+            try {
 
-                $config = config('es.connections.' . config('scout.es.connection'));
+                $this->app->make(EngineManager::class)->extend('es', function () {
 
-                return new ScoutEngine(
-                    ElasticBuilder::create()->setHosts($config["servers"])->build(),
-                    $config["index"]
-                );
+                    $config = config('es.connections.' . config('scout.es.connection'));
 
-            });
+                    return new ScoutEngine(
+                        ElasticBuilder::create()->setHosts($config["servers"])->build(),
+                        $config["index"]
+                    );
+
+                });
+
+            } catch (BindingResolutionException $e) {
+
+                // Class is not resolved.
+                // Laravel Scout service provider was not loaded yet.
+
+            }
 
         }
 
