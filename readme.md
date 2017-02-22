@@ -341,6 +341,15 @@ Index and type names setted in query overrides their values in `es.php`.
     
   >
   
+##### Search by a distance from a geo point 
+  
+    ES::distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
+    ES::distance("location", "-33.8688197,151.20929550000005", "10km")->get();
+    ES::distance("location", [151.20929550000005, -33.8688197], "10km")->get();
+  
+  
+  >
+  
 ##### Search the entire document
     
     
