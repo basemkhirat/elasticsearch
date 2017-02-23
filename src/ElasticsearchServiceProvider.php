@@ -6,7 +6,6 @@ use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
-use Basemkhirat\Elasticsearch\Commands\CreateIndexCommand;
 
 class ElasticsearchServiceProvider extends ServiceProvider
 {
@@ -75,16 +74,6 @@ class ElasticsearchServiceProvider extends ServiceProvider
      */
     public function register()
     {
-
-        if ($this->app->runningInConsole()) {
-
-            // Registering commands
-
-            $this->commands([
-                CreateIndexCommand::class
-            ]);
-
-        }
 
         $this->app->bind('es', function () {
             return new Connection();
