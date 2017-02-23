@@ -480,18 +480,29 @@ Package comes with a built-in caching layer based on laravel cache.
   
   >
     
-##### Bulk insert a multiple of documents at once using multidimensional array of [id => data] pairs
+##### Bulk insert a multiple of documents at once.
      
-     ES::bulk(
+   
+     ES::bulk(function ($query){
+         $query->id(10)->insert(["title" => "Test document 1","content" => "Sample content 1"]);
+         $query->id(11)->insert(["title" => "Test document 2", "content" => "Sample content 2"]);
+     });
+     
+     # or use other code style using multidimensional array of [id => data] pairs
+     
+     ES::bulk([
+     
          10 => [
             "title" => "Test document 1",
             "content" => "Sample content 1"
          ],
+         
          11 => [
             "title" => "Test document 2",
             "content" => "Sample content 2"
-         ],
-     );
+         ]
+         
+     ]);
      
      The two given documents will be inserted with its associated ids
   

@@ -91,4 +91,5 @@ class ElasticsearchServiceProvider extends ServiceProvider
         });
 
     }
+
 }

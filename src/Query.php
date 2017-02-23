@@ -156,6 +156,18 @@ class Query
      */
     protected $cachePrefix = 'es';
 
+    /**
+     * Bulk status
+     * @var bool
+     */
+    private $bulk_status = false;
+
+    /**
+     * Pending bulk data.
+     * @var array
+     */
+    private $bulk_data = [];
+
 
     /**
      * Query constructor.
@@ -974,6 +986,10 @@ class Query
             $this->_id = $_id;
         }
 
+        if($this->bulk_status){
+            $this->bulk_data[$this->_id] = $data;
+        }
+
         $parameters = [
             "index" => $this->getIndex(),
             "type" => $this->getType(),
@@ -993,6 +1009,17 @@ class Query
      */
     public function bulk($data)
     {
+
+        if (is_callable($data)) {
+
+            $this->bulk_status = true;
+
+            $data($this);
+
+            $this->bulk_status = false;
+
+            $data = $this->bulk_data;
+        }
 
         $params = [];
 
