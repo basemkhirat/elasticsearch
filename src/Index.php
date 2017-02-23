@@ -120,6 +120,21 @@ class Index
     }
 
     /**
+     * Check existence of index
+     * @return mixed
+     */
+    public function exists()
+    {
+
+        $params = [
+            'index' => $this->name,
+        ];
+
+        return $this->connection->indices()->exists($params);
+
+    }
+
+    /**
      * Create a new index
      * @return mixed
      */

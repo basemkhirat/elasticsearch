@@ -1158,6 +1158,21 @@ class Query
         return $this->connection;
     }
 
+    /**
+     * Check existence of index
+     * @return mixed
+     */
+    function exists()
+    {
+
+        $index = new Index($this->index);
+
+        $index->connection = $this->connection;
+
+        return $index->exists();
+
+    }
+
 
     /**
      * Create a new index
