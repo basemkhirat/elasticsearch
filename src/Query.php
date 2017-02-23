@@ -664,6 +664,40 @@ class Query
     }
 
     /**
+     * Add a condition to find documents which are some distance away from the given geo point.
+     *
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
+     *
+     * @param $name
+     *   A name of the field.
+     * @param mixed $value
+     *   A starting geo point which can be represented by a string "lat,lon",
+     *   an object {"lat": lat, "lon": lon} or an array [lon,lat].
+     * @param string $distance
+     *   A distance from the starting geo point. It can be for example "20km".
+     *
+     * @return $this
+     */
+    public function distance($name, $value, $distance)
+    {
+
+        if (is_callable($name)) {
+            $name($this);
+            return $this;
+        }
+
+        $this->filter[] = [
+            "geo_distance" => [
+                $name => $value,
+                "distance" => $distance,
+            ]
+        ];
+
+        return $this;
+
+    }
+
+    /**
      * Search the entire document fields
      * @param null $q
      * @param int $boost
