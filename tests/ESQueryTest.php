@@ -32,12 +32,7 @@ class ESQueryTest extends PHPUnit_Framework_TestCase
             'from' => 0,
             'size' => 10,
             'client' => [
-                'ignore' => [
-
-                    0 => 400,
-                    1 => 404,
-                    2 => 500
-                ]
+                'ignore' => []
             ]
         ];
     }
