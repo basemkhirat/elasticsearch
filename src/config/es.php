@@ -40,12 +40,46 @@ return [
 
             ],
 
-            'index' => env('ELASTIC_INDEX', ''),
+            'index' => env('ELASTIC_INDEX', 'my_index'),
 
-            'type' => env('ELASTIC_TYPE', ''),
+            'type' => env('ELASTIC_TYPE', '')
 
         ]
-    ]
+    ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | Elasticsearch Indices
+    |--------------------------------------------------------------------------
+    |
+    | Here you can define your indices, with separate settings and mappings.
+    | Edit setting and mapping and run 'php artisan es:index:update' to update
+    | indices on elasticsearch server.
+    |
+    | 'my_index' is just for test. Replace it with a real index name.
+    |
+    */
+
+    'indices' => [
+
+        'my_index' => [
+
+            'settings' => [
+                "number_of_shards" => 1,
+                "number_of_replicas" => 0,
+            ],
+
+            'mappings' => [
+                'posts' => [
+                    'title' => [
+                        'type' => 'string'
+                    ]
+
+                ]
+            ]
+
+        ]
+
+    ]
 
 ];

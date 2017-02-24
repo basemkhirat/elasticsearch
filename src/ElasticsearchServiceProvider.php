@@ -2,10 +2,14 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Basemkhirat\Elasticsearch\Commands\CreateIndexCommand;
+use Basemkhirat\Elasticsearch\Commands\DropIndexCommand;
+use Basemkhirat\Elasticsearch\Commands\UpdateIndexCommand;
 use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
+use Basemkhirat\Elasticsearch\Commands\ListIndicesCommand;
 
 class ElasticsearchServiceProvider extends ServiceProvider
 {
@@ -74,6 +78,19 @@ class ElasticsearchServiceProvider extends ServiceProvider
      */
     public function register()
     {
+
+        if ($this->app->runningInConsole()) {
+
+            // Registering commands
+
+            $this->commands([
+                ListIndicesCommand::class,
+                CreateIndexCommand::class,
+                UpdateIndexCommand::class,
+                DropIndexCommand::class
+            ]);
+
+        }
 
         $this->app->bind('es', function () {
             return new Connection();
