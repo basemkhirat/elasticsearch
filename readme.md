@@ -181,54 +181,58 @@ These are all available commands:
 ##### List All indices on server.
 
 ```
-php artisan es:indices 
+php artisan es:indices:list
 
-+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
-| health | status | index    | uuid                   | pri | rep | docs.count | docs.deleted | store.size | pri.store.size |
-+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
-| green  | open   | my_index | 5URW60KJQNionAJgL6Q2TQ | 1   | 0   | 0          | 0            | 260b       | 260b           |
-+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
++----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
+| configured (es.php)  | health | status | index    | uuid                   | pri | rep | docs.count | docs.deleted | store.size | pri.store.size |
++----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
+| yes                  | green  | open   | my_index | 5URW60KJQNionAJgL6Q2TQ | 1   | 0   | 0          | 0            | 260b       | 260b           |
++----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
 
 ```
 
-##### Create a new index using defined settings and mapping in `es.php` config file.
+##### Create indices defined in `es.php` config file.
+
+Note that creating operation skips the index if exists.
 
 ```
 # Create all indices in config file.
 
-php artisan es:index:create
+php artisan es:indices:create
 
 # Create only 'my_index' index in config file
 
-php artisan es:index:create my_index 
+php artisan es:indices:create my_index 
 
 ```
 
-##### Update index using defined settings and mapping in `es.php` config file.
+##### Update indices defined in `es.php` config file.
+
+Note that updating operation recreates the index if exists.
 
 ```
 # Update all indices in config file.
 
-php artisan es:index:update
+php artisan es:indices:update
 
 # Update only 'my_index' index in config file
 
-php artisan es:index:update my_index 
+php artisan es:indices:update my_index 
 
 ```
 
 ##### Drop index.
 
-Running Drop command with `--force` option will skip all confirmation messages.
+Running drop command with `--force` option will skip all confirmation messages.
 
 ```
 # Drop all indices in config file.
 
-php artisan es:index:drop
+php artisan es:indices:drop
 
-# Drop specific index on sever. Not matter to be in config file.
+# Drop specific index on sever. Not matter to be exist in config file.
 
-php artisan es:index:drop my_index 
+php artisan es:indices:drop my_index 
 
 ```
 

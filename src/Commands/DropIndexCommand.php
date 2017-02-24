@@ -12,7 +12,7 @@ class DropIndexCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'es:index:drop {index?}
+    protected $signature = 'es:indices:drop {index?}
                             {--connection= : Elasticsearch connection}
                             {--force : Drop indices without any confirmation messages}';
 
@@ -47,10 +47,7 @@ class DropIndexCommand extends Command
                 continue;
             }
 
-
             if($force or $this->confirm("Are you sure to drop \"$index\" index")) {
-
-                // Create index with settings from config file
 
                 $this->info("Dropping index: {$index}");
 

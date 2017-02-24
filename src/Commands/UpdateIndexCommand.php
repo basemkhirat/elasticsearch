@@ -12,7 +12,7 @@ class UpdateIndexCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'es:index:update {index?}{--connection= : Elasticsearch connection}';
+    protected $signature = 'es:indices:update {index?}{--connection= : Elasticsearch connection}';
 
     /**
      * The console command description.
@@ -52,7 +52,7 @@ class UpdateIndexCommand extends Command
 
                 $this->warn("Index \"{$index}\" exists, dropping!");
 
-                $this->call("es:index:drop", [
+                $this->call("es:indices:drop", [
                     "index" => $index,
                     "--force" => true
                 ]);
@@ -61,7 +61,7 @@ class UpdateIndexCommand extends Command
 
             // Create index with settings from config file
 
-            $this->call("es:index:create", [
+            $this->call("es:indices:create", [
                 "index" => $index
             ]);
 

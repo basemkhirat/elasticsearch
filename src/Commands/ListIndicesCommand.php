@@ -13,7 +13,7 @@ class ListIndicesCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'es:indices {--connection= : Elasticsearch connection}';
+    protected $signature = 'es:indices:list {--connection= : Elasticsearch connection}';
 
     /**
      * The console command description.
@@ -26,7 +26,7 @@ class ListIndicesCommand extends Command
      * Indices headers
      * @var array
      */
-    protected $headers = ["health", "status", "index", "uuid", "pri", "rep", "docs.count", "docs.deleted", "store.size", "pri.store.size"];
+    protected $headers = ["configured (es.php)", "health", "status", "index", "uuid", "pri", "rep", "docs.count", "docs.deleted", "store.size", "pri.store.size"];
 
 
     /**
@@ -73,11 +73,15 @@ class ListIndicesCommand extends Command
             foreach ($line_array as $item){
 
                 if(trim($item) != ""){
-
                     $row[] = $item;
-
                 }
 
+            }
+
+            if(in_array($row[2], array_keys(config("es.indices")))){
+                $row = array_prepend($row, "yes");
+            }else{
+                $row = array_prepend($row, "no");
             }
 
             $data[] = $row;

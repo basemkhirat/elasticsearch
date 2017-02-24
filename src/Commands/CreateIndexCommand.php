@@ -12,7 +12,7 @@ class CreateIndexCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'es:index:create {index?}{--connection= : Elasticsearch connection}';
+    protected $signature = 'es:indices:create {index?}{--connection= : Elasticsearch connection}';
 
     /**
      * The console command description.
