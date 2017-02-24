@@ -2,21 +2,20 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-use Basemkhirat\Elasticsearch\Commands\CreateIndexCommand;
-use Basemkhirat\Elasticsearch\Commands\DropIndexCommand;
-use Basemkhirat\Elasticsearch\Commands\UpdateIndexCommand;
 use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use Basemkhirat\Elasticsearch\Commands\ListIndicesCommand;
+use Basemkhirat\Elasticsearch\Commands\CreateIndexCommand;
+use Basemkhirat\Elasticsearch\Commands\DropIndexCommand;
+use Basemkhirat\Elasticsearch\Commands\UpdateIndexCommand;
 
 class ElasticsearchServiceProvider extends ServiceProvider
 {
 
     function __construct()
     {
-        $this->path = dirname(__FILE__);
         $this->app = app();
     }
 
@@ -29,11 +28,11 @@ class ElasticsearchServiceProvider extends ServiceProvider
     {
 
         $this->mergeConfigFrom(
-            $this->path . '/config/es.php', 'es'
+            dirname(__FILE__) . '/config/es.php', 'es'
         );
 
         $this->publishes([
-            $this->path . '/config/' => config_path(),
+            dirname(__FILE__) . '/config/' => config_path(),
         ], "es.config");
 
         // Auto configuration with lumen framework.
