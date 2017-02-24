@@ -21,7 +21,7 @@ class Query
      * Ignored HTTP errors
      * @var array
      */
-    public $ignores = [400, 404, 500];
+    public $ignores = [];
 
     /**
      * Filter operators
@@ -874,6 +874,7 @@ class Query
             $query = $this->query();
 
             $result = $this->connection->search($query);
+
         }
 
         if (!is_null($this->cacheMinutes)) {
@@ -910,7 +911,7 @@ class Query
             $original["_id"] = $row["_id"];
             $original["_score"] = $row["_score"];
 
-            $new[] = (object)$original;
+            $new[] = new Model($original);
 
         }
 
@@ -935,8 +936,6 @@ class Query
 
         $data = $result["hits"]["hits"];
 
-        $new = (object)[];
-
         if (count($data)) {
 
             $original = $data[0]["_source"];
@@ -944,7 +943,11 @@ class Query
             $original["_id"] = $data[0]["_id"];
             $original["_score"] = $data[0]["_score"];
 
-            $new = (object)$original;
+            $new = new Model($original);
+
+        } else {
+
+            $new = new Model();
 
         }
 
@@ -986,7 +989,7 @@ class Query
             $this->_id = $_id;
         }
 
-        if($this->bulk_status){
+        if ($this->bulk_status) {
             $this->bulk_data[$this->_id] = $data;
         }
 

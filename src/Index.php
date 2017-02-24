@@ -19,7 +19,7 @@ class Index
      * Ignored HTTP errors
      * @var array
      */
-    public $ignores = [400, 404, 500];
+    public $ignores = [];
 
     /**
      * Index name
