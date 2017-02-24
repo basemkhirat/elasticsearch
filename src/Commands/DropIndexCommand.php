@@ -31,7 +31,7 @@ class DropIndexCommand extends Command
     public function handle()
     {
 
-        $connection = $this->option("connection") ? $this->option("connection") : "default";
+        $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
         $force = $this->option("force") ? $this->option("force") : 0;
 
         $client = ES::connection($connection)->raw();

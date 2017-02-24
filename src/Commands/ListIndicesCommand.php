@@ -37,7 +37,7 @@ class ListIndicesCommand extends Command
     public function handle()
     {
 
-        $connection = $this->option("connection") ? $this->option("connection") : "default";
+        $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
 
         $indices = ES::connection($connection)->raw()->cat()->indices();
 

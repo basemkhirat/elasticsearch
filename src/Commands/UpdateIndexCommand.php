@@ -29,7 +29,7 @@ class UpdateIndexCommand extends Command
     public function handle()
     {
 
-        $connection = $this->option("connection") ? $this->option("connection") : "default";
+        $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
 
         $client = ES::connection($connection)->raw();
 
