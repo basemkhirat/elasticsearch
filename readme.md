@@ -170,7 +170,7 @@ $documents = $connection->search("hello")->get();
   
   - `config/scout.php` where you can use package as a laravel scout driver.
 
-## Working with console environment
+## Working with console environment (Laravel & Lumen)
 
 With some artisan commands you can do some tasks such as creating or updating settings or mappings.
 
