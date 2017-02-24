@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+
+## [0.8.8] - 2017-02-24
+
+# Updated
+- update commands with a clear names.
+
 ## [0.8.7] - 2017-02-24
 
 # Fixed
@@ -131,7 +137,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...HEAD
+[0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...0.8.8
 [0.8.7]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...0.8.7
 [0.8.6]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...0.8.6
 [0.8.5]: https://github.com/basemkhirat/elasticsearch/compare/0.8.4...0.8.5
