@@ -385,7 +385,7 @@ Index and type names setted in query overrides their values in `es.php`.
                     
   Response will contain a hashed code `scroll_id` will be used to get the next result by running
     
-    $documents = ES::search("my_index")
+    $documents = ES::search("foo")
                         ->scroll("2m")
                         ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                         ->get();
