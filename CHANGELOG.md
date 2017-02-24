@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.8.7] - 2017-02-24
+
+# Fixed
+- fix dynamic command connection option.
+
 ## [0.8.6] - 2017-02-24
 
 ### Added
@@ -126,7 +131,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...HEAD
+[0.8.7]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...0.8.7
 [0.8.6]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...0.8.6
 [0.8.5]: https://github.com/basemkhirat/elasticsearch/compare/0.8.4...0.8.5
 [0.8.4]: https://github.com/basemkhirat/elasticsearch/compare/0.8.3...0.8.4
