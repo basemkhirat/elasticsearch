@@ -3,11 +3,24 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.8.6] - 2017-02-24
+
+### Added
+- add console environment support.
+- Add query distance() method.
+- add check existence of an index.
+- new bulk code style.
+
+# Fixed
+- fix raw query example syntax in readme file.
+
+# Removed
+- remove hhvm from Travis CI.
 
 ## [0.8.5] - 2017-02-19
 
 ### Fixed
-- fix some compatibility issues
+- fix some compatibility issues.
 
 ## [0.8.4] - 2017-02-19
 
@@ -113,7 +126,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...HEAD
+[0.8.6]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...0.8.6
 [0.8.5]: https://github.com/basemkhirat/elasticsearch/compare/0.8.4...0.8.5
 [0.8.4]: https://github.com/basemkhirat/elasticsearch/compare/0.8.3...0.8.4
 [0.8.3]: https://github.com/basemkhirat/elasticsearch/compare/0.8.2...0.8.3
