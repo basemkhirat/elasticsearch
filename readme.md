@@ -450,12 +450,12 @@ Package comes with a built-in caching layer based on laravel cache.
     ES::raw()->search([
         "index" => "my_index",
         "type"  => "my_type",
-        "body"  => [
-            "query": [
-            "bool": [
-                    "must": [
-                        [ "match": [ "address": "mill" ] ],
-                        [ "match": [ "address": "lane" ] ] 
+        "body" => [
+            "query" => [
+                "bool" => [
+                    "must" => [
+                        [ "match" => [ "address" => "mill" ] ],
+                        [ "match" => [ "address" => "lane" ] ]
                     ]
                 ]
             ]
