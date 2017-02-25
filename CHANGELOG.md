@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 ## [Released]
 
 
+## [0.8.9] - 2017-02-25
+
+# Added
+- add index aliases using command line
+
+# Updated
+- return data throw a model to avoid non exist property.
+
+# Fixed
+- fix list indices command if no indices found.
+
 ## [0.8.8] - 2017-02-24
 
 # Updated
@@ -137,7 +148,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...HEAD
+[0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...0.8.9
 [0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...0.8.8
 [0.8.7]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...0.8.7
 [0.8.6]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...0.8.6
