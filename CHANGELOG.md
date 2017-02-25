@@ -149,7 +149,7 @@ All notable changes to this project will be documented in this file.
 
 
 [Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...HEAD
-[0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...0.8.9
+[0.8.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...0.8.9
 [0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...0.8.8
 [0.8.7]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...0.8.7
 [0.8.6]: https://github.com/basemkhirat/elasticsearch/compare/0.8.5...0.8.6
