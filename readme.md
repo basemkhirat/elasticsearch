@@ -453,7 +453,7 @@ ES::whereNotBetween("id", 100, 150)->get();
 ```
    
 ##### Search by a distance from a geo point 
-```pgp  
+```php  
 ES::distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
 # or
 ES::distance("location", "-33.8688197,151.20929550000005", "10km")->get();
