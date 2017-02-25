@@ -65,6 +65,31 @@ class CreateIndexCommand extends Command
 
             ]);
 
+
+            if (isset($config['aliases'])) {
+
+                foreach($config['aliases'] as $alias) {
+
+                    $this->info("- Creating alias: {$alias}");
+
+                    $client->indices()->updateAliases([
+                        "body" => [
+                            'actions' => [
+                                [
+                                    'add' => [
+                                        'index' => $index,
+                                        'alias' => $alias
+                                    ]
+                                ]
+                            ]
+
+                        ]
+                    ]);
+
+                }
+
+            }
+
             if (isset($config['mappings'])) {
 
                 foreach ($config['mappings'] as $type => $mapping) {
@@ -85,6 +110,9 @@ class CreateIndexCommand extends Command
                 }
 
             }
+
+
+
 
         }
 

@@ -62,7 +62,11 @@ return [
 
     'indices' => [
 
-        'my_index' => [
+        'my_index_1' => [
+
+            "aliases" => [
+                "my_index"
+            ],
 
             'settings' => [
                 "number_of_shards" => 1,

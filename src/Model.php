@@ -2,7 +2,6 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-
 /**
  * Elasticsearch data model
  * Class Model
