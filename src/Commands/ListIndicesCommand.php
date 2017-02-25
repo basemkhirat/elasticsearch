@@ -41,7 +41,7 @@ class ListIndicesCommand extends Command
 
         $indices = ES::connection($connection)->raw()->cat()->indices();
 
-        if(count($indices) > 0) {
+        if($indices != "") {
 
              $this->table($this->headers, $this->getIndices($indices));
 
