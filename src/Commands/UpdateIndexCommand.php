@@ -42,28 +42,87 @@ class UpdateIndexCommand extends Command
             $config = config("es.indices.{$index}");
 
             if(is_null($config)) {
-                $this->error("Config for index \"{$index}\" not found, skipping...");
+                $this->warn("Missing configuration for index: {$index}");
                 continue;
             }
 
-            // Delete index if it already exists
+            if (!$client->indices()->exists(['index' => $index])) {
 
-            if ($client->indices()->exists(['index' => $index])) {
-
-                $this->warn("Index \"{$index}\" exists, dropping!");
-
-                $this->call("es:indices:drop", [
-                    "index" => $index,
-                    "--force" => true
+                return $this->call("es:indices:create", [
+                    "index" => $index
                 ]);
 
             }
 
-            // Create index with settings from config file
+            // The index is already exists. update aliases and setting
 
-            $this->call("es:indices:create", [
-                "index" => $index
+            // Remove all index aliases
+
+            $this->info("Removing aliases for index: {$index}");
+
+            $client->indices()->updateAliases([
+                "body" => [
+                    'actions' => [
+                        [
+                            'remove' => [
+                                'index' => $index,
+                                'alias' => "*"
+                            ]
+                        ]
+                    ]
+
+                ],
+
+                'client' => ['ignore' => [404]]
             ]);
+
+            if (isset($config['aliases'])) {
+
+                // Update index aliases from config
+
+                foreach($config['aliases'] as $alias) {
+
+                    $this->info("Creating alias: {$alias} for index: {$index}");
+
+                    $client->indices()->updateAliases([
+                        "body" => [
+                            'actions' => [
+                                [
+                                    'add' => [
+                                        'index' => $index,
+                                        'alias' => $alias
+                                    ]
+                                ]
+                            ]
+
+                        ]
+                    ]);
+
+                }
+
+            }
+
+            if (isset($config['mappings'])) {
+
+                foreach ($config['mappings'] as $type => $mapping) {
+
+                    // Create mapping for type from config file
+
+                    $this->info("Creating mapping for type: {$type} in index: {$index}");
+
+                    $client->indices()->putMapping([
+                        'index' => $index,
+                        'type' => $type,
+                        'body' => [
+                            'properties' => $mapping
+                        ]
+
+                    ]);
+
+                }
+
+            }
+
 
         }
 

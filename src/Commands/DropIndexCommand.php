@@ -43,7 +43,7 @@ class DropIndexCommand extends Command
         foreach ($indices as $index) {
 
             if (!$client->indices()->exists(['index' => $index])) {
-                $this->error("Index \"{$index}\" is not exists!");
+                $this->warn("Index: {$index} is not exist!");
                 continue;
             }
 

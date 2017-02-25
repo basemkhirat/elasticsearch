@@ -42,12 +42,12 @@ class CreateIndexCommand extends Command
             $config = config("es.indices.{$index}");
 
             if (is_null($config)) {
-                $this->error("Config for index \"{$index}\" not found, skipping...");
+                $this->warn("Missing configuration for index: {$index}");
                 continue;
             }
 
             if ($client->indices()->exists(['index' => $index])) {
-                $this->error("Index \"{$index}\" is already exists!");
+                $this->warn("Index {$index} is already exists!");
                 continue;
             }
 
@@ -70,7 +70,7 @@ class CreateIndexCommand extends Command
 
                 foreach($config['aliases'] as $alias) {
 
-                    $this->info("- Creating alias: {$alias}");
+                    $this->info("Creating alias: {$alias} for index: {$index}");
 
                     $client->indices()->updateAliases([
                         "body" => [
@@ -96,7 +96,7 @@ class CreateIndexCommand extends Command
 
                     // Create mapping for type from config file
 
-                    $this->info("- Creating mapping for: {$type}");
+                    $this->info("Creating mapping for type: {$type} in index: {$index}");
 
                     $client->indices()->putMapping([
                         'index' => $index,

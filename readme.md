@@ -222,7 +222,7 @@ $ php artisan es:indices:create my_index
 
 ##### Update indices defined in `es.php` config file.
 
-Note that updating operation recreates the index if exists.
+Note that updating operation updates indices setting, aliases and mapping and don't delete the indexed data.
 
 ```bash
 # Update all indices in config file.
@@ -237,6 +237,7 @@ $ php artisan es:indices:update my_index
 
 ##### Drop index.
 
+Be careful when using this command, you will lose your index data!
 Running drop command with `--force` option will skip all confirmation messages.
 
 ```bash
@@ -244,7 +245,7 @@ Running drop command with `--force` option will skip all confirmation messages.
 
 $ php artisan es:indices:drop
 
-# Drop specific index on sever. Not matter to be exist in config file.
+# Drop specific index on sever. Not matter for index to be exist in config file or not.
 
 $ php artisan es:indices:drop my_index 
 
