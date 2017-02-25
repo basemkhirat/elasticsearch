@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file.
 ## [Released]
 
 
+## [0.9] - 2017-02-25
+
+# Fixed
+- fix index aliases update throw console.
+
 ## [0.8.9] - 2017-02-25
 
 # Added
@@ -148,7 +153,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9...HEAD
+[0.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...0.9
 [0.8.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...0.8.9
 [0.8.8]: https://github.com/basemkhirat/elasticsearch/compare/0.8.7...0.8.8
 [0.8.7]: https://github.com/basemkhirat/elasticsearch/compare/0.8.6...0.8.7
