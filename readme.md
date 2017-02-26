@@ -238,6 +238,7 @@ $ php artisan es:indices:update my_index
 #### Drop index
 
 Be careful when using this command, you will lose your index data!
+
 Running drop command with `--force` option will skip all confirmation messages.
 
 ```bash
