@@ -263,7 +263,7 @@ To avoid down time, your application should work with index `alias` not index `n
 
 The index `alias` is a constant name that application should work with to avoid change index names.
 
-##### Assume that we want to change mapping for `my_index`, this is a few steps to do that:
+##### Assume that we want to change mapping for `my_index`, this is how to do that:
 
 1) Add `alias` as example `my_index_alias` to `my_index` configuration and make sure that application is working with.
 
