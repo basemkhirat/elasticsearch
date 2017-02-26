@@ -833,7 +833,7 @@ class Query
 
         if (is_null($this->cacheMinutes)) {
 
-            $result = $this->getLiveResult($scroll_id);
+            $result = $this->response($scroll_id);
 
         } else {
 
@@ -841,7 +841,7 @@ class Query
 
             if (is_null($result)) {
 
-                $result = $this->getLiveResult($scroll_id);
+                $result = $this->response($scroll_id);
 
             }
 
@@ -857,7 +857,7 @@ class Query
      * @param null $scroll_id
      * @return mixed
      */
-    protected function getLiveResult($scroll_id = NULL)
+    public function response($scroll_id = NULL)
     {
 
         $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
