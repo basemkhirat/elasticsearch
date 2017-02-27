@@ -651,7 +651,7 @@ ES::id(3)->insert([
 ```php
 # Main query
 
-ES::index("my_index")->bulk(function ($bulk){
+ES::index("my_index")->type("my_type")->bulk(function ($bulk){
 
     # Sub queries
 
@@ -663,7 +663,7 @@ ES::index("my_index")->bulk(function ($bulk){
 
 # Notes from the above query:
 
-# As Index and type names are required for insertion, Index and type names are extendable. This means that: 
+# As index and type names are required for insertion, Index and type names are extendable. This means that: 
 
 # So
 
