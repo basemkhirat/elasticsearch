@@ -4,6 +4,17 @@ All notable changes to this project will be documented in this file.
 ## [Released]
 
 
+## [0.9.2] - 2017-02-27
+
+# Added
+- add bulk queries with different index or type names
+
+# Fixed
+- add reindexing with '--skip-errors' option.
+- fix insert with no id.
+- fix query() method if no filter.
+
+
 ## [0.9.1] - 2017-02-26
 
 # Added
@@ -159,7 +170,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.1...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...HEAD
+[0.9.2]: https://github.com/basemkhirat/elasticsearch/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/basemkhirat/elasticsearch/compare/0.9...0.9.1
 [0.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...0.9
 [0.8.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.8...0.8.9
