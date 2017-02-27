@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.9.3] - 2017-02-27
+
+# Fixed
+- optimize count() method
+
 
 ## [0.9.2] - 2017-02-27
 
@@ -170,7 +175,8 @@ All notable changes to this project will be documented in this file.
 - basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...HEAD
+[0.9.3]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/basemkhirat/elasticsearch/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/basemkhirat/elasticsearch/compare/0.9...0.9.1
 [0.9]: https://github.com/basemkhirat/elasticsearch/compare/0.8.9...0.9
