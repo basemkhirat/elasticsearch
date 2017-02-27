@@ -875,12 +875,25 @@ class Query
     }
 
     /**
-     * Get the count of results
+     * Get the count of result
      * @return mixed
      */
     public function count()
     {
-        return $this->get()->total;
+
+        $query = $this->query();
+
+        // Remove unsupported count query keys
+
+        unset(
+            $query["size"],
+            $query["from"],
+            $query["body"]["_source"],
+            $query["body"]["sort"]
+        );
+
+        return $this->connection->count($query)["count"];
+
     }
 
 
@@ -981,12 +994,15 @@ class Query
         }
 
         $parameters = [
-            "index" => $this->getIndex(),
             "body" => $data,
             'client' => ['ignore' => $this->ignores]
         ];
 
-        if($type = $this->getType()){
+        if ($index = $this->getIndex()) {
+            $parameters["index"] = $index;
+        }
+
+        if ($type = $this->getType()) {
             $parameters["type"] = $type;
         }
 
@@ -1054,13 +1070,16 @@ class Query
         }
 
         $parameters = [
-            "index" => $this->getIndex(),
             "id" => $this->_id,
             "body" => ['doc' => $data],
             'client' => ['ignore' => $this->ignores]
         ];
 
-        if($type = $this->getType()){
+        if ($index = $this->getIndex()) {
+            $parameters["index"] = $index;
+        }
+
+        if ($type = $this->getType()) {
             $parameters["type"] = $type;
         }
 
@@ -1110,8 +1129,6 @@ class Query
     {
 
         $parameters = [
-            "index" => $this->getIndex(),
-            "type" => $this->getType(),
             "id" => $this->_id,
             "body" => [
                 "script" => [
@@ -1121,6 +1138,14 @@ class Query
             ],
             'client' => ['ignore' => $this->ignores]
         ];
+
+        if ($index = $this->getIndex()) {
+            $parameters["index"] = $index;
+        }
+
+        if ($type = $this->getType()) {
+            $parameters["type"] = $type;
+        }
 
         return (object)$this->connection->update($parameters);
 
@@ -1139,11 +1164,17 @@ class Query
         }
 
         $parameters = [
-            "index" => $this->getIndex(),
-            "type" => $this->getType(),
             "id" => $this->_id,
             'client' => ['ignore' => $this->ignores]
         ];
+
+        if ($index = $this->getIndex()) {
+            $parameters["index"] = $index;
+        }
+
+        if ($type = $this->getType()) {
+            $parameters["type"] = $type;
+        }
 
         return (object)$this->connection->delete($parameters);
 
