@@ -154,8 +154,7 @@ $documents = $connection->search("hello")->get();
 	            'scheme' => env('ELASTIC_SCHEME', 'http'),
 	        ]
 	    ],
-	    'index' => env('ELASTIC_INDEX', 'my_index'),
-	    'type' => env('ELASTIC_TYPE', 'my_type'),
+	    'index' => env('ELASTIC_INDEX', 'my_index')
 	]
 ],
  
@@ -641,7 +640,7 @@ ES::raw()->search([
 ##### Insert a new document
     
 ```php
-ES::id(3)->insert([
+ES::type("my_type")->id(3)->insert([
     "title" => "Test document",
     "content" => "Sample content"
 ]);
@@ -684,7 +683,7 @@ ES::index("my_index")->type("my_type")->bulk(function ($bulk){
 
 # you can use old bulk code style using multidimensional array of [id => data] pairs
  
-ES::bulk([
+ES::type("my_type")->bulk([
  
 	10 => [
 		"title" => "Test document 1",
@@ -703,7 +702,7 @@ ES::bulk([
 
 ##### Update an existing document
 ```php     
-ES::id(3)->update([
+ES::type("my_type")->id(3)->update([
    "title" => "Test document",
    "content" => "sample content"
 ]);
@@ -715,11 +714,11 @@ ES::id(3)->update([
    
 ##### Incrementing field
 ```php
-ES::id(3)->increment("views");
+ES::type("my_type")->id(3)->increment("views");
     
 # Document has _id = 3 will be incremented by 1.
     
-ES::id(3)->increment("views", 3);
+ES::type("my_type")->id(3)->increment("views", 3);
     
 # Document has _id = 3 will be incremented by 3.
 
@@ -728,11 +727,11 @@ ES::id(3)->increment("views", 3);
    
 ##### Decrementing field
 ```php 
-ES::id(3)->decrement("views");
+ES::type("my_type")->id(3)->decrement("views");
     
 # Document has _id = 3 will be decremented by 1.
     
-ES::id(3)->decrement("views", 3);
+ES::type("my_type")->id(3)->decrement("views", 3);
     
 # Document has _id = 3 will be decremented by 3.
 
@@ -744,21 +743,21 @@ ES::id(3)->decrement("views", 3);
 ```php
 # increment field by script
     
-ES::id(3)->script(
+ES::type("my_type")->id(3)->script(
     "ctx._source.$field += params.count",
     ["count" => 1]
 );
     
 # add php tag to tags array list
     
-ES::id(3)->script(
+ES::type("my_type")->id(3)->script(
     "ctx._source.tags.add(params.tag)",
     ["tag" => "php"]
 );
     
 # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
     
-ES::id(3)->script(
+ES::type("my_type")->id(3)->script(
     "if (ctx._source.tags.contains(params.tag)) { ctx.op = 'delete' } else { ctx.op = 'none' }",
     ["tag" => "mongodb"]
 );
@@ -766,7 +765,7 @@ ES::id(3)->script(
    
 ##### Delete a document
 ```php
-ES::id(3)->delete();
+ES::type("my_type")->id(3)->delete();
     
 # Document has _id = 3 will be deleted.
     
