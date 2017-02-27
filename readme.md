@@ -580,11 +580,17 @@ $documents = ES::search("bar")->paginate(5);
 $documents->links();
 
 ```
-  
+
 ##### Getting the query array without execution
 
 ```php
 $query = ES::search("foo")->where("views", ">", 150)->query();
+```
+
+##### Getting the original elasticsearch response
+
+```php
+$query = ES::search("foo")->where("views", ">", 150)->response();
 ```
 
 ##### Ignoring bad HTTP response
