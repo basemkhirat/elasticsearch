@@ -119,7 +119,6 @@ $connection = Connection::create([
         ]
     ],
     'index' => 'my_index',
-    'type' => 'my_type',
 ]);
 
 
