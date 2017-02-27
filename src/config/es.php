@@ -40,9 +40,7 @@ return [
 
             ],
 
-            'index' => env('ELASTIC_INDEX', 'my_index'),
-
-            'type' => env('ELASTIC_TYPE', '')
+            'index' => env('ELASTIC_INDEX', 'my_index')
 
         ]
     ],
