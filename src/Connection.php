@@ -66,10 +66,6 @@ class Connection
             $query->index($config["index"]);
         }
 
-        if (array_key_exists("type", $config) and $config["type"] != "") {
-            $query->type($config["type"]);
-        }
-
         return $query;
     }
 
@@ -88,7 +84,7 @@ class Connection
 
             $this->connection = $this->connections[$name];
 
-            return $this->query($name);
+            return $this->newQuery($name);
 
         }
 
@@ -108,7 +104,7 @@ class Connection
 
             $this->connections[$name] = $connection;
 
-            return $this->query($name);
+            return $this->newQuery($name);
         }
 
         $this->app->abort(500, "Invalid elasticsearch connection driver `" . $name . "`");
@@ -121,7 +117,7 @@ class Connection
      * @param $connection
      * @return Query
      */
-    function query($connection)
+    function newQuery($connection)
     {
 
         $config = $this->config["connections"][$connection];
@@ -130,10 +126,6 @@ class Connection
 
         if (array_key_exists("index", $config) and $config["index"] != "") {
             $query->index($config["index"]);
-        }
-
-        if (array_key_exists("type", $config) and $config["type"] != "") {
-            $query->type($config["type"]);
         }
 
         return $query;

@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Illuminate\Support\Collection;
 
 /**
@@ -156,18 +157,6 @@ class Query
      */
     protected $cachePrefix = 'es';
 
-    /**
-     * Bulk status
-     * @var bool
-     */
-    private $bulk_status = false;
-
-    /**
-     * Pending bulk data.
-     * @var array
-     */
-    private $bulk_data = [];
-
 
     /**
      * Query constructor.
@@ -195,7 +184,7 @@ class Query
      * Get the index name
      * @return mixed
      */
-    protected function getIndex()
+    public function getIndex()
     {
         return $this->index;
     }
@@ -217,7 +206,7 @@ class Query
      * Get the type name
      * @return mixed
      */
-    protected function getType()
+    public function getType()
     {
 
         return $this->type;
@@ -908,6 +897,7 @@ class Query
 
             $original = $row["_source"];
 
+            $original["_type"] = $row["_type"];
             $original["_id"] = $row["_id"];
             $original["_score"] = $row["_score"];
 
@@ -940,6 +930,7 @@ class Query
 
             $original = $data[0]["_source"];
 
+            $original["_type"] = $data[0]["_type"];
             $original["_id"] = $data[0]["_id"];
             $original["_score"] = $data[0]["_score"];
 
@@ -989,17 +980,19 @@ class Query
             $this->_id = $_id;
         }
 
-        if ($this->bulk_status) {
-            $this->bulk_data[$this->_id] = $data;
-        }
-
         $parameters = [
             "index" => $this->getIndex(),
-            "type" => $this->getType(),
-            "id" => $this->_id,
             "body" => $data,
             'client' => ['ignore' => $this->ignores]
         ];
+
+        if($type = $this->getType()){
+            $parameters["type"] = $type;
+        }
+
+        if ($this->_id) {
+            $parameters["id"] = $this->_id;
+        }
 
         return (object)$this->connection->index($parameters);
 
@@ -1015,30 +1008,31 @@ class Query
 
         if (is_callable($data)) {
 
-            $this->bulk_status = true;
+            $bulk = new Bulk($this);
 
-            $data($this);
+            $data($bulk);
 
-            $this->bulk_status = false;
+            $params = $bulk->body();
 
-            $data = $this->bulk_data;
-        }
+        } else {
 
-        $params = [];
+            $params = [];
 
-        foreach ($data as $key => $value) {
+            foreach ($data as $key => $value) {
 
-            $params["body"][] = [
+                $params["body"][] = [
 
-                'index' => [
-                    '_index' => $this->getIndex(),
-                    '_type' => $this->getType(),
-                    '_id' => $key
-                ]
+                    'index' => [
+                        '_index' => $this->getIndex(),
+                        '_type' => $this->getType(),
+                        '_id' => $key
+                    ]
 
-            ];
+                ];
 
-            $params["body"][] = $value;
+                $params["body"][] = $value;
+
+            }
 
         }
 
@@ -1061,11 +1055,14 @@ class Query
 
         $parameters = [
             "index" => $this->getIndex(),
-            "type" => $this->getType(),
             "id" => $this->_id,
             "body" => ['doc' => $data],
             'client' => ['ignore' => $this->ignores]
         ];
+
+        if($type = $this->getType()){
+            $parameters["type"] = $type;
+        }
 
         return (object)$this->connection->update($parameters);
 

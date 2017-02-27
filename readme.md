@@ -281,14 +281,22 @@ $ php artisan es:indices:update my_index
 
 3) Create a new index as example `my_new_index` with your new mapping in configuration file.
 
+```bash
+$ php artisan es:indices:create my_new_index
+```
+
 4) Reindex data from `new_index` into `my_new_index` with command:
 
 ```bash
 $ php artisan es:indices:reindex my_index my_new_index
 
-# you can control bulk size
+# you can control bulk size. Adjust it with your server.
 
 $ php artisan es:indices:reindex my_index my_new_index --size=2000
+
+# you can skip reindexing errors such as mapper parsing exceptions.
+
+$ php artisan es:indices:reindex my_index my_new_index --size=2000 --skip-errors
 ```
 
 5) Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
@@ -389,13 +397,12 @@ $documents = ES::connection("default")
 You can rewrite the above query to
 
 ```php
-$documents = ES::get();    # return a collection of results
+$documents = ES::type("my_type")->get();    # return a collection of results
 ```
 
-The query builder will use the default connection, index, and type names setted in configuration file `es.php`. 
+The query builder will use the default connection, index name in configuration file `es.php`. 
  
-Index and type names setted in query overrides their values in `es.php`.
-
+Connection and index names in query overrides connection and index names in configuration file `es.php`.
 
 ##### Getting document by id
 ```php
@@ -642,12 +649,34 @@ ES::id(3)->insert([
 ##### Bulk insert a multiple of documents at once.
      
 ```php
-ES::bulk(function ($query){
-	$query->id(10)->insert(["title" => "Test document 1","content" => "Sample content 1"]);
-	$query->id(11)->insert(["title" => "Test document 2", "content" => "Sample content 2"]);
+# Main query
+
+ES::index("my_index")->bulk(function ($bulk){
+
+    # Sub queries
+
+	$bulk->index("my_index_1")->type("my_type_1")->id(10)->insert(["title" => "Test document 1","content" => "Sample content 1"]);
+	$bulk->index("my_index_2")->id(11)->insert(["title" => "Test document 2","content" => "Sample content 2"]);
+	$bulk->id(12)->insert(["title" => "Test document 3", "content" => "Sample content 3"]);
+	
 });
- 
-# or use other code style using multidimensional array of [id => data] pairs
+
+# Notes from the above query:
+
+# As Index and type names are required for insertion, Index and type names are extendable. This means that: 
+
+# So
+
+# If index() is not specified in subquery:
+# -- The builder will get index name in main query.
+# -- if index is not specified in main query, the builder will get index name from configuration file.
+
+# And
+
+# If type() is not specified in subquery:
+# -- The builder will get type name in main query.
+
+# you can use old bulk code style using multidimensional array of [id => data] pairs
  
 ES::bulk([
  

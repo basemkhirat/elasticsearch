@@ -16,7 +16,10 @@ class ReindexCommand extends Command
      *
      * @var string
      */
-    protected $signature = 'es:indices:reindex {index}{new_index}{--size=1000 : Scroll size}{--connection= : Elasticsearch connection}';
+    protected $signature = 'es:indices:reindex {index}{new_index}
+                            {--size=1000 : Scroll size}
+                            {--skip-errors : Skip reindexing errors}
+                            {--connection= : Elasticsearch connection}';
 
     /**
      * The console command description.
@@ -65,7 +68,7 @@ class ReindexCommand extends Command
      * @param null $scroll_id
      * @param int $page
      */
-    function migrate($original_index, $new_index, $scroll_id = null, $page = 1)
+    function migrate($original_index, $new_index, $scroll_id = null, $errors = 0, $page = 1)
     {
 
         if ($page == 1) {
@@ -115,18 +118,30 @@ class ReindexCommand extends Command
             $response = ES::connection($this->connection)->raw()->bulk($params);
 
             if (isset($response["errors"]) and $response["errors"]) {
-                return $this->error(json_encode($response["items"]));
+
+                if($this->option("skip-errors")) {
+                    $this->warn(json_encode($response["items"]));
+                }else{
+                    return $this->warn(json_encode($response["items"]));
+                }
+
+                $errors++;
             }
 
         } else {
 
-            return $this->info("Done.");
+            if($errors > 0){
+                return $this->warn("Done with $errors errors.");
+            }else{
+                return $this->info("Done with $errors errors.");
+            }
+
 
         }
 
         $page++;
 
-        $this->migrate($original_index, $new_index, $documents["_scroll_id"], $page);
+        $this->migrate($original_index, $new_index, $documents["_scroll_id"], $errors, $page);
 
     }
 
