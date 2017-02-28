@@ -1,6 +1,6 @@
 <p align="center">
 
-<a href="https://travis-ci.org/basemkhirat/elasticsearch?branch=master"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg" alt="Build Status"></a>
+<a href="https://travis-ci.org/basemkhirat/elasticsearch"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg?branch=master" alt="Build Status"></a>
 
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
 
