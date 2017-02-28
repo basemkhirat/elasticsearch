@@ -220,7 +220,7 @@ $ php artisan es:indices:create my_index
 
 #### Update indices defined in `es.php` config file
 
-Note that updating operation updates indices setting, aliases and mapping and don't delete the indexed data.
+Note that updating operation updates indices setting, aliases and mapping and doesn't delete the indexed data.
 
 ```bash
 # Update all indices in config file.
