@@ -468,7 +468,7 @@ ES::whereBetween("id", 100, 150)->get();
 ```php    
 ES::whereNot("views", 150)->get(); 
 #or
-ES::where("views", "=", 150)->get();
+ES::whereNot("views", "=", 150)->get();
 ```
 ##### Where not greater than
 ```php
