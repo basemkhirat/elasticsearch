@@ -60,25 +60,9 @@ class ListIndicesCommand extends Command
      */
     function getIndices($indices){
 
-        $lines = explode("\n", trim($indices));
+        foreach ($indices as $row) {
 
-        $data = [];
-
-        foreach ($lines as $line){
-
-            $row = [];
-
-            $line_array = explode(" ", trim($line));
-
-            foreach ($line_array as $item){
-
-                if(trim($item) != ""){
-                    $row[] = $item;
-                }
-
-            }
-
-            if(in_array($row[2], array_keys(config("es.indices")))){
+            if(in_array($row['index'], array_keys(config("es.indices")))){
                 $row = array_prepend($row, "yes");
             }else{
                 $row = array_prepend($row, "no");
