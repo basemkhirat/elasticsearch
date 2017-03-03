@@ -3,7 +3,6 @@
 namespace Basemkhirat\Elasticsearch\Commands;
 
 use Illuminate\Console\Command;
-use Basemkhirat\Elasticsearch\Facades\ES;
 
 class UpdateIndexCommand extends Command
 {
@@ -22,6 +21,21 @@ class UpdateIndexCommand extends Command
     protected $description = 'Update index using defined setting and mapping in config file';
 
     /**
+     * ES object
+     * @var object
+     */
+    protected $es;
+
+    /**
+     * ListIndicesCommand constructor.
+     */
+    function __construct()
+    {
+        parent::__construct();
+        $this->es = app("es");
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -31,9 +45,9 @@ class UpdateIndexCommand extends Command
 
         $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
 
-        $client = ES::connection($connection)->raw();
+        $client = $this->es->connection($connection)->raw();
 
-        $indices = ! is_null($this->argument('index')) ?
+        $indices = !is_null($this->argument('index')) ?
             [$this->argument('index')] :
             array_keys(config('es.indices'));
 
@@ -41,7 +55,7 @@ class UpdateIndexCommand extends Command
 
             $config = config("es.indices.{$index}");
 
-            if(is_null($config)) {
+            if (is_null($config)) {
                 $this->warn("Missing configuration for index: {$index}");
                 continue;
             }
@@ -80,7 +94,7 @@ class UpdateIndexCommand extends Command
 
                 // Update index aliases from config
 
-                foreach($config['aliases'] as $alias) {
+                foreach ($config['aliases'] as $alias) {
 
                     $this->info("Creating alias: {$alias} for index: {$index}");
 

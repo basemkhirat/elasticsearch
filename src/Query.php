@@ -162,7 +162,7 @@ class Query
      * Query constructor.
      * @param $connection
      */
-    function __construct($connection)
+    function __construct($connection = NULL)
     {
         $this->connection = $connection;
     }
@@ -289,10 +289,9 @@ class Query
 
     /**
      * Ignore bad HTTP response
-     * @param array|int $code
      * @return $this
      */
-    public function ignore($code)
+    public function ignore()
     {
 
         $args = func_get_args();
@@ -413,10 +412,9 @@ class Query
 
     /**
      * Set the query fields to return
-     * @param $field
      * @return $this
      */
-    public function select($field)
+    public function select()
     {
 
         $args = func_get_args();
@@ -582,6 +580,11 @@ class Query
     public function whereBetween($name, $first_value, $last_value)
     {
 
+        if (is_array($first_value) && count($first_value) == 2) {
+            $first_value = $first_value[0];
+            $last_value = $first_value[1];
+        }
+
         $this->filter[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
 
         return $this;
@@ -597,6 +600,11 @@ class Query
      */
     public function whereNotBetween($name, $first_value, $last_value)
     {
+
+        if (is_array($first_value) && count($first_value) == 2) {
+            $first_value = $first_value[0];
+            $last_value = $first_value[1];
+        }
 
         $this->must_not[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
 

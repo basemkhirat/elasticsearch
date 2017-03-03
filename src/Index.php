@@ -95,10 +95,9 @@ class Index
 
     /**
      * Ignore bad HTTP requests
-     * @param array|int $code
      * @return $this
      */
-    public function ignore($code)
+    public function ignore()
     {
 
         $args = func_get_args();

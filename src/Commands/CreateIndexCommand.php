@@ -2,7 +2,6 @@
 
 namespace Basemkhirat\Elasticsearch\Commands;
 
-use Basemkhirat\Elasticsearch\Facades\ES;
 use Illuminate\Console\Command;
 
 class CreateIndexCommand extends Command
@@ -22,6 +21,21 @@ class CreateIndexCommand extends Command
     protected $description = 'Create a new index using defined setting and mapping in config file';
 
     /**
+     * ES object
+     * @var object
+     */
+    protected $es;
+
+    /**
+     * CreateIndexCommand constructor.
+     */
+    function __construct()
+    {
+        parent::__construct();
+        $this->es = app("es");
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -31,7 +45,7 @@ class CreateIndexCommand extends Command
 
         $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
 
-        $client = ES::connection($connection)->raw();
+        $client = $this->es->connection($connection)->raw();
 
         $indices = !is_null($this->argument('index')) ?
             [$this->argument('index')] :
@@ -68,7 +82,7 @@ class CreateIndexCommand extends Command
 
             if (isset($config['aliases'])) {
 
-                foreach($config['aliases'] as $alias) {
+                foreach ($config['aliases'] as $alias) {
 
                     $this->info("Creating alias: {$alias} for index: {$index}");
 
@@ -110,8 +124,6 @@ class CreateIndexCommand extends Command
                 }
 
             }
-
-
 
 
         }
