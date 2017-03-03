@@ -46,7 +46,7 @@ class ESQueryTest extends PHPUnit_Framework_TestCase
 
         $expected_query = $this->prepareExpectedQueryWithDistanceFilter($geo_point, $distance);
 
-        $query = new Query(null);
+        $query = new Query();
 
         $actual_query = $query->index($this->index)
             ->type($this->type)
@@ -61,7 +61,7 @@ class ESQueryTest extends PHPUnit_Framework_TestCase
         // to cause actual results to differ from the expected results.
         $distance = '20km';
 
-        $query = new Query(null);
+        $query = new Query();
 
         $actual_query = $query->index($this->index)
             ->type($this->type)
