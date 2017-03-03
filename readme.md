@@ -288,19 +288,19 @@ $ php artisan es:indices:create my_new_index
 ```bash
 $ php artisan es:indices:reindex my_index my_new_index
 
-# you can control bulk size. Adjust it with your server.
+# Control bulk size. Adjust it with your server.
 
 $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
 
-# you can also control query scroll value.
+# Control query scroll value.
 
 $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
 
-# you can skip reindexing errors such as mapper parsing exceptions.
+# Skip reindexing errors such as mapper parsing exceptions.
 
 $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors
 
-# To hide all reindexing errors and show the progres bar only.
+# Hide all reindexing errors and show the progres bar only.
 
 $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --hide-errors
 ```
@@ -436,8 +436,10 @@ $documents = ES::type("my_type")->select("title", "content")->take(10)->skip(5)-
 ```
 ##### Where clause
 ```php    
-ES::type("my_type")->where("status", "published")->get(); 
-#or
+ES::type("my_type")->where("status", "published")->get();
+
+# or
+
 ES::type("my_type")->where("status", "=", "published")->get();
 ```
 ##### Where greater than
@@ -463,7 +465,9 @@ ES::type("my_type")->where("title", "like", "foo")->get();
 ##### Where field exists
 ```php
 ES::type("my_type")->where("hobbies", "exists", true)->get(); 
+
 # or 
+
 ES::type("my_type")->whereExists("hobbies", true)->get();
 ```    
 ##### Where in clause
@@ -473,13 +477,17 @@ ES::type("my_type")->whereIn("id", [100, 150])->get();
 ##### Where between clause 
 ```php    
 ES::type("my_type")->whereBetween("id", 100, 150)->get();
+
 # or 
+
 ES::type("my_type")->whereBetween("id", [100, 150])->get();
 ```    
 ##### Where not clause
 ```php    
 ES::type("my_type")->whereNot("status", "published")->get(); 
+
 # or
+
 ES::type("my_type")->whereNot("status", "=", "published")->get();
 ```
 ##### Where not greater than
@@ -505,7 +513,9 @@ ES::type("my_type")->whereNot("title", "like", "foo")->get();
 ##### Where not field exists
 ```php
 ES::type("my_type")->whereNot("hobbies", "exists", true)->get(); 
+
 # or
+
 ES::type("my_type")->whereExists("hobbies", true)->get();
 ```    
 ##### Where not in clause
@@ -515,16 +525,22 @@ ES::type("my_type")->whereNotIn("id", [100, 150])->get();
 ##### Where not between clause 
 ```php    
 ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
+
 # or
+
 ES::type("my_type")->whereNotBetween("id", [100, 150])->get();
 ```
    
 ##### Search by a distance from a geo point 
 ```php  
 ES::type("my_type")->distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
+
 # or
+
 ES::type("my_type")->distance("location", "-33.8688197,151.20929550000005", "10km")->get();
+
 # or
+
 ES::type("my_type")->distance("location", [151.20929550000005, -33.8688197], "10km")->get();  
 ```
   
@@ -618,7 +634,7 @@ Package comes with a built-in caching layer based on laravel cache.
 ```php
 ES::type("my_type")->search("foo")->remember(10)->get();
 	
-# you can specify a custom cache key
+# Specify a custom cache key
 
 ES::type("my_type")->search("foo")->remember(10, "last_documents")->get();
 	
