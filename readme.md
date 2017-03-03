@@ -283,7 +283,7 @@ $ php artisan es:indices:update my_index
 $ php artisan es:indices:create my_new_index
 ```
 
-4) Reindex data from `new_index` into `my_new_index` with command:
+4) Reindex data from `my_index` into `my_new_index` with command:
 
 ```bash
 $ php artisan es:indices:reindex my_index my_new_index
