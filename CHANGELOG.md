@@ -3,126 +3,142 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.9.4] - 2017-03-03
+
+# Fixed
+- Fix commands for lumen framework (working without facades).
+- Fix indices list command for newer elasticsearch/elasticsearch package.
+
+# Added
+- Customization for reindex command: 
+-- Add progressbar.
+-- Add `--scroll` option to control  query scroll value.
+-- Add `--hide-errors` option to hide reindexing errors.
+
+# Updated
+- Rename `--size` option to `--bulk-size` for reindexing command.
+
+
 ## [0.9.3] - 2017-02-27
 
 # Fixed
-- optimize count() method
+- Optimize count() method.
 
 
 ## [0.9.2] - 2017-02-27
 
 # Added
-- add bulk queries with different index or type names
+- Add bulk queries with different index or type names
 
 # Fixed
-- add reindexing with '--skip-errors' option.
-- fix insert with no id.
-- fix query() method if no filter.
+- Add reindexing with '--skip-errors' option.
+- Fix insert with no id.
+- Fix query() method if no filter.
 
 
 ## [0.9.1] - 2017-02-26
 
 # Added
-- add reindexing command with no downtime.
-- response method to get the native elasticserch response.
+- Add reindexing command with no downtime.
+- Response method to get the native elasticserch response.
 
 ## [0.9] - 2017-02-25
 
 # Fixed
-- fix index aliases update throw console.
+- Fix index aliases update throw console.
 
 ## [0.8.9] - 2017-02-25
 
 # Added
-- add index aliases using command line
+- Add index aliases using command line
 
 # Updated
-- return data throw a model to avoid non exist property.
+- Return data throw a model to avoid non exist property.
 
 # Fixed
-- fix list indices command if no indices found.
+- Fix list indices command if no indices found.
 
 ## [0.8.8] - 2017-02-24
 
 # Updated
-- update commands with a clear names.
+- Update commands with a clear names.
 
 ## [0.8.7] - 2017-02-24
 
 # Fixed
-- fix dynamic command connection option.
+- Fix dynamic command connection option.
 
 ## [0.8.6] - 2017-02-24
 
 ### Added
-- add console environment support.
+- Add console environment support.
 - Add query distance() method.
-- add check existence of an index.
-- new bulk code style.
+- Add check existence of an index.
+- New bulk code style.
 
 # Fixed
-- fix raw query example syntax in readme file.
+- Fix raw query example syntax in readme file.
 
 # Removed
-- remove hhvm from Travis CI.
+- Remove hhvm from Travis CI.
 
 ## [0.8.5] - 2017-02-19
 
 ### Fixed
-- fix some compatibility issues.
+- Fix some compatibility issues.
 
 ## [0.8.4] - 2017-02-19
 
 ### Fixed
-- fix pagination for laravel 5.1.
+- Fix pagination for laravel 5.1.
 
 ## [0.8.3] - 2017-02-19
 
 ### Fixed
-- fix laravel scout non resolved class.
+- Fix laravel scout non resolved class.
 
 ## [0.8.2] - 2017-02-19
 
 ### Fixed
-- fix pagination for non-laravel apps.
+- Fix pagination for non-laravel apps.
 
 ## [0.8.1] - 2017-02-18
 
 ### Added
-- add lumen auto configuration.
+- Add lumen auto configuration.
 
 ## [0.8] - 2017-02-18
 
 ### Added
-- add laravel 5.* support.
+- Add laravel 5.* support.
 
 ### Removed
-- remove laravel scout. you should install it manually with this package if you want.
+- Remove laravel scout. you should install it manually with this package if you want.
 
 ## [0.7.5] - 2017-02-17
 
 ### Fixed
-- fix query caching for lumen.
+- Fix query caching for lumen.
 
 ## [0.7.4] - 2017-02-17
 
 ### Added
-- add composer based applications support.
+- Add composer based applications support.
 
 ## [0.7.3] - 2017-02-16
 
 ### Added
-- add lumen framework support.
+- Add lumen framework support.
 
 ## [0.7.2] - 2017-02-14
 
 ### Added
-- make the package supports earlier requirements as much as possible.
+- Make the package supports earlier requirements as much as possible.
 
 ## [0.7.1] - 2017-02-14
 
 ### Added
-- update dependencies of package to work with:
+- Update dependencies of package to work with:
   
   php >= 5.6.6
   
@@ -131,51 +147,52 @@ All notable changes to this project will be documented in this file.
 ## [0.7] - 2017-02-12
 
 ### Added
-- add query caching layer.
-- add laravel scout support.
-- add query() method to get query before execution.
-- simplify readme docs.
-- more optimization.
+- Add query caching layer.
+- Add laravel scout support.
+- Add query() method to get query before execution.
+- Simplify readme docs.
+- More optimization.
 
 ## [0.6] - 2017-02-04
 
 ### Added
-- add scan and scroll queries.
-- ignore some http request to avoid exceptions.
+- Add scan and scroll queries.
+- Ignore some http request to avoid exceptions.
 
 ## [0.5] - 2017-01-17
 
 ### Added
-- add create index ability.
-- add drop index ability.
-- add mapping ability.
-- ignore HTTP response errors using query builder.
+- Add create index ability.
+- Add drop index ability.
+- Add mapping ability.
+- Ignore HTTP response errors using query builder.
 
 ## [0.4] - 2017-01-15
 
 ### Added
-- add search boost factor.
-- add increment update.
-- add decrement update.
-- add update using script.
+- Add search boost factor.
+- Add increment update.
+- Add decrement update.
+- Add update using script.
 
 ## [0.3] - 2017-01-07
 
 ### Added
-- add bulk inserts.
+- Add bulk inserts.
 
 ## [0.2] - 2017-01-07
 
 ### Added
-- some fixes.
+- Some fixes.
 
 ## [0.1] - 2017-01-07
 
 ### Added
-- basic builder.
+- Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.4...HEAD
+[0.9.4]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/basemkhirat/elasticsearch/compare/0.9.1...0.9.2
 [0.9.1]: https://github.com/basemkhirat/elasticsearch/compare/0.9...0.9.1
