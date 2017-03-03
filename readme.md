@@ -412,27 +412,27 @@ Connection and index names in query overrides connection and index names in conf
 
 ##### Getting document by id
 ```php
-$documents = ES::type("my_type")->id(3)->get();
+ES::type("my_type")->id(3)->first();
     
 # or
     
-$documents = ES::type("my_type")->_id(3)->get();
+ES::type("my_type")->_id(3)->first();
 ```
 ##### Sorting
 ```php 
-$documents = ES::type("my_type")->orderBy("created_at", "desc")->get();
+ES::type("my_type")->orderBy("created_at", "desc")->get();
     
 # Sorting with text search score
     
-$documents = ES::type("my_type")->orderBy("_score")->get();
+ES::type("my_type")->orderBy("_score")->get();
 ```
 ##### Limit and offset
 ```php
-$documents = ES::type("my_type")->take(10)->skip(5)->get();
+ES::type("my_type")->take(10)->skip(5)->get();
 ```
 ##### Select only specific fields
 ```php    
-$documents = ES::type("my_type")->select("title", "content")->take(10)->skip(5)->get();
+ES::type("my_type")->select("title", "content")->take(10)->skip(5)->get();
 ```
 ##### Where clause
 ```php    
@@ -603,28 +603,55 @@ ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhc
 ```php   
 $documents = ES::type("my_type")->search("bar")->paginate(5);
     
-# getting pagination links
+# Getting pagination links
     
 $documents->links();
 
+# Bootstrap 4 pagination
+
+$documents->links("bootstrap-4");
+
+# Simple bootstrap 4 pagination
+
+$documents->links("simple-bootstrap-4");
+
+# Simple pagination
+
+$documents->links("simple-default");
+```
+
+These are all pagination methods you may use:
+
+```php
+$documents->count()
+$documents->currentPage()
+$documents->firstItem()
+$documents->hasMorePages()
+$documents->lastItem()
+$documents->lastPage()
+$documents->nextPageUrl()
+$documents->perPage()
+$documents->previousPageUrl()
+$documents->total()
+$documents->url($page)
 ```
 
 ##### Getting the query array without execution
 
 ```php
-$query = ES::type("my_type")->search("foo")->where("views", ">", 150)->query();
+ES::type("my_type")->search("foo")->where("views", ">", 150)->query();
 ```
 
 ##### Getting the original elasticsearch response
 
 ```php
-$query = ES::type("my_type")->search("foo")->where("views", ">", 150)->response();
+ES::type("my_type")->search("foo")->where("views", ">", 150)->response();
 ```
 
 ##### Ignoring bad HTTP response
 
 ```php      
-$documents = ES::type("my_type")->ignore(404, 500)->id(5)->first();
+ES::type("my_type")->ignore(404, 500)->id(5)->first();
 ```
 
 ##### Query Caching (Laravel & Lumen)
