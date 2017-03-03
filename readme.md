@@ -1,6 +1,6 @@
 <p align="center">
 
-<a href="https://travis-ci.org/basemkhirat/elasticsearch"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg" alt="Build Status"></a>
+<a href="https://travis-ci.org/basemkhirat/elasticsearch"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg?branch=master" alt="Build Status"></a>
 
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
 
@@ -220,7 +220,7 @@ $ php artisan es:indices:create my_index
 
 #### Update indices defined in `es.php` config file
 
-Note that updating operation updates indices setting, aliases and mapping and don't delete the indexed data.
+Note that updating operation updates indices setting, aliases and mapping and doesn't delete the indexed data.
 
 ```bash
 # Update all indices in config file.
@@ -479,7 +479,7 @@ ES::type("my_type")->whereBetween("id", [100, 150])->get();
 ##### Where not clause
 ```php    
 ES::type("my_type")->whereNot("status", "published")->get(); 
-#or
+# or
 ES::type("my_type")->whereNot("status", "=", "published")->get();
 ```
 ##### Where not greater than
