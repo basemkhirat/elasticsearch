@@ -2,7 +2,6 @@
 
 namespace Basemkhirat\Elasticsearch\Commands;
 
-use Basemkhirat\Elasticsearch\Facades\ES;
 use Illuminate\Console\Command;
 
 class DropIndexCommand extends Command
@@ -24,6 +23,21 @@ class DropIndexCommand extends Command
     protected $description = 'Drop an index';
 
     /**
+     * ES object
+     * @var object
+     */
+    protected $es;
+
+    /**
+     * DropIndexCommand constructor.
+     */
+    function __construct()
+    {
+        parent::__construct();
+        $this->es = app("es");
+    }
+
+    /**
      * Execute the console command.
      *
      * @return mixed
@@ -34,7 +48,7 @@ class DropIndexCommand extends Command
         $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
         $force = $this->option("force") ? $this->option("force") : 0;
 
-        $client = ES::connection($connection)->raw();
+        $client = $this->es->connection($connection)->raw();
 
         $indices = !is_null($this->argument('index')) ?
             [$this->argument('index')] :
@@ -47,7 +61,7 @@ class DropIndexCommand extends Command
                 continue;
             }
 
-            if($force or $this->confirm("Are you sure to drop \"$index\" index")) {
+            if ($force or $this->confirm("Are you sure to drop \"$index\" index")) {
 
                 $this->info("Dropping index: {$index}");
 
