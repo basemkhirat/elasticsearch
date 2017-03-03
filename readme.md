@@ -290,11 +290,19 @@ $ php artisan es:indices:reindex my_index my_new_index
 
 # you can control bulk size. Adjust it with your server.
 
-$ php artisan es:indices:reindex my_index my_new_index --size=2000
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
+
+# you can also control query scroll value.
+
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
 
 # you can skip reindexing errors such as mapper parsing exceptions.
 
-$ php artisan es:indices:reindex my_index my_new_index --size=2000 --skip-errors
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors
+
+# To hide all reindexing errors and show the progres bar only.
+
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --hide-errors
 ```
 
 5) Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
@@ -311,7 +319,7 @@ First, follow [Laravel Scout installation](https://laravel.com/docs/5.4/scout#in
 All you have to do is updating these lines in `config/scout.php` configuration file.
 
 ```php
-# change the default driver to `es`
+# change the default driver to 'es'
 	
 'driver' => env('SCOUT_DRIVER', 'es'),
 	
@@ -404,135 +412,141 @@ Connection and index names in query overrides connection and index names in conf
 
 ##### Getting document by id
 ```php
-$documents = ES::id(3)->get();
+$documents = ES::type("my_type")->id(3)->get();
     
 # or
     
-$documents = ES::_id(3)->get();
+$documents = ES::type("my_type")->_id(3)->get();
 ```
 ##### Sorting
 ```php 
-$documents = ES::orderBy("created_at", "desc")->get();
+$documents = ES::type("my_type")->orderBy("created_at", "desc")->get();
     
 # Sorting with text search score
     
-$documents = ES::orderBy("_score")->get();
+$documents = ES::type("my_type")->orderBy("_score")->get();
 ```
 ##### Limit and offset
 ```php
-$documents = ES::take(10)->skip(5)->get();
+$documents = ES::type("my_type")->take(10)->skip(5)->get();
 ```
 ##### Select only specific fields
 ```php    
-$documents = ES::select("title", "content")->take(10)->skip(5)->get();
+$documents = ES::type("my_type")->select("title", "content")->take(10)->skip(5)->get();
 ```
 ##### Where clause
 ```php    
-ES::where("views", 150)->get(); or ES::where("views", "=", 150)->get();
+ES::type("my_type")->where("status", "published")->get(); 
+#or
+ES::type("my_type")->where("status", "=", "published")->get();
 ```
 ##### Where greater than
 ```php
-ES::where("views", ">", 150)->get();
+ES::type("my_type")->where("views", ">", 150)->get();
 ```
 ##### Where greater than or equal
 ```php
-ES::where("views", ">=", 150)->get();
+ES::type("my_type")->where("views", ">=", 150)->get();
 ```
 ##### Where less than
 ```php
-ES::where("views", "<", 150)->get();
+ES::type("my_type")->where("views", "<", 150)->get();
 ```
 ##### Where greater than or equal
 ```php
-ES::where("views", "<=", 150)->get();
+ES::type("my_type")->where("views", "<=", 150)->get();
 ```
 ##### Where like
 ```php
-ES::where("title", "like", "foo")->get();
+ES::type("my_type")->where("title", "like", "foo")->get();
 ```
 ##### Where field exists
 ```php
-ES::where("hobbies", "exists", true)->get(); 
+ES::type("my_type")->where("hobbies", "exists", true)->get(); 
 # or 
-ES::whereExists("hobbies", true)->get();
+ES::type("my_type")->whereExists("hobbies", true)->get();
 ```    
 ##### Where in clause
 ```php    
-ES::whereIn("id", [100, 150])->get();
+ES::type("my_type")->whereIn("id", [100, 150])->get();
 ```
 ##### Where between clause 
 ```php    
-ES::whereBetween("id", 100, 150)->get();
+ES::type("my_type")->whereBetween("id", 100, 150)->get();
+# or 
+ES::type("my_type")->whereBetween("id", [100, 150])->get();
 ```    
 ##### Where not clause
 ```php    
-ES::whereNot("views", 150)->get(); 
+ES::type("my_type")->whereNot("status", "published")->get(); 
 #or
-ES::where("views", "=", 150)->get();
+ES::type("my_type")->whereNot("status", "=", "published")->get();
 ```
 ##### Where not greater than
 ```php
-ES::whereNot("views", ">", 150)->get();
+ES::type("my_type")->whereNot("views", ">", 150)->get();
 ```
 ##### Where not greater than or equal
 ```php
-ES::whereNot("views", ">=", 150)->get();
+ES::type("my_type")->whereNot("views", ">=", 150)->get();
 ```
 ##### Where not less than
 ```php
-ES::whereNot("views", "<", 150)->get();
+ES::type("my_type")->whereNot("views", "<", 150)->get();
 ```
 ##### Where not less than or equal
 ```php
-ES::whereNot("views", "<=", 150)->get();
+ES::type("my_type")->whereNot("views", "<=", 150)->get();
 ```
 ##### Where not like
 ```php
-ES::whereNot("title", "like", "foo")->get();
+ES::type("my_type")->whereNot("title", "like", "foo")->get();
 ```
 ##### Where not field exists
 ```php
-ES::whereNot("hobbies", "exists", true)->get(); 
+ES::type("my_type")->whereNot("hobbies", "exists", true)->get(); 
 # or
-ES::whereExists("hobbies", true)->get();
+ES::type("my_type")->whereExists("hobbies", true)->get();
 ```    
 ##### Where not in clause
 ```php    
-ES::whereNotIn("id", [100, 150])->get();
+ES::type("my_type")->whereNotIn("id", [100, 150])->get();
 ```
 ##### Where not between clause 
 ```php    
-ES::whereNotBetween("id", 100, 150)->get();
+ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
+# or
+ES::type("my_type")->whereNotBetween("id", [100, 150])->get();
 ```
    
 ##### Search by a distance from a geo point 
 ```php  
-ES::distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
+ES::type("my_type")->distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
 # or
-ES::distance("location", "-33.8688197,151.20929550000005", "10km")->get();
+ES::type("my_type")->distance("location", "-33.8688197,151.20929550000005", "10km")->get();
 # or
-ES::distance("location", [151.20929550000005, -33.8688197], "10km")->get();  
+ES::type("my_type")->distance("location", [151.20929550000005, -33.8688197], "10km")->get();  
 ```
   
 ##### Search the entire document
     
 ```php
-ES::search("bar")->get();
+ES::type("my_type")->search("bar")->get();
     
 # search with Boost = 2
     
-ES::search("bar", 2)->get();
+ES::type("my_type")->search("bar", 2)->get();
 ```
 
 ##### Return only first record
 
 ```php    
-ES::search("bar")->first();
+ES::type("my_type")->search("bar")->first();
 ```
   
 ##### Return only count
 ```php    
-ES::search("bar")->count();
+ES::type("my_type")->search("bar")->count();
 ```
     
 ##### Scan-and-Scroll queries
@@ -542,7 +556,7 @@ ES::search("bar")->count();
     from Elasticsearch until there are no more results left. It’s a bit like a cursor in a traditional database
 
 ```php    
-$documents = ES::search("foo")
+$documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->take(1000)
                  ->get();
@@ -550,7 +564,7 @@ $documents = ES::search("foo")
   Response will contain a hashed code `scroll_id` will be used to get the next result by running
 
 ```php
-$documents = ES::search("foo")
+$documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                  ->get();
@@ -564,14 +578,14 @@ $documents = ES::search("foo")
    To clear `scroll_id` 
     
 ```php  
-ES::scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
+ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
 ```
     
 ##### Paginate results with per_page = 5
 
 ```php   
-$documents = ES::search("bar")->paginate(5);
+$documents = ES::type("my_type")->search("bar")->paginate(5);
     
 # getting pagination links
     
@@ -582,19 +596,19 @@ $documents->links();
 ##### Getting the query array without execution
 
 ```php
-$query = ES::search("foo")->where("views", ">", 150)->query();
+$query = ES::type("my_type")->search("foo")->where("views", ">", 150)->query();
 ```
 
 ##### Getting the original elasticsearch response
 
 ```php
-$query = ES::search("foo")->where("views", ">", 150)->response();
+$query = ES::type("my_type")->search("foo")->where("views", ">", 150)->response();
 ```
 
 ##### Ignoring bad HTTP response
 
 ```php      
-$documents = ES::ignore(404, 500)->id(5)->first();
+$documents = ES::type("my_type")->ignore(404, 500)->id(5)->first();
 ```
 
 ##### Query Caching (Laravel & Lumen)
@@ -602,19 +616,19 @@ $documents = ES::ignore(404, 500)->id(5)->first();
 Package comes with a built-in caching layer based on laravel cache.
 
 ```php
-ES::search("foo")->remember(10)->get();
+ES::type("my_type")->search("foo")->remember(10)->get();
 	
 # you can specify a custom cache key
 
-ES::search("foo")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("foo")->remember(10, "last_documents")->get();
 	
 # Caching using other available driver
 	
-ES::search("foo")->cacheDriver("redis")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("foo")->cacheDriver("redis")->remember(10, "last_documents")->get();
 	
 # Caching with cache key prefix
 	
-ES::search("foo")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("foo")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
 ```
 
 ##### Executing elasticsearch raw queries
@@ -669,16 +683,14 @@ ES::index("my_index")->type("my_type")->bulk(function ($bulk){
 
 # As index and type names are required for insertion, Index and type names are extendable. This means that: 
 
-# So
-
 # If index() is not specified in subquery:
-# -- The builder will get index name in main query.
+# -- The builder will get index name from the main query.
 # -- if index is not specified in main query, the builder will get index name from configuration file.
 
 # And
 
 # If type() is not specified in subquery:
-# -- The builder will get type name in main query.
+# -- The builder will get type name from the main query.
 
 # you can use old bulk code style using multidimensional array of [id => data] pairs
  
