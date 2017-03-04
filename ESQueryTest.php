@@ -17,7 +17,7 @@ class ESQueryTest extends PHPUnit_Framework_TestCase
     protected function defaultQueryTemplate() {
         return [
             'index' => $this->index,
-            'type' => $this->type,
+
             'body' => [
                 '_source' => [],
                 'query' => [
@@ -33,7 +33,8 @@ class ESQueryTest extends PHPUnit_Framework_TestCase
             'size' => 10,
             'client' => [
                 'ignore' => []
-            ]
+            ],
+            'type' => $this->type,
         ];
     }
 

@@ -350,33 +350,37 @@ class Query
     protected function getBody()
     {
 
-        if (count($this->must) || count($this->must_not) || count($this->filter) || count($this->sort) || count($this->_source)) {
+        $body = [];
 
-            $this->body = [
-
-                "_source" => $this->_source,
-
-                "query" => [
-
-                    "bool" => [
-
-                        "must" => $this->must,
-
-                        "must_not" => $this->must_not,
-
-                        "filter" => $this->filter
-
-                    ]
-                ],
-
-                "sort" => $this->sort,
-
-            ];
-
+        if (count($this->_source)) {
+            $body["_source"] = $this->_source;
         }
 
-        return $this->body;
+        $bool = [];
 
+        if (count($this->must)) {
+            $bool["must"] = $this->must;
+        }
+
+        if (count($this->must_not)) {
+            $bool["must_not"] = $this->must_not;
+        }
+
+        if (count($this->filter)) {
+            $bool["filter"] = $this->filter;
+        }
+
+        if (count($bool)) {
+            $body["query"]["bool"] = $bool;
+        }
+
+        if (count($this->sort)) {
+            $body["sort"] = $this->sort;
+        }
+
+        $this->body = $body;
+
+        return $body;
     }
 
 
@@ -577,7 +581,7 @@ class Query
      * @param $last_value
      * @return $this
      */
-    public function whereBetween($name, $first_value, $last_value)
+    public function whereBetween($name, $first_value, $last_value = null)
     {
 
         if (is_array($first_value) && count($first_value) == 2) {
@@ -598,7 +602,7 @@ class Query
      * @param $last_value
      * @return $this
      */
-    public function whereNotBetween($name, $first_value, $last_value)
+    public function whereNotBetween($name, $first_value, $last_value = null)
     {
 
         if (is_array($first_value) && count($first_value) == 2) {
