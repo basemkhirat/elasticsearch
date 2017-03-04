@@ -569,33 +569,32 @@ ES::type("my_type")->search("bar")->count();
     
 ##### Scan-and-Scroll queries
     
- These queries are suitable for large amount of data. 
-    A scrolled search allows you to do an initial search and to keep pulling batches of results
-    from Elasticsearch until there are no more results left. It’s a bit like a cursor in a traditional database
 
-```php    
+
+```php  
+
+# These queries are suitable for large amount of data. 
+# A scrolled search allows you to do an initial search and to keep pulling batches of results
+# from Elasticsearch until there are no more results left.
+# It’s a bit like a cursor in a traditional database
+    
 $documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->take(1000)
                  ->get();
-```              
-  Response will contain a hashed code `scroll_id` will be used to get the next result by running
 
-```php
+# Response will contain a hashed code `scroll_id` will be used to get the next result by running
+
 $documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                  ->get();
-```
-                        
-   And so on ...
+
+# And so on ...
+# Note that you don't need to write the query parameters in every scroll. All you need the `scroll_id` and query scroll time.
     
-   Note that you don't need to write the query parameters in every scroll.
-    All you need the `scroll_id` and query scroll time.
-    
-   To clear `scroll_id` 
-    
-```php  
+# To clear `scroll_id` 
+  
 ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
 ```
