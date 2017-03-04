@@ -87,7 +87,9 @@ If you don't want to enable working with Lumen facades you can access the query 
 
 ```php
 app("es")->index("my_index")->type("my_type")->get();
+
 # is similar to 
+
 ES::index("my_index")->type("my_type")->get();
 ```   
    
