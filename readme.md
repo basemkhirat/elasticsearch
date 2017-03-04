@@ -571,8 +571,7 @@ ES::type("my_type")->search("bar")->count();
     
 
 
-```php  
-
+```php
 # These queries are suitable for large amount of data. 
 # A scrolled search allows you to do an initial search and to keep pulling batches of results
 # from Elasticsearch until there are no more results left.
@@ -599,7 +598,7 @@ ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhc
         ->clear();
 ```
     
-##### Paginate results with per_page = 5
+##### Paginate results with 5 records per page
 
 ```php   
 $documents = ES::type("my_type")->search("bar")->paginate(5);
