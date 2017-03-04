@@ -300,11 +300,11 @@ $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll
 
 # Skip reindexing errors such as mapper parsing exceptions.
 
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
 
 # Hide all reindexing errors and show the progres bar only.
 
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --hide-errors
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
 ```
 
 5) Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
