@@ -87,7 +87,9 @@ If you don't want to enable working with Lumen facades you can access the query 
 
 ```php
 app("es")->index("my_index")->type("my_type")->get();
+
 # is similar to 
+
 ES::index("my_index")->type("my_type")->get();
 ```   
    
@@ -298,11 +300,11 @@ $ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll
 
 # Skip reindexing errors such as mapper parsing exceptions.
 
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
 
 # Hide all reindexing errors and show the progres bar only.
 
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --hide-errors
+$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
 ```
 
 5) Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
@@ -567,38 +569,36 @@ ES::type("my_type")->search("bar")->count();
     
 ##### Scan-and-Scroll queries
     
- These queries are suitable for large amount of data. 
-    A scrolled search allows you to do an initial search and to keep pulling batches of results
-    from Elasticsearch until there are no more results left. It’s a bit like a cursor in a traditional database
 
-```php    
+
+```php
+# These queries are suitable for large amount of data. 
+# A scrolled search allows you to do an initial search and to keep pulling batches of results
+# from Elasticsearch until there are no more results left.
+# It’s a bit like a cursor in a traditional database
+    
 $documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->take(1000)
                  ->get();
-```              
-  Response will contain a hashed code `scroll_id` will be used to get the next result by running
 
-```php
+# Response will contain a hashed code `scroll_id` will be used to get the next result by running
+
 $documents = ES::type("my_type")->search("foo")
                  ->scroll("2m")
                  ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                  ->get();
-```
-                        
-   And so on ...
+
+# And so on ...
+# Note that you don't need to write the query parameters in every scroll. All you need the `scroll_id` and query scroll time.
     
-   Note that you don't need to write the query parameters in every scroll.
-    All you need the `scroll_id` and query scroll time.
-    
-   To clear `scroll_id` 
-    
-```php  
+# To clear `scroll_id` 
+  
 ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
 ```
     
-##### Paginate results with per_page = 5
+##### Paginate results with 5 records per page
 
 ```php   
 $documents = ES::type("my_type")->search("bar")->paginate(5);
