@@ -342,48 +342,6 @@ class Query
         return $this->skip;
     }
 
-
-    /**
-     * Generate the query body
-     * @return array
-     */
-    protected function getBody()
-    {
-
-        $body = [];
-
-        if (count($this->_source)) {
-            $body["_source"] = $this->_source;
-        }
-
-        $bool = [];
-
-        if (count($this->must)) {
-            $bool["must"] = $this->must;
-        }
-
-        if (count($this->must_not)) {
-            $bool["must_not"] = $this->must_not;
-        }
-
-        if (count($this->filter)) {
-            $bool["filter"] = $this->filter;
-        }
-
-        if (count($bool)) {
-            $body["query"]["bool"] = $bool;
-        }
-
-        if (count($this->sort)) {
-            $body["sort"] = $this->sort;
-        }
-
-        $this->body = $body;
-
-        return $body;
-    }
-
-
     /**
      * Set the sorting field
      * @param $field
@@ -735,6 +693,63 @@ class Query
     }
 
     /**
+     * Generate the query body
+     * @return array
+     */
+    protected function getBody()
+    {
+
+        $body = $this->body;
+
+        if (count($this->_source)) {
+
+            $_source = array_key_exists("_source", $body) ? $body["_source"] : [];
+
+            $body["_source"] = array_unique(array_merge($_source, $this->_source));
+        }
+
+        if (count($this->must)) {
+            $body["query"]["bool"]["must"] = $this->must;
+        }
+
+        if (count($this->must_not)) {
+            $body["query"]["bool"]["must_not"] = $this->must_not;
+        }
+
+        if (count($this->filter)) {
+            $body["query"]["bool"]["filter"] = $this->filter;
+        }
+
+        if (count($this->sort)) {
+
+            $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
+
+            $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
+
+        }
+
+        $this->body = $body;
+
+        return $body;
+    }
+
+
+    /**
+     * set the query body array
+     * @param array $body
+     * @return $this
+     */
+    function body($body = [])
+    {
+
+        $this->body = $body;
+
+        return $this;
+
+    }
+
+
+    /**
      * Generate the query to be executed
      * @return array
      */
@@ -775,6 +790,7 @@ class Query
         return $query;
 
     }
+
 
     /**
      * Clear scroll query id
