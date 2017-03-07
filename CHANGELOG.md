@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.9.5] - 2017-03-08
+
+# Added
+- Add the body() query method.
+
 ## [0.9.4] - 2017-03-03
 
 # Fixed
@@ -191,7 +196,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.4...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.5...HEAD
+[0.9.5]: https://github.com/basemkhirat/elasticsearch/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...0.9.3
 [0.9.2]: https://github.com/basemkhirat/elasticsearch/compare/0.9.1...0.9.2

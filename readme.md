@@ -546,6 +546,93 @@ ES::type("my_type")->distance("location", "-33.8688197,151.20929550000005", "10k
 ES::type("my_type")->distance("location", [151.20929550000005, -33.8688197], "10km")->get();  
 ```
   
+  
+##### Search using array queries
+      
+```php
+ES::type("my_type")->body([
+    "query" => [
+         "bool" => [
+             "must" => [
+                 [ "match" => [ "address" => "mill" ] ],
+                 [ "match" => [ "address" => "lane" ] ]
+             ]
+         ]
+     ]
+])->get();
+
+# Note that you can mix between query builder and array queries.
+# The query builder will will be merged with the array query.
+
+ES::type("my_type")->body([
+
+	"_source" => ["content"]
+	
+	"query" => [
+	     "bool" => [
+	         "must" => [
+	             [ "match" => [ "address" => "mill" ] ]
+	         ]
+	     ]
+	],
+	   
+	"sort" => [
+		"_score"
+	]
+     
+])->select("name")->orderBy("created_at", "desc")->take(10)->skip(5)->get();
+
+# The result query will be
+/*
+Array
+(
+    [index] => my_index
+    [type] => my_type
+    [body] => Array
+        (
+            [_source] => Array
+                (
+                    [0] => content
+                    [1] => name
+                )
+            [query] => Array
+                (
+                    [bool] => Array
+                        (
+                            [must] => Array
+                                (
+                                    [0] => Array
+                                        (
+                                            [match] => Array
+                                                (
+                                                    [address] => mill
+                                                )
+                                        )
+                                )
+                        )
+                )
+            [sort] => Array
+                (
+                    [0] => _score
+                    [1] => Array
+                        (
+                            [created_at] => desc
+                        )
+                )
+        )
+    [from] => 5
+    [size] => 10
+    [client] => Array
+        (
+            [ignore] => Array
+                (
+                )
+        )
+)
+*/
+
+```
+  
 ##### Search the entire document
     
 ```php
