@@ -456,7 +456,7 @@ ES::type("my_type")->where("views", ">=", 150)->get();
 ```php
 ES::type("my_type")->where("views", "<", 150)->get();
 ```
-##### Where greater than or equal
+##### Where less than or equal
 ```php
 ES::type("my_type")->where("views", "<=", 150)->get();
 ```
