@@ -41,7 +41,8 @@
         "php": ">=5.6.6",
         "elasticsearch/elasticsearch": "^5.0",
         "illuminate/pagination": "*",
-        "illuminate/support": "*"
+        "illuminate/support": "*",
+        "symfony/var-dumper": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "*"
