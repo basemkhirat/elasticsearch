@@ -45,6 +45,6 @@
         "symfony/var-dumper": "*"
     },
     "require-dev": {
-        "phpunit/phpunit": "*"
+        "phpunit/phpunit": "4.8.*"
     }
 }
