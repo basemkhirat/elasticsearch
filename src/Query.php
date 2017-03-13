@@ -938,6 +938,7 @@ class Query
 
             $original = $row["_source"];
 
+            $original["_index"] = $row["_index"];
             $original["_type"] = $row["_type"];
             $original["_id"] = $row["_id"];
             $original["_score"] = $row["_score"];
@@ -971,6 +972,7 @@ class Query
 
             $original = $data[0]["_source"];
 
+            $original["_index"] = $data[0]["_index"];
             $original["_type"] = $data[0]["_type"];
             $original["_id"] = $data[0]["_id"];
             $original["_score"] = $data[0]["_score"];
