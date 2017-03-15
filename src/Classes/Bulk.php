@@ -125,15 +125,47 @@ class Bulk
     }
 
     /**
-     * Add pending document
+     * Add pending document for insert
      * @param array $data
      */
     public function insert($data = [])
     {
 
+        $this->action('index', $data);
+
+    }
+
+    /**
+     * Add pending document for update
+     * @param array $data
+     */
+    public function update($data = [])
+    {
+
+        $this->action('update', $data);
+
+    }
+
+    /**
+     * Add pending document for deletion
+     */
+    public function delete()
+    {
+
+        $this->action('delete');
+
+    }
+
+    /**
+     * Add pending document abstract action
+     * @param string $actionType
+     * @param array $data
+     */
+    public function action($actionType, $data = [])
+    {
         $this->body["body"][] = [
 
-            'index' => [
+            $actionType => [
                 '_index' => $this->getIndex(),
                 '_type' => $this->getType(),
                 '_id' => $this->_id
@@ -141,10 +173,11 @@ class Bulk
 
         ];
 
-        $this->body["body"][] = $data;
+        if (!empty($data)) {
+            $this->body["body"][] = $data;
+        }
 
         $this->reset();
-
     }
 
     /**
