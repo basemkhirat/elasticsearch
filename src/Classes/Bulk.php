@@ -47,14 +47,24 @@ class Bulk
      */
     public $operationCount = 0;
 
+    /**
+     * Operation count which will trigger autocommit
+     * @var int
+     */
+    public $autocommitAfter = 0;
+
 
     /**
      * Bulk constructor.
      * @param Query $query
+     * @param int $autocommitAfter
      */
-    public function __construct(Query $query)
+    public function __construct(Query $query, $autocommitAfter = 0)
     {
+
         $this->query = $query;
+        $this->autocommitAfter = intval($autocommitAfter);
+
     }
 
     /**
@@ -186,6 +196,10 @@ class Bulk
         $this->operationCount++;
 
         $this->reset();
+
+        if ($this->autocommitAfter > 0 && $this->operationCount >= $this->autocommitAfter) {
+            $this->commit();
+        }
     }
 
     /**
@@ -217,9 +231,10 @@ class Bulk
     public function commit()
     {
 
-        $this->query->connection->bulk($this->body);
+        $result = $this->query->connection->bulk($this->body);
         $this->operationCount = 0;
         $this->body = [];
 
+        return $result;
     }
 }
