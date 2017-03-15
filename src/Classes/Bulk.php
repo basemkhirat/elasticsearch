@@ -143,22 +143,24 @@ class Bulk
     /**
      * Add pending document for insert
      * @param array $data
+     * @return mixed
      */
     public function insert($data = [])
     {
 
-        $this->action('index', $data);
+        return $this->action('index', $data);
 
     }
 
     /**
      * Add pending document for update
      * @param array $data
+     * @return mixed
      */
     public function update($data = [])
     {
 
-        $this->action('update', $data);
+        return $this->action('update', $data);
 
     }
 
@@ -168,7 +170,7 @@ class Bulk
     public function delete()
     {
 
-        $this->action('delete');
+        return $this->action('delete');
 
     }
 
@@ -176,6 +178,7 @@ class Bulk
      * Add pending document abstract action
      * @param string $actionType
      * @param array $data
+     * @return mixed
      */
     public function action($actionType, $data = [])
     {
@@ -198,8 +201,10 @@ class Bulk
         $this->reset();
 
         if ($this->autocommitAfter > 0 && $this->operationCount >= $this->autocommitAfter) {
-            $this->commit();
+            return $this->commit();
         }
+
+        return true;
     }
 
     /**
