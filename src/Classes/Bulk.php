@@ -41,6 +41,12 @@ class Bulk
      */
     public $body = [];
 
+    /**
+     * Number of pending operations
+     * @var int
+     */
+    public $operationCount = 0;
+
 
     /**
      * Bulk constructor.
@@ -177,6 +183,8 @@ class Bulk
             $this->body["body"][] = $data;
         }
 
+        $this->operationCount++;
+
         $this->reset();
     }
 
@@ -203,5 +211,15 @@ class Bulk
 
     }
 
+    /**
+     * Commit all pending operations
+     */
+    public function commit()
+    {
 
+        $this->query->connection->bulk($this->body);
+        $this->operationCount = 0;
+        $this->body = [];
+
+    }
 }
