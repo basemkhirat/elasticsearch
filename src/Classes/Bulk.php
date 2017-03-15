@@ -236,6 +236,10 @@ class Bulk
     public function commit()
     {
 
+        if (empty($this->body)) {
+            return false;
+        }
+        
         $result = $this->query->connection->bulk($this->body);
         $this->operationCount = 0;
         $this->body = [];
