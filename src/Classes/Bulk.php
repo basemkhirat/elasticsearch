@@ -41,14 +41,30 @@ class Bulk
      */
     public $body = [];
 
+    /**
+     * Number of pending operations
+     * @var int
+     */
+    public $operationCount = 0;
+
+    /**
+     * Operation count which will trigger autocommit
+     * @var int
+     */
+    public $autocommitAfter = 0;
+
 
     /**
      * Bulk constructor.
      * @param Query $query
+     * @param int $autocommitAfter
      */
-    public function __construct(Query $query)
+    public function __construct(Query $query, $autocommitAfter = 0)
     {
+
         $this->query = $query;
+        $this->autocommitAfter = intval($autocommitAfter);
+
     }
 
     /**
@@ -125,15 +141,50 @@ class Bulk
     }
 
     /**
-     * Add pending document
+     * Add pending document for insert
      * @param array $data
+     * @return mixed
      */
     public function insert($data = [])
     {
 
+        return $this->action('index', $data);
+
+    }
+
+    /**
+     * Add pending document for update
+     * @param array $data
+     * @return mixed
+     */
+    public function update($data = [])
+    {
+
+        return $this->action('update', $data);
+
+    }
+
+    /**
+     * Add pending document for deletion
+     */
+    public function delete()
+    {
+
+        return $this->action('delete');
+
+    }
+
+    /**
+     * Add pending document abstract action
+     * @param string $actionType
+     * @param array $data
+     * @return mixed
+     */
+    public function action($actionType, $data = [])
+    {
         $this->body["body"][] = [
 
-            'index' => [
+            $actionType => [
                 '_index' => $this->getIndex(),
                 '_type' => $this->getType(),
                 '_id' => $this->_id
@@ -141,10 +192,19 @@ class Bulk
 
         ];
 
-        $this->body["body"][] = $data;
+        if (!empty($data)) {
+            $this->body["body"][] = $data;
+        }
+
+        $this->operationCount++;
 
         $this->reset();
 
+        if ($this->autocommitAfter > 0 && $this->operationCount >= $this->autocommitAfter) {
+            return $this->commit();
+        }
+
+        return true;
     }
 
     /**
@@ -170,5 +230,20 @@ class Bulk
 
     }
 
+    /**
+     * Commit all pending operations
+     */
+    public function commit()
+    {
 
+        if (empty($this->body)) {
+            return false;
+        }
+        
+        $result = $this->query->connection->bulk($this->body);
+        $this->operationCount = 0;
+        $this->body = [];
+
+        return $result;
+    }
 }
