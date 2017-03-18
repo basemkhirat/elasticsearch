@@ -852,6 +852,15 @@ ES::type("my_type")->id(3)->update([
     
 # [id is required]
 ```
+
+```php
+# Bulk update
+
+ES::type("my_type")->bulk(function ($bulk){
+	$bulk->id(10)->update(["title" => "Test document 1","content" => "Sample content 1"]);
+	$bulk->id(11)->update(["title" => "Test document 2","content" => "Sample content 2"]);
+});
+```
    
 ##### Incrementing field
 ```php
@@ -911,6 +920,15 @@ ES::type("my_type")->id(3)->delete();
 # Document has _id = 3 will be deleted.
     
 # [id is required]
+```
+
+```php
+# Bulk delete
+
+ES::type("my_type")->bulk(function ($bulk){
+	$bulk->id(10)->delete();
+	$bulk->id(11)->delete();
+});
 ```
 
 ## Releases
