@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+
+## [0.9.6] - 2017-03-18
+
+# Added
+- Add _index to the result model.
+- Improve bulk method to perform update and delete operations.
+
+
 ## [0.9.5] - 2017-03-08
 
 # Added
@@ -196,7 +204,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.5...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...HEAD
+[0.9.6]: https://github.com/basemkhirat/elasticsearch/compare/0.9.5...0.9.6
 [0.9.5]: https://github.com/basemkhirat/elasticsearch/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...0.9.4
 [0.9.3]: https://github.com/basemkhirat/elasticsearch/compare/0.9.2...0.9.3
