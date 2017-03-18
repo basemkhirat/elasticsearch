@@ -193,7 +193,11 @@ class Bulk
         ];
 
         if (!empty($data)) {
-            $this->body["body"][] = $data;
+            if($actionType == "update"){
+                $this->body["body"][] = ["doc" => $data];
+            }else {
+                $this->body["body"][] = $data;
+            }
         }
 
         $this->operationCount++;
@@ -239,7 +243,7 @@ class Bulk
         if (empty($this->body)) {
             return false;
         }
-        
+
         $result = $this->query->connection->bulk($this->body);
         $this->operationCount = 0;
         $this->body = [];
