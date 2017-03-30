@@ -79,18 +79,21 @@ class ElasticsearchServiceProvider extends ServiceProvider
     public function register()
     {
 
-        if ($this->app->runningInConsole()) {
+        if(version_compare(app()->version(), '5.1', ">=")) {
 
-            // Registering commands
+            if ($this->app->runningInConsole()) {
 
-            $this->commands([
-                ListIndicesCommand::class,
-                CreateIndexCommand::class,
-                UpdateIndexCommand::class,
-                DropIndexCommand::class,
-                ReindexCommand::class
-            ]);
+                // Registering commands
 
+                $this->commands([
+                    ListIndicesCommand::class,
+                    CreateIndexCommand::class,
+                    UpdateIndexCommand::class,
+                    DropIndexCommand::class,
+                    ReindexCommand::class
+                ]);
+
+            }
         }
 
         $this->app->bind('es', function () {
