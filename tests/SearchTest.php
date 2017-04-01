@@ -29,11 +29,16 @@ class SearchTest extends \PHPUnit_Framework_TestCase
     {
         $query = $this->getQueryArray();
 
+        $search_params = [];
+
+        $search_params["query"] = $q;
+
+        if($boost > 1){
+            $search_params["boost"] = $boost;
+        }
+
         $query["body"]["query"]["bool"]["must"][] = [
-            "query_string" => [
-                "query" => $q,
-                "boost" => $boost
-            ]
+            "query_string" => $search_params
         ];
 
         return $query;

@@ -95,7 +95,7 @@ class Search
 
         $query_params = [];
 
-        $query_params["q"] = $this->q;
+        $query_params["query"] = $this->q;
 
         if($this->boost > 1) {
             $query_params["boost"] = $this->boost;
