@@ -147,7 +147,6 @@ class WhereTest extends \PHPUnit_Framework_TestCase
 
         $query["body"]["query"]["bool"] = $bool;
 
-
         return $query;
     }
 

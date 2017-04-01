@@ -44,7 +44,7 @@ class Search
         $this->query = $query;
         $this->q = $q;
 
-        if(is_callable($settings)){
+        if(is_callback_function($settings)){
             $settings($this);
         }
 

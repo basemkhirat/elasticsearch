@@ -54,12 +54,6 @@ Trait ESQueryTrait
 
             'size' => $this->take,
 
-            'client' => [
-
-                'ignore' => []
-
-            ]
-
         ];
     }
 

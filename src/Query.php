@@ -434,7 +434,7 @@ class Query
     public function where($name, $operator = "=", $value = NULL)
     {
 
-        if (is_callable($name)) {
+        if (is_callback_function($name)) {
             $name($this);
             return $this;
         }
@@ -491,7 +491,7 @@ class Query
     public function whereNot($name, $operator = "=", $value = NULL)
     {
 
-        if (is_callable($name)) {
+        if (is_callback_function($name)) {
             $name($this);
             return $this;
         }
@@ -584,7 +584,7 @@ class Query
     public function whereIn($name, $value = [])
     {
 
-        if (is_callable($name)) {
+        if (is_callback_function($name)) {
             $name($this);
             return $this;
         }
@@ -604,7 +604,7 @@ class Query
     public function whereNotIn($name, $value = [])
     {
 
-        if (is_callable($name)) {
+        if (is_callback_function($name)) {
             $name($this);
             return $this;
         }
@@ -653,7 +653,7 @@ class Query
     public function distance($name, $value, $distance)
     {
 
-        if (is_callable($name)) {
+        if (is_callback_function($name)) {
             $name($this);
             return $this;
         }
@@ -681,7 +681,7 @@ class Query
 
             $search = new Search($this, $q, $settings);
 
-            if(!is_callable($settings)){
+            if(!is_callback_function($settings)){
                 $search->boost($settings ? $settings : 1);
             }
 
@@ -757,22 +757,22 @@ class Query
     public function query()
     {
 
-        $query = [
+        $query = [];
 
-            'index' => $this->getIndex(),
-
-            'body' => $this->getBody(),
-
-            "from" => $this->getSkip(),
-
-            "size" => $this->getTake(),
-
-            'client' => ['ignore' => $this->ignores]
-
-        ];
+        $query["index"] = $this->getIndex();
 
         if ($this->getType()) {
             $query["type"] = $this->getType();
+        }
+
+        $query["body"] = $this->getBody();
+
+        $query["from"] = $this->getSkip();
+
+        $query["size"] = $this->getTake();
+
+        if(count($this->ignores)){
+            $query["client"] = ['ignore' => $this->ignores];
         }
 
         $search_type = $this->getSearchType();
@@ -1053,7 +1053,7 @@ class Query
     public function bulk($data)
     {
 
-        if (is_callable($data)) {
+        if (is_callback_function($data)) {
 
             $bulk = new Bulk($this);
 

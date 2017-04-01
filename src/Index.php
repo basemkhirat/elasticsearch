@@ -142,7 +142,7 @@ class Index
 
         $callback = $this->callback;
 
-        if (is_callable($callback)) {
+        if (is_callback_function($callback)) {
             $callback($this);
         }
 
