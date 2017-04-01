@@ -631,22 +631,28 @@ Array
 ##### Search the entire document
     
 ```php
-ES::type("my_type")->search("bar")->get();
+ES::type("my_type")->search("hello")->get();
     
 # search with Boost = 2
     
-ES::type("my_type")->search("bar", 2)->get();
+ES::type("my_type")->search("hello", 2)->get();
+
+# search within specific fields with different weights
+
+ES::type("my_type")->search("hello", function($search){
+	$search->boost(2)->fields(["title" => 2, "content" => 1])
+})->get();
 ```
 
 ##### Return only first record
 
 ```php    
-ES::type("my_type")->search("bar")->first();
+ES::type("my_type")->search("hello")->first();
 ```
   
 ##### Return only count
 ```php    
-ES::type("my_type")->search("bar")->count();
+ES::type("my_type")->search("hello")->count();
 ```
     
 ##### Scan-and-Scroll queries
@@ -659,14 +665,14 @@ ES::type("my_type")->search("bar")->count();
 # from Elasticsearch until there are no more results left.
 # It’s a bit like a cursor in a traditional database
     
-$documents = ES::type("my_type")->search("foo")
+$documents = ES::type("my_type")->search("hello")
                  ->scroll("2m")
                  ->take(1000)
                  ->get();
 
 # Response will contain a hashed code `scroll_id` will be used to get the next result by running
 
-$documents = ES::type("my_type")->search("foo")
+$documents = ES::type("my_type")->search("hello")
                  ->scroll("2m")
                  ->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
                  ->get();
@@ -683,7 +689,7 @@ ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhc
 ##### Paginate results with 5 records per page
 
 ```php   
-$documents = ES::type("my_type")->search("bar")->paginate(5);
+$documents = ES::type("my_type")->search("hello")->paginate(5);
     
 # Getting pagination links
     
@@ -721,13 +727,13 @@ $documents->url($page)
 ##### Getting the query array without execution
 
 ```php
-ES::type("my_type")->search("foo")->where("views", ">", 150)->query();
+ES::type("my_type")->search("hello")->where("views", ">", 150)->query();
 ```
 
 ##### Getting the original elasticsearch response
 
 ```php
-ES::type("my_type")->search("foo")->where("views", ">", 150)->response();
+ES::type("my_type")->search("hello")->where("views", ">", 150)->response();
 ```
 
 ##### Ignoring bad HTTP response
@@ -741,19 +747,19 @@ ES::type("my_type")->ignore(404, 500)->id(5)->first();
 Package comes with a built-in caching layer based on laravel cache.
 
 ```php
-ES::type("my_type")->search("foo")->remember(10)->get();
+ES::type("my_type")->search("hello")->remember(10)->get();
 	
 # Specify a custom cache key
 
-ES::type("my_type")->search("foo")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("hello")->remember(10, "last_documents")->get();
 	
 # Caching using other available driver
 	
-ES::type("my_type")->search("foo")->cacheDriver("redis")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("hello")->cacheDriver("redis")->remember(10, "last_documents")->get();
 	
 # Caching with cache key prefix
 	
-ES::type("my_type")->search("foo")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
+ES::type("my_type")->search("hello")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
 ```
 
 ##### Executing elasticsearch raw queries
