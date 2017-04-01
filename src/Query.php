@@ -3,6 +3,7 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
+use Basemkhirat\Elasticsearch\Classes\Search;
 use Illuminate\Support\Collection;
 
 /**
@@ -67,7 +68,7 @@ class Query
      * Query body
      * @var array
      */
-    protected $body = [];
+    public $body = [];
 
     /**
      * Query bool filter
@@ -79,13 +80,13 @@ class Query
      * Query bool must
      * @var array
      */
-    protected $must = [];
+    public $must = [];
 
     /**
      * Query bool must not
      * @var array
      */
-    protected $must_not = [];
+    public $must_not = [];
 
     /**
      * Query returned fields list
@@ -671,20 +672,20 @@ class Query
     /**
      * Search the entire document fields
      * @param null $q
-     * @param int $boost
      * @return $this
      */
-    public function search($q = NULL, $boost = 1)
+    public function search($q = NULL, $settings = NULL)
     {
 
         if ($q) {
 
-            $this->must[] = [
-                "query_string" => [
-                    "query" => $q,
-                    "boost" => $boost
-                ]
-            ];
+            $search = new Search($this, $q, $settings);
+
+            if(!is_callable($settings)){
+                $search->boost($settings ? $settings : 1);
+            }
+
+            $search->build();
 
         }
 
