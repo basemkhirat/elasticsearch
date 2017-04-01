@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file.
 ## [Released]
 
 
+## [0.9.7] - 2017-04-01
+
+# Added
+- Add searchable weighted fields to search method.
+
+# Removed
+- Remove artisan commands for laravel 5.0.
+- Remove wildcard query search for laravel scout.
+
 ## [0.9.6] - 2017-03-18
 
 # Added
@@ -204,7 +213,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.7...HEAD
+[0.9.7]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...0.9.7
 [0.9.6]: https://github.com/basemkhirat/elasticsearch/compare/0.9.5...0.9.6
 [0.9.5]: https://github.com/basemkhirat/elasticsearch/compare/0.9.4...0.9.5
 [0.9.4]: https://github.com/basemkhirat/elasticsearch/compare/0.9.3...0.9.4
