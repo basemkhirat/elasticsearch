@@ -3,6 +3,11 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [0.9.9] - 2017-04-27
+
+# Fixed
+- Allow more mapping settings in config file.
+
 ## [0.9.8] - 2017-04-01
 
 # Fixed
@@ -218,7 +223,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.8...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...HEAD
+[0.9.9]: https://github.com/basemkhirat/elasticsearch/compare/0.9.8...0.9.9
 [0.9.8]: https://github.com/basemkhirat/elasticsearch/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...0.9.7
 [0.9.6]: https://github.com/basemkhirat/elasticsearch/compare/0.9.5...0.9.6
