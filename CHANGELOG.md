@@ -6,7 +6,7 @@ All notable changes to this project will be documented in this file.
 ## [0.9.8] - 2017-04-01
 
 # Fixed
-- Fix callable check for reserved php function.
+- Fix callable checks for reserved php functions.
 
 
 ## [0.9.7] - 2017-04-01
