@@ -166,10 +166,12 @@ $documents = $connection->search("hello")->get();
 	        "number_of_replicas" => 0,
 	    ],
 	    'mappings' => [
-	        'posts' => [
-	            'title' => [
-	                'type' => 'string'
-	            ]
+	        "properties" => [
+                'posts' => [
+                    'title' => [
+                        'type' => 'string'
+                    ]
+                ]
 	        ]
 	    ]
 	]

@@ -127,10 +127,7 @@ class UpdateIndexCommand extends Command
                     $client->indices()->putMapping([
                         'index' => $index,
                         'type' => $type,
-                        'body' => [
-                            'properties' => $mapping
-                        ]
-
+                        'body' => $mapping
                     ]);
 
                 }
