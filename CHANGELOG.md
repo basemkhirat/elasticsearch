@@ -3,6 +3,9 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+
+## [1.0] - 2017-04-28
+
 ## [0.9.9] - 2017-04-27
 
 # Fixed
@@ -223,7 +226,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.0...HEAD
+[0.1]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...1.0
 [0.9.9]: https://github.com/basemkhirat/elasticsearch/compare/0.9.8...0.9.9
 [0.9.8]: https://github.com/basemkhirat/elasticsearch/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...0.9.7
