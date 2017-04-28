@@ -166,8 +166,8 @@ $documents = $connection->search("hello")->get();
 	        "number_of_replicas" => 0,
 	    ],
 	    'mappings' => [
-	        "properties" => [
-                'posts' => [
+	        'posts' => [
+                'properties' => [
                     'title' => [
                         'type' => 'string'
                     ]

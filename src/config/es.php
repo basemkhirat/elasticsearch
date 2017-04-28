@@ -72,12 +72,11 @@ return [
             ],
 
             'mappings' => [
-                "properties" => [
-                    'posts' => [
+                'posts' => [
+                    "properties" => [
                         'title' => [
                             'type' => 'string'
                         ]
-
                     ]
                 ]
             ]
