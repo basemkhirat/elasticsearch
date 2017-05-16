@@ -79,7 +79,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
     public function register()
     {
 
-        if(version_compare(app()->version(), '5.1', ">=")) {
+        if(version_compare($this->app->version(), '5.1', ">=") or starts_with($this->app->version(), "Lumen")) {
 
             if ($this->app->runningInConsole()) {
 
