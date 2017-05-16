@@ -3,6 +3,10 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [1.1] - 2017-05-16
+
+# Fixed
+- Fix command line for lumen.
 
 ## [1.0] - 2017-04-28
 
@@ -226,8 +230,9 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.0...HEAD
-[0.1]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...1.0
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.1...HEAD
+[1.1]: https://github.com/basemkhirat/elasticsearch/compare/1.0...1.1
+[1.0]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...1.0
 [0.9.9]: https://github.com/basemkhirat/elasticsearch/compare/0.9.8...0.9.9
 [0.9.8]: https://github.com/basemkhirat/elasticsearch/compare/0.9.7...0.9.8
 [0.9.7]: https://github.com/basemkhirat/elasticsearch/compare/0.9.6...0.9.7
