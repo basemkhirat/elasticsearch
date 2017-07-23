@@ -3,6 +3,12 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+
+## [1.2] - 2017-07-23
+
+# Added
+- New Elastic data model.
+
 ## [1.1] - 2017-05-16
 
 # Fixed
@@ -230,7 +236,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.1...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.2...HEAD
+[1.2]: https://github.com/basemkhirat/elasticsearch/compare/1.1...1.2
 [1.1]: https://github.com/basemkhirat/elasticsearch/compare/1.0...1.1
 [1.0]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...1.0
 [0.9.9]: https://github.com/basemkhirat/elasticsearch/compare/0.9.8...0.9.9
