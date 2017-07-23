@@ -51,7 +51,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you can define your indices, with separate settings and mappings.
-    | Edit setting and mapping and run 'php artisan es:index:update' to update
+    | Edit  asetting and mappingnd run 'php artisan es:index:update' to update
     | indices on elasticsearch server.
     |
     | 'my_index' is just for test. Replace it with a real index name.

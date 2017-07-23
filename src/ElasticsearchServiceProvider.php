@@ -79,6 +79,8 @@ class ElasticsearchServiceProvider extends ServiceProvider
     public function register()
     {
 
+        // Package commands available for laravel or lumen higher than 5.1
+
         if(version_compare($this->app->version(), '5.1', ">=") or starts_with($this->app->version(), "Lumen")) {
 
             if ($this->app->runningInConsole()) {

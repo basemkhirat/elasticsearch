@@ -4,10 +4,12 @@ namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\Search;
-use Illuminate\Support\Collection;
+use Basemkhirat\Elasticsearch\Collection;
+
 
 /**
  * Class Query
+ *
  * @package Basemkhirat\Elasticsearch\Query
  */
 class Query
@@ -15,18 +17,21 @@ class Query
 
     /**
      * Native elasticsearch connection instance
+     *
      * @var Connection
      */
     public $connection;
 
     /**
      * Ignored HTTP errors
+     *
      * @var array
      */
     public $ignores = [];
 
     /**
      * Filter operators
+     *
      * @var array
      */
     protected $operators = [
@@ -42,90 +47,105 @@ class Query
 
     /**
      * Query array
+     *
      * @var
      */
     protected $query;
 
     /**
      * Query index name
+     *
      * @var
      */
     protected $index;
 
     /**
      * Query type name
+     *
      * @var
      */
     protected $type;
 
     /**
      * Query type key
+     *
      * @var
      */
     protected $_id;
 
     /**
      * Query body
+     *
      * @var array
      */
     public $body = [];
 
     /**
      * Query bool filter
+     *
      * @var array
      */
     protected $filter = [];
 
     /**
      * Query bool must
+     *
      * @var array
      */
     public $must = [];
 
     /**
      * Query bool must not
+     *
      * @var array
      */
     public $must_not = [];
 
     /**
      * Query returned fields list
+     *
      * @var array
      */
     protected $_source = [];
 
     /**
      * Query sort fields
+     *
      * @var array
      */
     protected $sort = [];
 
     /**
      * Query scroll time
+     *
      * @var string
      */
     protected $scroll;
 
     /**
      * Query scroll id
+     *
      * @var string
      */
     protected $scroll_id;
 
     /**
      * Query search type
+     *
      * @var int
      */
     protected $search_type;
 
     /**
      * Query limit
+     *
      * @var int
      */
     protected $take = 10;
 
     /**
      * Query offset
+     *
      * @var int
      */
     protected $skip = 0;
@@ -158,9 +178,16 @@ class Query
      */
     protected $cachePrefix = 'es';
 
+    /**
+     * Elastic model instance
+     * @var \Basemkhirat\Elasticsearch\Model
+     */
+    public $model;
+
 
     /**
      * Query constructor.
+     *
      * @param $connection
      */
     function __construct($connection = NULL)
@@ -170,7 +197,9 @@ class Query
 
     /**
      * Set the index name
+     *
      * @param $index
+     *
      * @return $this
      */
     public function index($index)
@@ -183,6 +212,7 @@ class Query
 
     /**
      * Get the index name
+     *
      * @return mixed
      */
     public function getIndex()
@@ -192,7 +222,9 @@ class Query
 
     /**
      * Set the type name
+     *
      * @param $type
+     *
      * @return $this
      */
     public function type($type)
@@ -205,6 +237,7 @@ class Query
 
     /**
      * Get the type name
+     *
      * @return mixed
      */
     public function getType()
@@ -216,7 +249,9 @@ class Query
 
     /**
      * Set the query scroll
+     *
      * @param string $scroll
+     *
      * @return $this
      */
     public function scroll($scroll)
@@ -229,7 +264,9 @@ class Query
 
     /**
      * Set the query scroll ID
+     *
      * @param string $scroll
+     *
      * @return $this
      */
     public function scrollID($scroll)
@@ -242,7 +279,9 @@ class Query
 
     /**
      * Set the query search type
+     *
      * @param string $type
+     *
      * @return $this
      */
     public function searchType($type)
@@ -255,6 +294,7 @@ class Query
 
     /**
      * get the query search type
+     *
      * @return $this
      */
     public function getSearchType()
@@ -266,6 +306,7 @@ class Query
 
     /**
      * Get the query scroll
+     *
      * @return $this
      */
     public function getScroll()
@@ -277,7 +318,9 @@ class Query
 
     /**
      * Set the query limit
+     *
      * @param int $take
+     *
      * @return $this
      */
     public function take($take = 10)
@@ -290,6 +333,7 @@ class Query
 
     /**
      * Ignore bad HTTP response
+     *
      * @return $this
      */
     public function ignore()
@@ -315,6 +359,7 @@ class Query
 
     /**
      * Get the query limit
+     *
      * @return int
      */
     protected function getTake()
@@ -324,7 +369,9 @@ class Query
 
     /**
      * Set the query offset
+     *
      * @param int $skip
+     *
      * @return $this
      */
     public function skip($skip = 0)
@@ -336,6 +383,7 @@ class Query
 
     /**
      * Get the query offset
+     *
      * @return int
      */
     protected function getSkip()
@@ -345,8 +393,10 @@ class Query
 
     /**
      * Set the sorting field
-     * @param $field
+     *
+     * @param        $field
      * @param string $direction
+     *
      * @return $this
      */
     public function orderBy($field, $direction = "asc")
@@ -359,7 +409,9 @@ class Query
 
     /**
      * check if it's a valid operator
+     *
      * @param $string
+     *
      * @return bool
      */
     protected function isOperator($string)
@@ -375,6 +427,7 @@ class Query
 
     /**
      * Set the query fields to return
+     *
      * @return $this
      */
     public function select()
@@ -398,7 +451,9 @@ class Query
 
     /**
      * Filter by _id
+     *
      * @param bool $_id
+     *
      * @return $this
      */
     public function _id($_id = false)
@@ -414,7 +469,9 @@ class Query
 
     /**
      * Just an alias for _id() method
+     *
      * @param bool $_id
+     *
      * @return $this
      */
     public function id($_id = false)
@@ -426,9 +483,11 @@ class Query
 
     /**
      * Set the query where clause
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return $this
      */
     public function where($name, $operator = "=", $value = NULL)
@@ -483,9 +542,11 @@ class Query
 
     /**
      * Set the query inverse where clause
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return $this
      */
     public function whereNot($name, $operator = "=", $value = NULL)
@@ -535,9 +596,11 @@ class Query
 
     /**
      * Set the query where between clause
+     *
      * @param $name
      * @param $first_value
      * @param $last_value
+     *
      * @return $this
      */
     public function whereBetween($name, $first_value, $last_value = null)
@@ -556,9 +619,11 @@ class Query
 
     /**
      * Set the query where not between clause
+     *
      * @param $name
      * @param $first_value
      * @param $last_value
+     *
      * @return $this
      */
     public function whereNotBetween($name, $first_value, $last_value = null)
@@ -577,8 +642,10 @@ class Query
 
     /**
      * Set the query where in clause
-     * @param $name
+     *
+     * @param       $name
      * @param array $value
+     *
      * @return $this
      */
     public function whereIn($name, $value = [])
@@ -597,8 +664,10 @@ class Query
 
     /**
      * Set the query where not in clause
-     * @param $name
+     *
+     * @param       $name
      * @param array $value
+     *
      * @return $this
      */
     public function whereNotIn($name, $value = [])
@@ -618,8 +687,10 @@ class Query
 
     /**
      * Set the query where exists clause
-     * @param $name
+     *
+     * @param      $name
      * @param bool $exists
+     *
      * @return $this
      */
     public function whereExists($name, $exists = true)
@@ -640,9 +711,9 @@ class Query
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
      *
-     * @param $name
+     * @param        $name
      *   A name of the field.
-     * @param mixed $value
+     * @param mixed  $value
      *   A starting geo point which can be represented by a string "lat,lon",
      *   an object {"lat": lat, "lon": lon} or an array [lon,lat].
      * @param string $distance
@@ -671,7 +742,9 @@ class Query
 
     /**
      * Search the entire document fields
+     *
      * @param null $q
+     *
      * @return $this
      */
     public function search($q = NULL, $settings = NULL)
@@ -681,7 +754,7 @@ class Query
 
             $search = new Search($this, $q, $settings);
 
-            if(!is_callback_function($settings)){
+            if (!is_callback_function($settings)) {
                 $search->boost($settings ? $settings : 1);
             }
 
@@ -695,6 +768,7 @@ class Query
 
     /**
      * Generate the query body
+     *
      * @return array
      */
     protected function getBody()
@@ -737,7 +811,9 @@ class Query
 
     /**
      * set the query body array
+     *
      * @param array $body
+     *
      * @return $this
      */
     function body($body = [])
@@ -752,6 +828,7 @@ class Query
 
     /**
      * Generate the query to be executed
+     *
      * @return array
      */
     public function query()
@@ -771,7 +848,7 @@ class Query
 
         $query["size"] = $this->getTake();
 
-        if(count($this->ignores)){
+        if (count($this->ignores)) {
             $query["client"] = ['ignore' => $this->ignores];
         }
 
@@ -795,7 +872,9 @@ class Query
 
     /**
      * Clear scroll query id
+     *
      * @param  string $scroll_id
+     *
      * @return array|Collection
      */
     public function clear($scroll_id = NULL)
@@ -807,43 +886,45 @@ class Query
             "scroll_id" => $scroll_id,
             'client' => ['ignore' => $this->ignores]
         ]);
-
     }
 
     /**
      * Get the collection of results
+     *
      * @param string $scroll_id
+     *
      * @return array|Collection
      */
     public function get($scroll_id = NULL)
     {
-
+        $scroll_id = NULL;
         $result = $this->getResult($scroll_id);
 
         return $this->getAll($result);
-
     }
 
     /**
      * Get the first object of results
+     *
      * @param string $scroll_id
+     *
      * @return object
      */
     public function first($scroll_id = NULL)
     {
-
         $this->take(1);
 
         $result = $this->getResult($scroll_id);
 
         return $this->getFirst($result);
-
     }
 
 
     /**
      * Get query result
+     *
      * @param $scroll_id
+     *
      * @return mixed
      */
     protected function getResult($scroll_id)
@@ -866,13 +947,14 @@ class Query
         }
 
         return $result;
-
     }
 
 
     /**
      * Get non cached results
+     *
      * @param null $scroll_id
+     *
      * @return mixed
      */
     public function response($scroll_id = NULL)
@@ -905,6 +987,7 @@ class Query
 
     /**
      * Get the count of result
+     *
      * @return mixed
      */
     public function count()
@@ -925,9 +1008,16 @@ class Query
 
     }
 
+    function setModel($model)
+    {
+        $this->model = $model;
+        return $this;
+    }
+
 
     /**
      * @param array $result
+     *
      * @return array|Collection
      */
     protected function getAll($result = [])
@@ -937,14 +1027,20 @@ class Query
 
         foreach ($result["hits"]["hits"] as $row) {
 
-            $original = $row["_source"];
+            $model = $this->model ? new $this->model($row["_source"], true): new Model($row["_source"], true);
 
-            $original["_index"] = $row["_index"];
-            $original["_type"] = $row["_type"];
-            $original["_id"] = $row["_id"];
-            $original["_score"] = $row["_score"];
+            $model->setConnection($model->getConnection());
+            $model->setIndex($row["_index"]);
+            $model->setType($row["_type"]);
 
-            $new[] = new Model($original);
+            // match earlier version
+
+            $model->_index = $row["_index"];
+            $model->_type = $row["_type"];
+            $model->_id = $row["_id"];
+            $model->_score = $row["_score"];
+
+            $new[] = $model;
 
         }
 
@@ -962,6 +1058,7 @@ class Query
 
     /**
      * @param array $result
+     *
      * @return object
      */
     protected function getFirst($result = [])
@@ -971,19 +1068,26 @@ class Query
 
         if (count($data)) {
 
-            $original = $data[0]["_source"];
+            if($this->model){
+                $model = new $this->model($data[0]["_source"], true);
+            }else{
+                $model = new Model($data[0]["_source"], true);
+                $model->setConnection($model->getConnection());
+                $model->setIndex($data[0]["_index"]);
+                $model->setType($data[0]["_type"]);
+            }
 
-            $original["_index"] = $data[0]["_index"];
-            $original["_type"] = $data[0]["_type"];
-            $original["_id"] = $data[0]["_id"];
-            $original["_score"] = $data[0]["_score"];
+            // match earlier version
 
-            $new = new Model($original);
+            $model->_index = $data[0]["_index"];
+            $model->_type = $data[0]["_type"];
+            $model->_id = $data[0]["_id"];
+            $model->_score = $data[0]["_score"];
+
+            $new = $model;
 
         } else {
-
-            $new = new Model();
-
+            $new = NULL;
         }
 
         return $new;
@@ -991,9 +1095,11 @@ class Query
 
     /**
      * Paginate collection of results
-     * @param int $per_page
-     * @param $page_name
+     *
+     * @param int  $per_page
+     * @param      $page_name
      * @param null $page
+     *
      * @return Pagination
      */
     public function paginate($per_page = 10, $page_name = "page", $page = null)
@@ -1013,8 +1119,10 @@ class Query
 
     /**
      * Insert a document
-     * @param $data
+     *
+     * @param      $data
      * @param null $_id
+     *
      * @return object
      */
     public function insert($data, $_id = NULL)
@@ -1047,7 +1155,9 @@ class Query
 
     /**
      * Insert a bulk of documents
+     *
      * @param $data multidimensional array of [id => data] pairs
+     *
      * @return object
      */
     public function bulk($data)
@@ -1089,8 +1199,10 @@ class Query
 
     /**
      * Update a document
-     * @param $data
+     *
+     * @param      $data
      * @param null $_id
+     *
      * @return object
      */
     public function update($data, $_id = NULL)
@@ -1121,8 +1233,10 @@ class Query
 
     /**
      * Increment a document field
-     * @param $field
+     *
+     * @param     $field
      * @param int $count
+     *
      * @return object
      */
     public function increment($field, $count = 1)
@@ -1136,8 +1250,10 @@ class Query
 
     /**
      * Increment a document field
-     * @param $field
+     *
+     * @param     $field
      * @param int $count
+     *
      * @return object
      */
     public function decrement($field, $count = 1)
@@ -1152,8 +1268,10 @@ class Query
 
     /**
      * Update by script
-     * @param $script
+     *
+     * @param       $script
      * @param array $params
+     *
      * @return object
      */
     public function script($script, $params = [])
@@ -1184,7 +1302,9 @@ class Query
 
     /**
      * Delete a document
+     *
      * @param null $_id
+     *
      * @return object
      */
     public function delete($_id = NULL)
@@ -1213,6 +1333,7 @@ class Query
 
     /**
      * Return the native connection to execute native query
+     *
      * @return object
      */
     public function raw()
@@ -1222,6 +1343,7 @@ class Query
 
     /**
      * Check existence of index
+     *
      * @return mixed
      */
     function exists()
@@ -1238,8 +1360,10 @@ class Query
 
     /**
      * Create a new index
-     * @param $name
+     *
+     * @param      $name
      * @param bool $callback
+     *
      * @return mixed
      */
     function createIndex($name, $callback = false)
@@ -1256,7 +1380,9 @@ class Query
 
     /**
      * Drop index
+     *
      * @param $name
+     *
      * @return mixed
      */
     function dropIndex($name)
@@ -1272,7 +1398,9 @@ class Query
 
     /**
      * create a new index [alias to createIndex method]
+     *
      * @param bool $callback
+     *
      * @return mixed
      */
     function create($callback = false)
@@ -1288,6 +1416,7 @@ class Query
 
     /**
      * Drop index [alias to dropIndex method]
+     *
      * @return mixed
      */
     function drop()
@@ -1307,6 +1436,7 @@ class Query
      * Indicate that the results, if cached, should use the given cache driver.
      *
      * @param  string $cacheDriver
+     *
      * @return $this
      */
     public function cacheDriver($cacheDriver)
@@ -1356,7 +1486,8 @@ class Query
      * Indicate that the query results should be cached.
      *
      * @param  \DateTime|int $minutes
-     * @param  string $key
+     * @param  string        $key
+     *
      * @return $this
      */
     public function remember($minutes, $key = null)
@@ -1372,13 +1503,40 @@ class Query
      * Indicate that the query results should be cached forever.
      *
      * @param  string $key
+     *
      * @return \Illuminate\Database\Query\Builder|static
      */
     public function rememberForever($key = null)
     {
-
         return $this->remember(-1, $key);
+    }
+
+
+    /**
+     * @param $method
+     * @param $parameters
+     *
+     * @return $this
+     */
+    function __call($method, $parameters)
+    {
+
+        if (method_exists($this, $method)) {
+            return $this->$method(...$parameters);
+        } else {
+
+            // check for model scopes
+
+            $method = "scope" . ucfirst($method);
+
+            if (method_exists($this->model, $method)) {
+                $parameters = array_merge([$this], $parameters);
+                $this->model->$method(...$parameters);
+                return $this;
+            }
+        }
 
     }
+
 
 }
