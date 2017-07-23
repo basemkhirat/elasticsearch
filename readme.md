@@ -337,7 +337,7 @@ Have a look at [laravel Scout documentation](https://laravel.com/docs/5.4/scout#
 ## Elasticsearch data model
 
 Each index type has a corresponding "Model" which is used to interact with that type.
-Models allow you to query for data in your types or indices, as well as insert new records into the type.
+Models allow you to query for data in your types or indices, as well as insert new documents into the type.
 
 
 ##### Basic usage
@@ -356,7 +356,7 @@ class Post extends Model
 }
 ```
 
-The above example will use the default connection and default index in `es.php` but you can override that both in the next example.
+The above example will use the default connection and default index in `es.php`. You can override both in the next example.
 
 ```php
 <?php
@@ -402,7 +402,7 @@ foreach ($posts as $post) {
 
 ##### Adding Additional Constraints
 
-The `all` method will return all of the results in the model's type. Each elasticsearch model serves as a query builder, you may also add constraints to queries, and then use the get method to retrieve the results:
+The `all` method will return all of the results in the model's type. Each elasticsearch model serves as a query builder, you may also add constraints to queries, and then use the `get()` method to retrieve the results:
 
 ```php
 $posts = App\Post::where('status', 1)
@@ -416,7 +416,7 @@ $posts = App\Post::where('status', 1)
 ##### Retrieving Single Models
 
 ```php
-// Retrieve a model by its document key...
+// Retrieve a model by document key...
 $posts = App\Post::find("AVp_tCaAoV7YQD3Esfmp");
 ```
 
@@ -424,7 +424,7 @@ $posts = App\Post::find("AVp_tCaAoV7YQD3Esfmp");
 ##### Inserting Models
 
 
-To create a new document, simply create a new model instance, set attributes on the model, then call the save method:
+To create a new document, simply create a new model instance, set attributes on the model, then call the `save()` method:
 
 ```php
 <?php
@@ -458,7 +458,7 @@ class PostController extends Controller
 
 ##### Updating Models
 
-The `save` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and then call the save method.
+The `save()` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and then call the save method.
 
 ```php
 $post = App\Post::find(1);
@@ -470,17 +470,17 @@ $post->save();
 
 ##### Mass Updates
 
-Updates can also be performed against any number of models that match a given query. In this example, all flights that are active and have a destination of San Diego will be marked as delayed:
+Updates can also be performed against any number of models that match a given query. In this example, all posts that are active and have a views lower than 5 will be marked as archived:
 
 ```php
 App\post::where('active', 1)
-          ->where('destination', 'San Diego')
-          ->update(['delayed' => 1]);
+          ->where('views', "<", 5)
+          ->update(['archived' => 1]);
 ```
 
 ##### Deleting Models
 
-To delete a model, call the delete method on a model instance:
+To delete a model, call the `delete()` method on a model instance:
 
 ```php
 $post = App\Post::find(1);
@@ -490,7 +490,7 @@ $post->delete();
 
 ##### Deleting Models By Query
 
-Of course, you may also run a delete statement on a set of models. In this example, we will delete all flights that are marked as inactive. Like mass updates, mass deletes will not fire any model events for the models that are deleted:
+Of course, you may also run a delete statement on a set of models. In this example, we will delete all posts that are marked as inactive. Like mass updates:
 
 ```php
 $deletedDocuments = App\Post::where('active', 0)->delete();
@@ -498,9 +498,9 @@ $deletedDocuments = App\Post::where('active', 0)->delete();
 
 ##### Query Scopes
 
-Local scopes allow you to define common sets of constraints that you may easily re-use throughout your application. For example, you may need to frequently retrieve all users that are considered "popular". To define a scope, simply prefix an Eloquent model method with scope.
+Scopes allow you to define common sets of constraints that you may easily re-use throughout your application. For example, you may need to frequently retrieve all posts that are considered "popular". To define a scope, simply prefix an Eloquent model method with scope.
 
-Scopes should always return a query builder instance.
+Scopes should always return a Query instance.
 
 ```php
 <?php
@@ -577,6 +577,23 @@ $post = App\Post::find(1);
 
 $title = $post->title;
 ```
+
+Occasionally, you may need to add array attributes that do not have a corresponding field in your index. To do so, simply define an accessor for the value:
+
+```php
+public function getIsPublishedAttribute()
+{
+    return $this->attributes['status'] == 1;
+}
+```
+
+Once you have created the accessor, just add the value to the `appends` property on the model:
+
+```php
+protected $appends = ['is_published'];
+```
+
+Once the attribute has been added to the appends list, it will be included in model's array.
 
 ###### Defining A Mutator
 
