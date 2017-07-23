@@ -468,16 +468,6 @@ $post->title = 'New Post Title';
 $post->save();
 ```
 
-##### Mass Updates
-
-Updates can also be performed against any number of models that match a given query. In this example, all posts that are active and have a views lower than 5 will be marked as archived:
-
-```php
-App\post::where('active', 1)
-          ->where('views', "<", 5)
-          ->update(['archived' => 1]);
-```
-
 ##### Deleting Models
 
 To delete a model, call the `delete()` method on a model instance:
@@ -486,14 +476,6 @@ To delete a model, call the `delete()` method on a model instance:
 $post = App\Post::find(1);
 
 $post->delete();
-```
-
-##### Deleting Models By Query
-
-Of course, you may also run a delete statement on a set of models. In this example, we will delete all posts that are marked as inactive. Like mass updates:
-
-```php
-$deletedDocuments = App\Post::where('active', 0)->delete();
 ```
 
 ##### Query Scopes
