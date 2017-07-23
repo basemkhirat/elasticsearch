@@ -28,6 +28,11 @@
 
 - `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
 
+
+## Documentation
+
+See [Full Documentation](https://github.com/basemkhirat/elasticsearch/wiki/1.-Installation).
+
 ## Installation
 
 ### <u>Laravel Installation</u>
