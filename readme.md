@@ -12,7 +12,7 @@
 
 - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
 - Elasticsearch data model for types and indices inspired from laravel eloquent.
-- Feeling free to create, drop, mapping and reindexing throw easy artisan console commands.
+- Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
 - Lumen framework support.
 - Native php and composer based applications support.
 - Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
@@ -191,7 +191,7 @@ After publishing, two configuration files will be created.
 
 With some artisan commands you can do some tasks such as creating or updating settings, mappings and aliases.
 
-Note that all commands are running with `--connection=default` option, you can change it throw the command.
+Note that all commands are running with `--connection=default` option, you can change it through the command.
 
 These are all available commands:
 
