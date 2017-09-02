@@ -46,5 +46,15 @@
     },
     "require-dev": {
         "phpunit/phpunit": "5.7.0"
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "Basemkhirat\\Elasticsearch\\ElasticsearchServiceProvider"
+            ],
+            "aliases": {
+                "ES": "Basemkhirat\\Elasticsearch\\Facades\\ES"
+            }
+        }
     }
 }
