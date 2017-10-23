@@ -607,8 +607,8 @@ class Query
     {
 
         if (is_array($first_value) && count($first_value) == 2) {
-            $first_value = $first_value[0];
             $last_value = $first_value[1];
+            $first_value = $first_value[0];
         }
 
         $this->filter[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
@@ -630,8 +630,8 @@ class Query
     {
 
         if (is_array($first_value) && count($first_value) == 2) {
-            $first_value = $first_value[0];
             $last_value = $first_value[1];
+            $first_value = $first_value[0];
         }
 
         $this->must_not[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
