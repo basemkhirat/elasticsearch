@@ -3,6 +3,14 @@ All notable changes to this project will be documented in this file.
 
 ## [Released]
 
+## [1.3] - 2017-10-23
+
+# Added
+- Auto package discovery for laravel 5.5 or higher.
+- Custom connection handlers.
+
+# Fixed
+- Fix whereBetween and whereNotBetween methods.
 
 ## [1.2] - 2017-07-23
 
@@ -236,7 +244,8 @@ All notable changes to this project will be documented in this file.
 - Basic builder.
 
 
-[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.2...HEAD
+[Released]: https://github.com/basemkhirat/elasticsearch/compare/1.3...HEAD
+[1.3]: https://github.com/basemkhirat/elasticsearch/compare/1.2...1.3
 [1.2]: https://github.com/basemkhirat/elasticsearch/compare/1.1...1.2
 [1.1]: https://github.com/basemkhirat/elasticsearch/compare/1.0...1.1
 [1.0]: https://github.com/basemkhirat/elasticsearch/compare/0.9.9...1.0
