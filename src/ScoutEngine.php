@@ -9,18 +9,17 @@ use Illuminate\Database\Eloquent\Collection;
 
 class ScoutEngine extends Engine
 {
+
     /**
      * Index where the models will be saved.
-     *
      * @var string
      */
     protected $index;
 
     /**
-     * Create a new engine instance.
-     *
-     * @param  \Elasticsearch\Client  $elastic
-     * @return void
+     * ScoutEngine constructor.
+     * @param Elastic $elastic
+     * @param $index
      */
     public function __construct(Elastic $elastic, $index)
     {
@@ -30,7 +29,6 @@ class ScoutEngine extends Engine
 
     /**
      * Update the given model in the index.
-     *
      * @param  Collection  $models
      * @return void
      */
@@ -60,7 +58,6 @@ class ScoutEngine extends Engine
 
     /**
      * Remove the given model from the index.
-     *
      * @param  Collection  $models
      * @return void
      */
@@ -84,7 +81,6 @@ class ScoutEngine extends Engine
 
     /**
      * Perform the given search on the engine.
-     *
      * @param  Builder  $builder
      * @return mixed
      */
@@ -98,7 +94,6 @@ class ScoutEngine extends Engine
 
     /**
      * Perform the given search on the engine.
-     *
      * @param  Builder  $builder
      * @param  int  $perPage
      * @param  int  $page
@@ -119,7 +114,6 @@ class ScoutEngine extends Engine
 
     /**
      * Perform the given search on the engine.
-     *
      * @param  Builder  $builder
      * @param  array  $options
      * @return mixed
@@ -156,7 +150,6 @@ class ScoutEngine extends Engine
 
     /**
      * Get the filter array for the query.
-     *
      * @param  Builder  $builder
      * @return array
      */
@@ -169,7 +162,6 @@ class ScoutEngine extends Engine
 
     /**
      * Map the given results to instances of the given model.
-     *
      * @param  mixed  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return Collection
@@ -192,13 +184,10 @@ class ScoutEngine extends Engine
         });
     }
 
-    public function mapIds($results){
-
-    }
+    public function mapIds($results){}
 
     /**
      * Get the total count from a raw result returned by the engine.
-     *
      * @param  mixed  $results
      * @return int
      */

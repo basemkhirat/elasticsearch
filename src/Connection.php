@@ -61,7 +61,7 @@ class Connection
         if (!empty($config['handler'])) {
             $clientBuilder->setHandler($config['handler']);
         }
-        
+
         $clientBuilder->setHosts($config["servers"]);
 
         $query = new Query($clientBuilder->build());
@@ -95,17 +95,18 @@ class Connection
         // Create a new connection.
 
         if (array_key_exists($name, $this->config["connections"])) {
+
             $config = $this->config["connections"][$name];
-            
+
             // Instantiate a new ClientBuilder
             $clientBuilder = ClientBuilder::create();
 
             $clientBuilder->setHosts($config["servers"]);
-            
+
             if (!empty($config['handler'])) {
                 $clientBuilder->setHandler($config['handler']);
             }
-            
+
             // Build the client object
             $connection = $clientBuilder->build();
 
@@ -117,7 +118,6 @@ class Connection
         }
 
         $this->app->abort(500, "Invalid elasticsearch connection driver `" . $name . "`");
-
     }
 
 
@@ -138,7 +138,6 @@ class Connection
         }
 
         return $query;
-
     }
 
     /**
@@ -154,7 +153,6 @@ class Connection
         }
 
         return false;
-
     }
 
 

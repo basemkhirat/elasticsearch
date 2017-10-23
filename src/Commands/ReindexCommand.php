@@ -86,7 +86,6 @@ class ReindexCommand extends Command
 
         $new_index = $this->argument('new_index');
 
-
         if (!in_array($original_index, array_keys(config("es.indices")))) {
             return $this->warn("Missing configuration for index: {$original_index}");
         }
@@ -96,7 +95,6 @@ class ReindexCommand extends Command
         }
 
         $this->migrate($original_index, $new_index);
-
     }
 
 
@@ -191,7 +189,6 @@ class ReindexCommand extends Command
         $page++;
 
         $this->migrate($original_index, $new_index, $documents["_scroll_id"], $errors, $page);
-
     }
 
 }

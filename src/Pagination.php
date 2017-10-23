@@ -10,7 +10,6 @@ class Pagination extends LengthAwarePaginator
 
     /**
      * Render the paginator using the given view.
-     *
      * @param  string  $view
      * @param  array  $data
      * @return string
@@ -29,11 +28,11 @@ class Pagination extends LengthAwarePaginator
 
     /**
      * Get the array of elements to pass to the view.
-     *
      * @return array
      */
     protected function elements()
     {
+
         $window = UrlWindow::make($this);
 
         return array_filter([
@@ -47,13 +46,10 @@ class Pagination extends LengthAwarePaginator
 
     /**
      * Determine if the paginator is on the first page.
-     *
      * @return bool
      */
     public function onFirstPage()
     {
         return $this->currentPage() <= 1;
     }
-
-
 }

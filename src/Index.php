@@ -66,7 +66,6 @@ class Index
         $this->callback = $callback;
     }
 
-
     /**
      * Set index shards
      * @param $shards
@@ -78,7 +77,6 @@ class Index
 
         return $this;
     }
-
 
     /**
      * Set index replicas
@@ -115,7 +113,6 @@ class Index
         $this->ignores = array_unique($this->ignores);
 
         return $this;
-
     }
 
     /**
@@ -130,7 +127,6 @@ class Index
         ];
 
         return $this->connection->indices()->exists($params);
-
     }
 
     /**
@@ -167,7 +163,6 @@ class Index
         }
 
         return $this->connection->indices()->create($params);
-
     }
 
     /**
@@ -183,7 +178,6 @@ class Index
         ];
 
         return $this->connection->indices()->delete($params);
-
     }
 
     /**
@@ -197,10 +191,7 @@ class Index
         $this->mappings = $mappings;
 
         return $this;
-
     }
-
-
 }
 
 

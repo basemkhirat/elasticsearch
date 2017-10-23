@@ -44,13 +44,13 @@ See [Full Documentation](https://github.com/basemkhirat/elasticsearch/wiki/1.-In
 $ composer require basemkhirat/elasticsearch
 ```
 
-##### 2) Add package service provider.
+##### 2) Add package service provider (< laravel 5.5).
 
 ```php
 Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class
 ```
 
-##### 3) Add package alias.
+##### 3) Add package alias (< laravel 5.5).
 
 ```php
 'ES' => Basemkhirat\Elasticsearch\Facades\ES::class
@@ -119,8 +119,12 @@ $connection = Connection::create([
             'user' => '',
             'pass' => '',
             'scheme' => 'http',
-        ]
+        ],
     ],
+    
+	// Custom handlers
+	// 'handler' => new MyCustomHandler(),
+
     'index' => 'my_index',
 ]);
 
@@ -156,7 +160,11 @@ After publishing, two configuration files will be created.
 	            'scheme' => env('ELASTIC_SCHEME', 'http'),
 	        ]
 	    ],
-	    'index' => env('ELASTIC_INDEX', 'my_index')
+	    
+		// Custom handlers
+		// 'handler' => new MyCustomHandler(),
+		
+		'index' => env('ELASTIC_INDEX', 'my_index')
 	]
 ],
  

@@ -49,9 +49,7 @@ class Search
         }
 
         $this->settings = $settings;
-
     }
-
 
     /**
      * Set searchable fields
@@ -73,7 +71,6 @@ class Search
         return $this;
     }
 
-
     /**
      * Set search boost factor
      * @param int $boost
@@ -85,7 +82,6 @@ class Search
 
         return $this;
     }
-
 
     /**
      * Build the native query
@@ -108,9 +104,5 @@ class Search
         $this->query->must[] = [
             "query_string" => $query_params
         ];
-
     }
-
-
-
 }

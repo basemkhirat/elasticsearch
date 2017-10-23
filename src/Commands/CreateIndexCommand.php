@@ -119,12 +119,7 @@ class CreateIndexCommand extends Command
                     ]);
 
                 }
-
             }
-
-
         }
-
     }
-
 }

@@ -40,8 +40,10 @@ return [
 
             ],
 
-            'index' => env('ELASTIC_INDEX', 'my_index')
+            'index' => env('ELASTIC_INDEX', 'my_index'),
 
+            // Elasticsearch handlers
+            // 'handler' => new MyCustomHandler(),
         ]
     ],
 

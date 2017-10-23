@@ -7,7 +7,6 @@ use Illuminate\Support\Collection;
 /**
  * Elasticsearch data model
  * Class Model
- *
  * @package Basemkhirat\Elasticsearch
  */
 class Model
@@ -15,28 +14,24 @@ class Model
 
     /**
      * Model connection name
-     *
      * @var string
      */
     protected $connection;
 
     /**
      * Model index name
-     *
      * @var string
      */
     protected $index;
 
     /**
      * Model type name
-     *
      * @var string
      */
     protected $type;
 
     /**
      * Attribute data type
-     *
      * @available boolean, bool, integer, int, float, double, string, array, object, null
      * @var array
      */
@@ -57,15 +52,30 @@ class Model
 
     /**
      * Additional custom attributes
-     *
      * @var array
      */
     protected $appends = [];
 
+    /**
+     * Allowed casts
+     * @var array
+     */
+    private $castTypes = [
+        "boolean",
+        "bool",
+        "integer",
+        "int",
+        "float",
+        "double",
+        "string",
+        "array",
+        "object",
+        "null"
+    ];
+
 
     /**
      * Create a new Elasticsearch model instance.
-     *
      * @param  array $attributes
      * @param  bool $exists
      */
@@ -79,8 +89,7 @@ class Model
     }
 
     /**
-     * get current connection
-     *
+     * Get current connection
      * @return string
      */
     public function getConnection()
@@ -89,8 +98,7 @@ class Model
     }
 
     /**
-     * set current connection
-     *
+     * Set current connection
      * @return void
      */
     public function setConnection($connection)
@@ -109,7 +117,7 @@ class Model
     }
 
     /**
-     * set index name
+     * Set index name
      *
      * @return void
      */
@@ -119,8 +127,7 @@ class Model
     }
 
     /**
-     * get type name
-     *
+     * Get type name
      * @return string
      */
     public function getType()
@@ -129,8 +136,7 @@ class Model
     }
 
     /**
-     * set type name
-     *
+     * Set type name
      * @return void
      */
     public function setType($type)
@@ -140,21 +146,21 @@ class Model
 
     /**
      * Magic getter for model properties
-     *
      * @param $name
-     *
      * @return null
      */
     public function __get($name)
     {
         if (array_key_exists($name, $this->attributes)) {
 
-            // search in original model attributes
+            // Search in original model attributes
+
             return $this->getOriginalAttribute($name);
 
         } elseif (in_array($name, $this->appends)) {
 
-            // search in appends model attributes
+            // Search in appends model attributes
+
             return $this->getAppendsAttribute($name);
 
         } elseif (property_exists($this, $name)) {
@@ -168,9 +174,7 @@ class Model
 
     /**
      * Get original model attribute
-     *
      * @param $name
-     *
      * @return mixed
      */
     protected function getOriginalAttribute($name)
@@ -182,9 +186,7 @@ class Model
 
     /**
      * Get Appends model attribute
-     *
      * @param $name
-     *
      * @return mixed
      */
     protected function getAppendsAttribute($name)
@@ -196,32 +198,15 @@ class Model
 
     /**
      * Set attributes casting
-     *
      * @param $name
      * @param $value
-     *
      * @return mixed
      */
     protected function setAttributeType($name, $value)
     {
 
-        // Casts allowed to use
-
-        $castTypes = [
-            "boolean",
-            "bool",
-            "integer",
-            "int",
-            "float",
-            "double",
-            "string",
-            "array",
-            "object",
-            "null"
-        ];
-
         if (array_key_exists($name, $this->casts)) {
-            if (in_array($this->casts[$name], $castTypes)) {
+            if (in_array($this->casts[$name], $this->castTypes)) {
                 settype($value, $this->casts[$name]);
             }
         }
@@ -231,7 +216,6 @@ class Model
 
     /**
      * Get model as array
-     *
      * @return array
      */
     public function toArray()
@@ -252,9 +236,7 @@ class Model
 
     /**
      * Get the collection of items as JSON.
-     *
      * @param  int $options
-     *
      * @return string
      */
     public function toJson($options = 0)
@@ -264,10 +246,8 @@ class Model
 
     /**
      * Handle model properties setter
-     *
      * @param $name
      * @param $value
-     *
      * @return null
      */
     public function __set($name, $value)
@@ -290,7 +270,6 @@ class Model
 
     /**
      * Create a new model query
-     *
      * @return mixed
      */
     protected function newQuery()
@@ -311,8 +290,7 @@ class Model
     }
 
     /**
-     * get all model records
-     *
+     * Get all model records
      * @return mixed
      */
     public static function all()
@@ -325,8 +303,7 @@ class Model
     }
 
     /**
-     * get model using key
-     *
+     * Get model by key
      * @param $key
      * @return mixed
      */
@@ -344,8 +321,7 @@ class Model
     }
 
     /**
-     * delete model record
-     *
+     * Delete model record
      * @return $this|bool
      */
     function delete()
@@ -364,7 +340,6 @@ class Model
 
     /**
      * Save data to model
-     *
      * @return string
      */
     public function save()
@@ -374,13 +349,13 @@ class Model
 
         if ($this->exists()) {
 
-            // update the current document
+            // Update the current document
 
             $this->newQuery()->id($this->getID())->update($fields);
 
         } else {
 
-            // check if model key exists in items
+            // Check if model key exists in items
 
             if (array_key_exists("_id", $this->attributes)) {
                 $created = $this->newQuery()->id($this->attributes["_id"])->insert($fields);
@@ -393,7 +368,7 @@ class Model
             $this->setConnection($this->getConnection());
             $this->setIndex($created->_index);
 
-            // match earlier versions
+            // Match earlier versions
 
             $this->_index = $created->_index;
             $this->_type = $this->type;
@@ -405,8 +380,7 @@ class Model
     }
 
     /**
-     * check model is exists
-     *
+     * Check model is exists
      * @return bool
      */
     function exists()
@@ -415,8 +389,7 @@ class Model
     }
 
     /**
-     * get model key
-     *
+     * Get model key
      * @return mixed
      */
     function getID()
@@ -426,10 +399,8 @@ class Model
 
     /**
      * Handle dynamic static method calls into the method.
-     *
      * @param  string $method
      * @param  array $parameters
-     *
      * @return mixed
      */
     public static function __callStatic($method, $parameters)
@@ -439,10 +410,8 @@ class Model
 
     /**
      * Handle dynamic method calls into the model.
-     *
      * @param  string $method
      * @param  array $parameters
-     *
      * @return mixed
      */
     public function __call($method, $parameters)

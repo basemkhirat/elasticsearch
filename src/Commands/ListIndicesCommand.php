@@ -117,11 +117,9 @@ class ListIndicesCommand extends Command
             $line_array = explode(" ", trim($line));
 
             foreach ($line_array as $item) {
-
                 if (trim($item) != "") {
                     $row[] = $item;
                 }
-
             }
 
             if (in_array($row[2], array_keys(config("es.indices")))) {
@@ -134,7 +132,5 @@ class ListIndicesCommand extends Command
         }
 
         return $data;
-
     }
-
 }

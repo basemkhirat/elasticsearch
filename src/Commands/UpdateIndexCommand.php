@@ -131,12 +131,7 @@ class UpdateIndexCommand extends Command
                     ]);
 
                 }
-
             }
-
-
         }
-
     }
-
 }

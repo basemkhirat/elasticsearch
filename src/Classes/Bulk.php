@@ -63,8 +63,8 @@ class Bulk
     {
 
         $this->query = $query;
-        $this->autocommitAfter = intval($autocommitAfter);
 
+        $this->autocommitAfter = intval($autocommitAfter);
     }
 
     /**
@@ -86,9 +86,7 @@ class Bulk
      */
     protected function getIndex()
     {
-
         return $this->index ? $this->index : $this->query->getIndex();
-
     }
 
     /**
@@ -110,9 +108,7 @@ class Bulk
      */
     protected function getType()
     {
-
         return $this->type ? $this->type : $this->query->getType();
-
     }
 
     /**
@@ -135,9 +131,7 @@ class Bulk
      */
     public function id($_id = false)
     {
-
         return $this->_id($_id);
-
     }
 
     /**
@@ -147,9 +141,7 @@ class Bulk
      */
     public function insert($data = [])
     {
-
         return $this->action('index', $data);
-
     }
 
     /**
@@ -161,7 +153,6 @@ class Bulk
     {
 
         return $this->action('update', $data);
-
     }
 
     /**
@@ -171,7 +162,6 @@ class Bulk
     {
 
         return $this->action('delete');
-
     }
 
     /**
@@ -182,6 +172,7 @@ class Bulk
      */
     public function action($actionType, $data = [])
     {
+
         $this->body["body"][] = [
 
             $actionType => [
@@ -217,9 +208,7 @@ class Bulk
      */
     public function body()
     {
-
         return $this->body;
-
     }
 
     /**
@@ -228,10 +217,8 @@ class Bulk
      */
     public function reset()
     {
-
         $this->index(NULL);
         $this->type(NULL);
-
     }
 
     /**

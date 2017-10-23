@@ -10,7 +10,7 @@ class Request
 {
 
     /**
-     * get the request url
+     * Get the request url
      * @return string
      */
     public static function url()
@@ -36,7 +36,7 @@ class Request
     }
 
     /**
-     * get all query string parameters
+     * Get all query string parameters
      * @return mixed
      */
     public static function query()
@@ -45,7 +45,7 @@ class Request
     }
 
     /**
-     * get value of query string parameter
+     * Get value of query string parameter
      * @param $name
      * @param null $value
      * @return null

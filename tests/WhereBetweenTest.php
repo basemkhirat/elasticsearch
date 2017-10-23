@@ -41,11 +41,11 @@ class WhereBetweenTest extends \PHPUnit_Framework_TestCase
         $query = $this->getQueryArray();
 
         if (is_array($first_value) && count($first_value) == 2) {
-            $first_value = $first_value[0];
             $second_value = $first_value[1];
+            $first_value = $first_value[0];
         }
 
-        $query["body"]["query"]["bool"]["must_not"][] = ["range" => [$name => ["gte" => $first_value, "lte" => $second_value]]];
+        $query["body"]["query"]["bool"]["filter"][] = ["range" => [$name => ["gte" => $first_value, "lte" => $second_value]]];
 
         return $query;
     }
@@ -60,6 +60,6 @@ class WhereBetweenTest extends \PHPUnit_Framework_TestCase
      */
     protected function getActual($name, $first_value, $second_value = null)
     {
-        return $this->getQueryObject()->whereNotBetween($name, $first_value, $second_value)->query();
+        return $this->getQueryObject()->whereBetween($name, $first_value, $second_value)->query();
     }
 }
