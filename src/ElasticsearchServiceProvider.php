@@ -5,7 +5,6 @@ namespace Basemkhirat\Elasticsearch;
 use Basemkhirat\Elasticsearch\Commands\ReindexCommand;
 use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Foundation\Application;
 use Illuminate\Support\ServiceProvider;
 use Laravel\Scout\EngineManager;
 use Basemkhirat\Elasticsearch\Commands\ListIndicesCommand;
@@ -24,7 +23,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
      * ElasticsearchServiceProvider constructor.
      * @param Application $app
      */
-    function __construct(Application $app)
+    function __construct($app)
     {
         $this->app = $app;
     }
