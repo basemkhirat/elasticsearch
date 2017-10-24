@@ -73,10 +73,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
                 // Laravel Scout service provider was not loaded yet.
 
             }
-
         }
-
-
     }
 
     /**
