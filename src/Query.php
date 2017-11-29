@@ -89,6 +89,9 @@ class Query
      */
     public $must_not = [];
 
+    /** @var array $should Query bool should */
+    protected $should = [];
+
     /**
      * Query returned fields list
      * @var array
@@ -601,6 +604,27 @@ class Query
         return $this;
     }
 
+    /**
+     * Set the query or where in clause.
+     *
+     * @param       $name
+     * @param array $value
+     *
+     * @return $this
+     */
+    public function orWhere($name, $value = null)
+    {
+        if (is_callback_function($name)) {
+            $name($this);
+
+            return $this;
+        }
+
+        $this->should[] = ["term" => [$name => $value]];
+
+        return $this;
+    }
+
 
     /**
      * Set the query where exists clause
@@ -698,6 +722,11 @@ class Query
 
         if (count($this->must_not)) {
             $body["query"]["bool"]["must_not"] = $this->must_not;
+        }
+
+        if (count($this->should)) {
+            $body["query"]["bool"]["should"] = $this->should;
+            $body["query"]["bool"]["minimum_should_match"] = 1;
         }
 
         if (count($this->filter)) {
