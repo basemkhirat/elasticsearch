@@ -365,7 +365,7 @@ class Query
     protected function isOperator($string)
     {
 
-        if (in_array($string, $this->operators)) {
+        if (in_array($string, $this->operators, true)) {
             return true;
         }
 
