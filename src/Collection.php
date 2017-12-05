@@ -19,16 +19,4 @@ class Collection extends BaseCollection
         return json_encode($this->toArray(), $options);
     }
 
-    /**
-     * Get the collection of items as Array.
-     *
-     * @return string
-     */
-    public function toArray()
-    {
-        return array_map(function($item){
-            return $item->toArray();
-        }, $this->items);
-    }
-
 }
