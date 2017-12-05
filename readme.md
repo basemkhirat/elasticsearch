@@ -820,6 +820,24 @@ ES::type("my_type")->whereBetween("id", 100, 150)->get();
 
 ES::type("my_type")->whereBetween("id", [100, 150])->get();
 ```    
+
+##### OR Where clause
+```php    
+ES::type("my_type")->orWhere("id", 100])->get();
+```
+
+##### OR Where In in clause
+```php    
+ES::type("my_type")->orWhereIn("id", [100, 150])->get();
+```
+
+##### minimumShouldMatch in OR clause
+```php    
+ES::type("my_type")->orWhere("id", 100])->orWhere("id", 101)->minimumShouldMatch(1)->get();
+```
+
+minimumShouldMatch
+
 ##### Where not clause
 ```php    
 ES::type("my_type")->whereNot("status", "published")->get(); 
@@ -1202,6 +1220,18 @@ ES::type("my_type")->bulk(function ($bulk){
     $bulk->id(10)->update(["title" => "Test document 1","content" => "Sample content 1"]);
     $bulk->id(11)->update(["title" => "Test document 2","content" => "Sample content 2"]);
 });
+```
+
+##### Upsert an existing document
+```php     
+ES::type("my_type")->id(3)->upsert([
+   "title" => "Test document",
+   "content" => "sample content"
+]);
+    
+# Document has _id = 3 will be upserted.
+    
+# [id is required]
 ```
    
 ##### Incrementing field
