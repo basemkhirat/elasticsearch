@@ -9,7 +9,7 @@ use Illuminate\Support\Collection;
  * Class Model
  * @package Basemkhirat\Elasticsearch
  */
-class Model
+class Model implements ArrayAccess
 {
 
     /**
@@ -395,6 +395,47 @@ class Model
     function getID()
     {
         return $this->attributes["_id"];
+    }
+
+    /**
+     * Determine if an item exists at an offset.
+     * @param  mixed  $key
+     * @return bool
+     */
+    public function offsetExists($key)
+    {
+        return array_key_exists($key, $this->attributes) or in_array($key, $this->appends) or property_exists($this, $key);
+    }
+
+    /**
+     * Get an item at a given offset.
+     * @param  mixed  $key
+     * @return mixed
+     */
+    public function offsetGet($key)
+    {
+        return $this->__get($key);
+    }
+
+    /**
+     * Set the item at a given offset.
+     * @param  mixed  $key
+     * @param  mixed  $value
+     * @return void
+     */
+    public function offsetSet($key, $value)
+    {
+        $this->__set($key, $value);
+    }
+
+    /**
+     * Unset the item at a given offset.
+     * @param  string  $key
+     * @return void
+     */
+    public function offsetUnset($key)
+    {
+        unset($this->attributes[$key]);
     }
 
     /**
