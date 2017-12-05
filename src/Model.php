@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use ArrayAccess;
 use Illuminate\Support\Collection;
 
 /**
