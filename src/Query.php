@@ -961,10 +961,9 @@ class Query
      *
      * @return array|Collection
      */
-    public function get($scroll_id = NULL)
+    public function get()
     {
-        $scroll_id = NULL;
-        $result = $this->getResult($scroll_id);
+        $result = $this->getResult(NULL);
 
         return $this->getAll($result);
     }
