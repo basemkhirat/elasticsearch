@@ -956,11 +956,13 @@ class Query
 
     /**
      * Get the collection of results
+     *
+     * @param string $scroll_id
+     *
      * @return array|Collection
      */
     public function get()
     {
-
         $result = $this->getResult(NULL);
 
         return $this->getAll($result);
