@@ -81,7 +81,7 @@ class Query
     /**
      * @var
      */
-    public $minimumShouldMatch;
+    public $minimumShouldMatch = null;
 
     /**
      * Query body
@@ -853,10 +853,11 @@ class Query
             $body["query"]["bool"]["filter"] = $this->filter;
         }
 
-        if(count($this->orWhere)){
+        if(!empty($this->orWhere)){
             $body["query"]["bool"]["should"] = $this->orWhere;
 
         }
+
         if(!empty($this->minimumShouldMatch)){
             $body["query"]["bool"]["minimum_should_match"] = $this->minimumShouldMatch;
         }
