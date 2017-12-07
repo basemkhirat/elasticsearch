@@ -926,6 +926,7 @@ class Query
             $model->_type = $row["_type"];
             $model->_id = $row["_id"];
             $model->_score = $row["_score"];
+            $model->sort = $row["sort"];
 
             $new[] = $model;
         }
@@ -969,6 +970,7 @@ class Query
             $model->_type = $data[0]["_type"];
             $model->_id = $data[0]["_id"];
             $model->_score = $data[0]["_score"];
+            $model->sort = $data[0]["sort"];
 
             $new = $model;
 
