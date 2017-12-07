@@ -132,6 +132,13 @@ class Query
     protected $skip = 0;
 
     /**
+     * Sort values that should be used for search_after field
+     * @url https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-search-after.html
+     * @var array sort value and identifier
+     */
+    protected $sortValues = [];
+
+    /**
      * The key that should be used when caching the query.
      * @var string
      */
@@ -352,6 +359,27 @@ class Query
         $this->sort[] = [$field => $direction];
 
         return $this;
+    }
+
+    /**
+     * Store sort values used for search_after field
+     * @param string $sortValue
+     * @param string $identifier
+     * @return $this
+     */
+    public function searchAfter($sortValue, $identifier)
+    {
+        $this->sortValues = [$sortValue, $identifier];
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getSortValues()
+    {
+        return $this->sortValues;
     }
 
     /**
@@ -750,6 +778,13 @@ class Query
         $query["from"] = $this->getSkip();
 
         $query["size"] = $this->getTake();
+
+        if ($this->getSortValues()) {
+            $query["search_after"] = $this->getSortValues();
+
+            // Elasticsearch requires `from` to be 0 or -1 if using `search_after`
+            $query['from'] = 0;
+        }
 
         if (count($this->ignores)) {
             $query["client"] = ['ignore' => $this->ignores];
