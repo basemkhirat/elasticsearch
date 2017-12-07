@@ -3,7 +3,6 @@
 namespace Basemkhirat\Elasticsearch;
 
 use ArrayAccess;
-use Illuminate\Support\Collection;
 
 /**
  * Elasticsearch data model
@@ -100,6 +99,7 @@ class Model implements ArrayAccess
 
     /**
      * Set current connection
+     * @param $connection
      * @return void
      */
     public function setConnection($connection)
@@ -119,7 +119,7 @@ class Model implements ArrayAccess
 
     /**
      * Set index name
-     *
+     * @param $index
      * @return void
      */
     public function setIndex($index)
@@ -138,6 +138,7 @@ class Model implements ArrayAccess
 
     /**
      * Set type name
+     * @param $type
      * @return void
      */
     public function setType($type)
@@ -271,11 +272,11 @@ class Model implements ArrayAccess
 
     /**
      * Create a new model query
-     * @return mixed
+     * @return Query
      */
     protected function newQuery()
     {
-        $query = app("es")->setModel($this);
+        $query = app("es")->connectionByName()->setModel($this);
 
         $query->connection($this->getConnection());
 
@@ -292,6 +293,7 @@ class Model implements ArrayAccess
 
     /**
      * Get all model records
+     * @throws \Exception
      * @return mixed
      */
     public static function all()
@@ -306,6 +308,7 @@ class Model implements ArrayAccess
     /**
      * Get model by key
      * @param $key
+     * @throws \Exception
      * @return mixed
      */
     public static function find($key)
