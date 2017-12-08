@@ -363,13 +363,12 @@ class Query
 
     /**
      * Store sort values used for search_after field
-     * @param string $sortValue
-     * @param string $identifier
+     * @param array $sortValues
      * @return $this
      */
-    public function searchAfter($sortValue, $identifier)
+    public function searchAfter($sortValues)
     {
-        $this->sortValues = [$sortValue, $identifier];
+        $this->sortValues = $sortValues;
 
         return $this;
     }
@@ -740,6 +739,13 @@ class Query
 
         }
 
+        if ($this->getSortValues()) {
+            $body["search_after"] = $this->getSortValues();
+
+            // Elasticsearch requires `from` to be 0 or -1 if using `search_after`
+            $body['from'] = 0;
+        }
+
         $this->body = $body;
 
         return $body;
@@ -778,13 +784,6 @@ class Query
         $query["from"] = $this->getSkip();
 
         $query["size"] = $this->getTake();
-
-        if ($this->getSortValues()) {
-            $query["search_after"] = $this->getSortValues();
-
-            // Elasticsearch requires `from` to be 0 or -1 if using `search_after`
-            $query['from'] = 0;
-        }
 
         if (count($this->ignores)) {
             $query["client"] = ['ignore' => $this->ignores];
