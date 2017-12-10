@@ -2,7 +2,9 @@
 
 namespace Basemkhirat\Elasticsearch;
 
+use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Symfony\Component\HttpKernel\Exception\HttpException as HttpException;
 
 /**
  * Class Connection
@@ -13,7 +15,7 @@ class Connection
 
     /**
      * Laravel app instance
-     * @var \Illuminate\Foundation\Application|mixed
+     * @var \Illuminate\contracts\Foundation\Application|mixed
      */
     protected $app;
 
@@ -25,13 +27,13 @@ class Connection
 
     /**
      * The current connection
-     * @var
+     * @var Client
      */
     protected $connection;
 
     /**
      * all available connections
-     * @var array
+     * @var Client[]
      */
     protected $connections = [];
 
@@ -77,11 +79,11 @@ class Connection
     /**
      * Create a connection for laravel or lumen frameworks
      * @param $name
+     * @throws HttpException
      * @return Query
      */
     function connection($name)
     {
-
         // Check if connection is already loaded.
 
         if ($this->isLoaded($name)) {
@@ -122,6 +124,16 @@ class Connection
 
 
     /**
+     * @param string $name
+     * @throws HttpException
+     * @return Query
+     */
+    function connectionByName($name = 'default') {
+        return $this->connection($this->config[$name]);
+    }
+
+
+    /**
      * route the request to the query class
      * @param $connection
      * @return Query
@@ -148,11 +160,7 @@ class Connection
     function isLoaded($name)
     {
 
-        if (array_key_exists($name, $this->connections)) {
-            return true;
-        }
-
-        return false;
+        return array_key_exists($name, $this->connections);
     }
 
 
@@ -160,23 +168,14 @@ class Connection
      * Set the default connection
      * @param $name
      * @param $arguments
+     * @throws HttpException
      * @return mixed
      */
     function __call($name, $arguments)
     {
-        if (method_exists($this, $name)) {
 
-            return call_user_func_array([$this, $name], $arguments);
+        $query = $this->connectionByName('default');
 
-        } else {
-
-            // if no connection, use default.
-
-            $query = $this->connection($this->config["default"]);
-
-            return call_user_func_array([$query, $name], $arguments);
-
-        }
+        return call_user_func_array([$query, $name], $arguments);
     }
-
 }
