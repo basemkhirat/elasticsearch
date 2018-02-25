@@ -2,14 +2,14 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-use ArrayAccess;
+use Illuminate\Support\Collection;
 
 /**
  * Elasticsearch data model
  * Class Model
  * @package Basemkhirat\Elasticsearch
  */
-class Model implements ArrayAccess
+class Model
 {
 
     /**
@@ -99,7 +99,6 @@ class Model implements ArrayAccess
 
     /**
      * Set current connection
-     * @param $connection
      * @return void
      */
     public function setConnection($connection)
@@ -119,7 +118,7 @@ class Model implements ArrayAccess
 
     /**
      * Set index name
-     * @param $index
+     *
      * @return void
      */
     public function setIndex($index)
@@ -138,7 +137,6 @@ class Model implements ArrayAccess
 
     /**
      * Set type name
-     * @param $type
      * @return void
      */
     public function setType($type)
@@ -272,11 +270,11 @@ class Model implements ArrayAccess
 
     /**
      * Create a new model query
-     * @return Query
+     * @return mixed
      */
     protected function newQuery()
     {
-        $query = app("es")->connectionByName()->setModel($this);
+        $query = app("es")->setModel($this);
 
         $query->connection($this->getConnection());
 
@@ -293,7 +291,6 @@ class Model implements ArrayAccess
 
     /**
      * Get all model records
-     * @throws \Exception
      * @return mixed
      */
     public static function all()
@@ -308,7 +305,6 @@ class Model implements ArrayAccess
     /**
      * Get model by key
      * @param $key
-     * @throws \Exception
      * @return mixed
      */
     public static function find($key)
@@ -399,47 +395,6 @@ class Model implements ArrayAccess
     function getID()
     {
         return $this->attributes["_id"];
-    }
-
-    /**
-     * Determine if an item exists at an offset.
-     * @param  mixed  $key
-     * @return bool
-     */
-    public function offsetExists($key)
-    {
-        return array_key_exists($key, $this->attributes) or in_array($key, $this->appends) or property_exists($this, $key);
-    }
-
-    /**
-     * Get an item at a given offset.
-     * @param  mixed  $key
-     * @return mixed
-     */
-    public function offsetGet($key)
-    {
-        return $this->__get($key);
-    }
-
-    /**
-     * Set the item at a given offset.
-     * @param  mixed  $key
-     * @param  mixed  $value
-     * @return void
-     */
-    public function offsetSet($key, $value)
-    {
-        $this->__set($key, $value);
-    }
-
-    /**
-     * Unset the item at a given offset.
-     * @param  string  $key
-     * @return void
-     */
-    public function offsetUnset($key)
-    {
-        unset($this->attributes[$key]);
     }
 
     /**

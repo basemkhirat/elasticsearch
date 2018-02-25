@@ -4,8 +4,7 @@ namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\Search;
-use Elasticsearch\Client;
-use Elasticsearch\Common\Exceptions\BadMethodCallException;
+use Basemkhirat\Elasticsearch\Collection;
 
 
 /**
@@ -17,13 +16,13 @@ class Query
 
     /**
      * Native elasticsearch connection instance
-     * @var Client
+     * @var Connection
      */
     public $connection;
 
     /**
      * Ignored HTTP errors
-     * @var string[]
+     * @var array
      */
     public $ignores = [];
 
@@ -158,14 +157,14 @@ class Query
 
     /**
      * Elastic model instance
-     * @var Model
+     * @var \Basemkhirat\Elasticsearch\Model
      */
     public $model;
 
 
     /**
      * Query constructor.
-     * @param Client|NULL $connection
+     * @param $connection
      */
     function __construct($connection = NULL)
     {
@@ -197,7 +196,7 @@ class Query
     /**
      * Set the type name
      * @param $type
-     * @return Query $this
+     * @return $this
      */
     public function type($type)
     {
@@ -257,7 +256,7 @@ class Query
 
     /**
      * get the query search type
-     * @return int
+     * @return $this
      */
     public function getSearchType()
     {
@@ -266,7 +265,7 @@ class Query
 
     /**
      * Get the query scroll
-     * @return string
+     * @return $this
      */
     public function getScroll()
     {
@@ -363,7 +362,11 @@ class Query
     protected function isOperator($string)
     {
 
-        return in_array($string, $this->operators);
+        if (in_array($string, $this->operators)) {
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -653,7 +656,6 @@ class Query
     /**
      * Search the entire document fields
      * @param null $q
-     * @param NULL $settings
      * @return $this
      */
     public function search($q = NULL, $settings = NULL)
@@ -786,13 +788,15 @@ class Query
 
     /**
      * Get the collection of results
-     * @throws \Exception
-     * @return Collection
+     * @param string $scroll_id
+     * @return array|Collection
      */
-    public function get()
+    public function get($scroll_id = NULL)
     {
 
-        $result = $this->getResult(NULL);
+        $scroll_id = NULL;
+
+        $result = $this->getResult($scroll_id);
 
         return $this->getAll($result);
     }
@@ -800,7 +804,6 @@ class Query
     /**
      * Get the first object of results
      * @param string $scroll_id
-     * @throws \Exception
      * @return object
      */
     public function first($scroll_id = NULL)
@@ -816,7 +819,6 @@ class Query
     /**
      * Get query result
      * @param $scroll_id
-     * @throws \Exception
      * @return mixed
      */
     protected function getResult($scroll_id)
@@ -840,8 +842,7 @@ class Query
     /**
      * Get non cached results
      * @param null $scroll_id
-     * @throws \Exception
-     * @return array
+     * @return mixed
      */
     public function response($scroll_id = NULL)
     {
@@ -904,7 +905,7 @@ class Query
     /**
      * Retrieve all records
      * @param array $result
-     * @return Collection
+     * @return array|Collection
      */
     protected function getAll($result = [])
     {
@@ -983,7 +984,6 @@ class Query
      * @param int $per_page
      * @param      $page_name
      * @param null $page
-     * @throws \Exception
      * @return Pagination
      */
     public function paginate($per_page = 10, $page_name = "page", $page = null)
@@ -1004,7 +1004,7 @@ class Query
      * Insert a document
      * @param      $data
      * @param null $_id
-     * @return array
+     * @return object
      */
     public function insert($data, $_id = NULL)
     {
@@ -1030,12 +1030,12 @@ class Query
             $parameters["id"] = $this->_id;
         }
 
-        return $this->connection->index($parameters);
+        return (object)$this->connection->index($parameters);
     }
 
     /**
      * Insert a bulk of documents
-     * @param $data callable|array : multidimensional array of [id => data] pairs
+     * @param $data multidimensional array of [id => data] pairs
      * @return object
      */
     public function bulk($data)
@@ -1312,6 +1312,7 @@ class Query
 
     /**
      * Get a unique cache key for the complete query.
+     *
      * @return string
      */
     public function getCacheKey()
@@ -1347,7 +1348,7 @@ class Query
     /**
      * Indicate that the query results should be cached forever.
      * @param  string $key
-     * @return $this
+     * @return \Illuminate\Database\Query\Builder|static
      */
     public function rememberForever($key = null)
     {
@@ -1362,14 +1363,20 @@ class Query
     function __call($method, $parameters)
     {
 
-        $method = "scope" . ucfirst($method);
+        if (method_exists($this, $method)) {
+            return $this->$method(...$parameters);
+        } else {
 
-        if (method_exists($this->model, $method)) {
-            $parameters = array_merge([$this], $parameters);
-            $this->model->$method(...$parameters);
-            return $this;
+            // Check for model scopes
+
+            $method = "scope" . ucfirst($method);
+
+            if (method_exists($this->model, $method)) {
+                $parameters = array_merge([$this], $parameters);
+                $this->model->$method(...$parameters);
+                return $this;
+            }
         }
 
-        throw new BadMethodCallException("Method $method does not exist.");
     }
 }
