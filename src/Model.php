@@ -438,7 +438,7 @@ class Model
      *
      * @return void
      */
-    protected function boot($query)
+    public function boot($query)
     {
     }
 
