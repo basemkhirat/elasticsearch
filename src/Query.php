@@ -745,6 +745,10 @@ class Query
             $query["type"] = $this->getType();
         }
 
+        if($this->model){
+            $this->model->boot($this);
+        }
+
         $query["body"] = $this->getBody();
 
         $query["from"] = $this->getSkip();

@@ -418,4 +418,6 @@ class Model
     {
         return $this->newQuery()->$method(...$parameters);
     }
+
+    public function boot($query){}
 }
