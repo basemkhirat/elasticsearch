@@ -2,42 +2,36 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-use Basemkhirat\Elasticsearch\Query;
-use Illuminate\Support\Collection;
+use ArrayAccess;
 
 /**
  * Elasticsearch data model
  * Class Model
- *
  * @package Basemkhirat\Elasticsearch
  */
-class Model
+class Model implements ArrayAccess
 {
 
     /**
      * Model connection name
-     *
      * @var string
      */
     protected $connection;
 
     /**
      * Model index name
-     *
      * @var string
      */
     protected $index;
 
     /**
      * Model type name
-     *
      * @var string
      */
     protected $type;
 
     /**
      * Attribute data type
-     *
      * @available boolean, bool, integer, int, float, double, string, array, object, null
      * @var array
      */
@@ -45,7 +39,6 @@ class Model
 
     /**
      * Model attributes
-     *
      * @var array
      */
     protected $attributes = [];
@@ -53,21 +46,18 @@ class Model
 
     /**
      * Model flag indicates row exists in database
-     *
      * @var bool
      */
     protected $exists = false;
 
     /**
      * Additional custom attributes
-     *
      * @var array
      */
     protected $appends = [];
 
     /**
      * Allowed casts
-     *
      * @var array
      */
     private $castTypes = [
@@ -86,9 +76,8 @@ class Model
 
     /**
      * Create a new Elasticsearch model instance.
-     *
      * @param  array $attributes
-     * @param  bool  $exists
+     * @param  bool $exists
      */
     function __construct($attributes = [], $exists = false)
     {
@@ -101,7 +90,6 @@ class Model
 
     /**
      * Get current connection
-     *
      * @return string
      */
     public function getConnection()
@@ -111,7 +99,7 @@ class Model
 
     /**
      * Set current connection
-     *
+     * @param $connection
      * @return void
      */
     public function setConnection($connection)
@@ -131,7 +119,7 @@ class Model
 
     /**
      * Set index name
-     *
+     * @param $index
      * @return void
      */
     public function setIndex($index)
@@ -141,7 +129,6 @@ class Model
 
     /**
      * Get type name
-     *
      * @return string
      */
     public function getType()
@@ -151,7 +138,7 @@ class Model
 
     /**
      * Set type name
-     *
+     * @param $type
      * @return void
      */
     public function setType($type)
@@ -161,9 +148,7 @@ class Model
 
     /**
      * Magic getter for model properties
-     *
      * @param $name
-     *
      * @return null
      */
     public function __get($name)
@@ -191,9 +176,7 @@ class Model
 
     /**
      * Get original model attribute
-     *
      * @param $name
-     *
      * @return mixed
      */
     protected function getOriginalAttribute($name)
@@ -205,9 +188,7 @@ class Model
 
     /**
      * Get Appends model attribute
-     *
      * @param $name
-     *
      * @return mixed
      */
     protected function getAppendsAttribute($name)
@@ -219,10 +200,8 @@ class Model
 
     /**
      * Set attributes casting
-     *
      * @param $name
      * @param $value
-     *
      * @return mixed
      */
     protected function setAttributeType($name, $value)
@@ -239,7 +218,6 @@ class Model
 
     /**
      * Get model as array
-     *
      * @return array
      */
     public function toArray()
@@ -260,9 +238,7 @@ class Model
 
     /**
      * Get the collection of items as JSON.
-     *
      * @param  int $options
-     *
      * @return string
      */
     public function toJson($options = 0)
@@ -272,10 +248,8 @@ class Model
 
     /**
      * Handle model properties setter
-     *
      * @param $name
      * @param $value
-     *
      * @return null
      */
     public function __set($name, $value)
@@ -298,12 +272,11 @@ class Model
 
     /**
      * Create a new model query
-     *
-     * @return mixed
+     * @return Query
      */
     protected function newQuery()
     {
-        $query = app("es")->setModel($this);
+        $query = app("es")->connectionByName()->setModel($this);
 
         $query->connection($this->getConnection());
 
@@ -320,7 +293,7 @@ class Model
 
     /**
      * Get all model records
-     *
+     * @throws \Exception
      * @return mixed
      */
     public static function all()
@@ -334,9 +307,8 @@ class Model
 
     /**
      * Get model by key
-     *
      * @param $key
-     *
+     * @throws \Exception
      * @return mixed
      */
     public static function find($key)
@@ -354,7 +326,6 @@ class Model
 
     /**
      * Delete model record
-     *
      * @return $this|bool
      */
     function delete()
@@ -373,7 +344,6 @@ class Model
 
     /**
      * Save data to model
-     *
      * @return string
      */
     public function save()
@@ -415,7 +385,6 @@ class Model
 
     /**
      * Check model is exists
-     *
      * @return bool
      */
     function exists()
@@ -425,7 +394,6 @@ class Model
 
     /**
      * Get model key
-     *
      * @return mixed
      */
     function getID()
@@ -434,20 +402,50 @@ class Model
     }
 
     /**
-     * The "booting" method of the model.
-     *
+     * Determine if an item exists at an offset.
+     * @param  mixed  $key
+     * @return bool
+     */
+    public function offsetExists($key)
+    {
+        return array_key_exists($key, $this->attributes) or in_array($key, $this->appends) or property_exists($this, $key);
+    }
+
+    /**
+     * Get an item at a given offset.
+     * @param  mixed  $key
+     * @return mixed
+     */
+    public function offsetGet($key)
+    {
+        return $this->__get($key);
+    }
+
+    /**
+     * Set the item at a given offset.
+     * @param  mixed  $key
+     * @param  mixed  $value
      * @return void
      */
-    public function boot($query)
+    public function offsetSet($key, $value)
     {
+        $this->__set($key, $value);
+    }
+
+    /**
+     * Unset the item at a given offset.
+     * @param  string  $key
+     * @return void
+     */
+    public function offsetUnset($key)
+    {
+        unset($this->attributes[$key]);
     }
 
     /**
      * Handle dynamic static method calls into the method.
-     *
      * @param  string $method
-     * @param  array  $parameters
-     *
+     * @param  array $parameters
      * @return mixed
      */
     public static function __callStatic($method, $parameters)
@@ -457,10 +455,8 @@ class Model
 
     /**
      * Handle dynamic method calls into the model.
-     *
      * @param  string $method
-     * @param  array  $parameters
-     *
+     * @param  array $parameters
      * @return mixed
      */
     public function __call($method, $parameters)

@@ -743,10 +743,6 @@ class Query
             $query["type"] = $this->getType();
         }
 
-        if ($this->model) {
-            $this->model->boot($this);
-        }
-
         $query["body"] = $this->getBody();
 
         $query["from"] = $this->getSkip();
@@ -917,13 +913,9 @@ class Query
 
         foreach ($result["hits"]["hits"] as $row) {
 
-            if($this->model){
-                $model = new $this->model($row["_source"], true);
-            }else{
-                $model = new Model($row["_source"], true);
-            }
+            $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
 
-            $model->setConnection($model->getConnection() ? $model->getConnection() : $this->connection);
+            $model->setConnection($model->getConnection());
             $model->setIndex($row["_index"]);
             $model->setType($row["_type"]);
 
@@ -965,11 +957,10 @@ class Query
                 $model = new $this->model($data[0]["_source"], true);
             } else {
                 $model = new Model($data[0]["_source"], true);
+                $model->setConnection($model->getConnection());
                 $model->setIndex($data[0]["_index"]);
                 $model->setType($data[0]["_type"]);
             }
-
-            $model->setConnection($model->getConnection() ? $model->getConnection() : $this->connection);
 
             // match earlier version
 
