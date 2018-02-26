@@ -132,6 +132,13 @@ class Query
     protected $skip = 0;
 
     /**
+     * Sort values that should be used for search_after field
+     * @url https://www.elastic.co/guide/en/elasticsearch/reference/5.6/search-request-search-after.html
+     * @var array sort value and identifier
+     */
+    protected $sortValues = [];
+
+    /**
      * The key that should be used when caching the query.
      * @var string
      */
@@ -352,6 +359,26 @@ class Query
         $this->sort[] = [$field => $direction];
 
         return $this;
+    }
+
+    /**
+     * Store sort values used for search_after field
+     * @param array $sortValues
+     * @return $this
+     */
+    public function searchAfter($sortValues)
+    {
+        $this->sortValues = $sortValues;
+
+        return $this;
+    }
+
+    /**
+     * @return array
+     */
+    protected function getSortValues()
+    {
+        return $this->sortValues;
     }
 
     /**
@@ -712,6 +739,13 @@ class Query
 
         }
 
+        if ($this->getSortValues()) {
+            $body["search_after"] = $this->getSortValues();
+
+            // Elasticsearch requires `from` to be 0 or -1 if using `search_after`
+            $body['from'] = 0;
+        }
+
         $this->body = $body;
 
         return $body;
@@ -930,6 +964,7 @@ class Query
             $model->_type = $row["_type"];
             $model->_id = $row["_id"];
             $model->_score = $row["_score"];
+            $model->sort = $row["sort"];
 
             $new[] = $model;
         }
@@ -973,6 +1008,7 @@ class Query
             $model->_type = $data[0]["_type"];
             $model->_id = $data[0]["_id"];
             $model->_score = $data[0]["_score"];
+            $model->sort = $data[0]["sort"];
 
             $new = $model;
 
