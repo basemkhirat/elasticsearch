@@ -31,8 +31,8 @@ return [
             'servers' => [
 
                 [
-                    "host" => env("ELASTIC_HOST", "127.0.0.1"),
-                    "port" => env("ELASTIC_PORT", 9200),
+                    'host' => env('ELASTIC_HOST', '127.0.0.1'),
+                    'port' => env('ELASTIC_PORT', 9200),
                     'user' => env('ELASTIC_USER', ''),
                     'pass' => env('ELASTIC_PASS', ''),
                     'scheme' => env('ELASTIC_SCHEME', 'http'),
@@ -44,6 +44,12 @@ return [
 
             // Elasticsearch handlers
             // 'handler' => new MyCustomHandler(),
+            
+            'logging' => [
+                'enabled'   => env('ELASTIC_LOGGING_ENABLED',false),
+                'level'     => env('ELASTIC_LOGGING_LEVEL','all'),
+                'location'  => env('ELASTIC_LOGGING_LOCATION',base_path('storage/logs/elasticsearch.log'))
+            ],            
         ]
     ],
 
@@ -64,18 +70,18 @@ return [
 
         'my_index_1' => [
 
-            "aliases" => [
-                "my_index"
+            'aliases' => [
+                'my_index'
             ],
 
             'settings' => [
-                "number_of_shards" => 1,
-                "number_of_replicas" => 0,
+                'number_of_shards' => 1,
+                'number_of_replicas' => 0,
             ],
 
             'mappings' => [
                 'posts' => [
-                    "properties" => [
+                    'properties' => [
                         'title' => [
                             'type' => 'string'
                         ]

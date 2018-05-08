@@ -121,6 +121,16 @@ class Connection
     }
 
 
+    public static function configureLogging(ClientBuilder $clientBuilder,array $config)
+    {
+        if (array_get($config,'logging.enabled')) {
+            $logger = ClientBuilder::defaultLogger(array_get($config,'logging.location'), array_get($config,'logging.level','all'));
+            $clientBuilder->setLogger($logger);
+        }
+        return $clientBuilder;
+    }
+
+
     /**
      * route the request to the query class
      * @param $connection
