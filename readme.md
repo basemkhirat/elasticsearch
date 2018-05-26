@@ -126,6 +126,12 @@ $connection = Connection::create([
 	// 'handler' => new MyCustomHandler(),
 
     'index' => 'my_index',
+    
+    'logging' => [
+        'enabled'   => env('ELASTIC_LOGGING_ENABLED',false),
+        'level'     => env('ELASTIC_LOGGING_LEVEL','all'),
+        'location'  => env('ELASTIC_LOGGING_LOCATION',base_path('storage/logs/elasticsearch.log'))
+    ],  
 ]);
 
 
