@@ -161,6 +161,12 @@ class Query
      */
     public $model;
 
+    /**
+     * Use model global scopes
+     * @var bool
+     */
+    public $useGlobalScopes = true;
+
 
     /**
      * Query constructor.
@@ -745,7 +751,7 @@ class Query
             $query["type"] = $this->getType();
         }
 
-        if($this->model){
+        if($this->model && $this->useGlobalScopes){
             $this->model->boot($this);
         }
 
@@ -1382,5 +1388,15 @@ class Query
             }
         }
 
+    }
+
+    /**
+     * @return $this
+     */
+    public function withoutGlobalScopes(){
+
+        $this->useGlobalScopes = false;
+
+        return $this;
     }
 }

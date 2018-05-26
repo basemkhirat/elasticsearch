@@ -420,4 +420,6 @@ class Model
     }
 
     public function boot($query){}
+
+
 }
