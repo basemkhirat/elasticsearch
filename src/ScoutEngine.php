@@ -41,7 +41,7 @@ class ScoutEngine extends Engine
             $params['body'][] = [
                 'update' => [
                     '_id' => $model->getKey(),
-                    '_index' => $this->index,
+                    '_index' => $this->getIndex($model),
                     '_type' => $model->searchableAs(),
                 ]
             ];
@@ -70,7 +70,7 @@ class ScoutEngine extends Engine
             $params['body'][] = [
                 'delete' => [
                     '_id' => $model->getKey(),
-                    '_index' => $this->index,
+                    '_index' => $this->getIndex($model),
                     '_type' => $model->searchableAs(),
                 ]
             ];
@@ -121,7 +121,7 @@ class ScoutEngine extends Engine
     protected function performSearch(Builder $builder, array $options = [])
     {
         $params = [
-            'index' => $this->index,
+            'index' => $this->getIndex($builder->model),
             'type' => $builder->model->searchableAs(),
             'body' => [
                 'query' => [
@@ -194,5 +194,20 @@ class ScoutEngine extends Engine
     public function getTotalCount($results)
     {
         return $results['hits']['total'];
+    }
+
+    /**
+     * Get the `index` name for the model.
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return string        [description]
+     */
+    private function getIndex($model = null)
+    {
+        $method = 'getElasticsearchIndexName';
+        if (!$model || !method_exists($model, $method)) {
+            return $this->index;
+        }
+
+        return $model->$method();
     }
 }
