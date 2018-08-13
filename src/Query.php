@@ -751,7 +751,7 @@ class Query
             $query["type"] = $this->getType();
         }
 
-        if($this->model && $this->useGlobalScopes){
+        if ($this->model && $this->useGlobalScopes) {
             $this->model->boot($this);
         }
 
@@ -922,32 +922,36 @@ class Query
 
         $new = [];
 
-        foreach ($result["hits"]["hits"] as $row) {
+        if (array_key_exists("hits", $result)) {
 
-            $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
+            foreach ($result["hits"]["hits"] as $row) {
 
-            $model->setConnection($model->getConnection());
-            $model->setIndex($row["_index"]);
-            $model->setType($row["_type"]);
+                $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
 
-            // match earlier version
+                $model->setConnection($model->getConnection());
+                $model->setIndex($row["_index"]);
+                $model->setType($row["_type"]);
 
-            $model->_index = $row["_index"];
-            $model->_type = $row["_type"];
-            $model->_id = $row["_id"];
-            $model->_score = $row["_score"];
+                // match earlier version
 
-            $new[] = $model;
+                $model->_index = $row["_index"];
+                $model->_type = $row["_type"];
+                $model->_id = $row["_id"];
+                $model->_score = $row["_score"];
+
+                $new[] = $model;
+            }
+
+            $new = new Collection($new);
+
+            $new->total = $result["hits"]["total"];
+            $new->max_score = $result["hits"]["max_score"];
+            $new->took = $result["took"];
+            $new->timed_out = $result["timed_out"];
+            $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
+            $new->shards = (object)$result["_shards"];
+
         }
-
-        $new = new Collection($new);
-
-        $new->total = $result["hits"]["total"];
-        $new->max_score = $result["hits"]["max_score"];
-        $new->took = $result["took"];
-        $new->timed_out = $result["timed_out"];
-        $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
-        $new->shards = (object)$result["_shards"];
 
         return $new;
     }
@@ -960,9 +964,9 @@ class Query
     protected function getFirst($result = [])
     {
 
-        $data = $result["hits"]["hits"];
+        if (array_key_exists("hits", $result) && count($result["hits"]["hits"])) {
 
-        if (count($data)) {
+            $data = $result["hits"]["hits"];
 
             if ($this->model) {
                 $model = new $this->model($data[0]["_source"], true);
@@ -1393,7 +1397,8 @@ class Query
     /**
      * @return $this
      */
-    public function withoutGlobalScopes(){
+    public function withoutGlobalScopes()
+    {
 
         $this->useGlobalScopes = false;
 
