@@ -920,9 +920,9 @@ class Query
     protected function getAll($result = [])
     {
 
-        $new = [];
-
         if (array_key_exists("hits", $result)) {
+
+            $new = [];
 
             foreach ($result["hits"]["hits"] as $row) {
 
@@ -951,9 +951,13 @@ class Query
             $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
             $new->shards = (object)$result["_shards"];
 
-        }
+            return $new;
 
-        return $new;
+        } else {
+
+            return new Collection([]);
+
+        }
     }
 
     /**
