@@ -938,6 +938,9 @@ class Query
                 $model->_type = $row["_type"];
                 $model->_id = $row["_id"];
                 $model->_score = $row["_score"];
+                
+                // return highlight
+                isset($row['highlight']) && $model->_highlight = $row['highlight'];
 
                 $new[] = $model;
             }
