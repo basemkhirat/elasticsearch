@@ -6,7 +6,6 @@ use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\Search;
 use Basemkhirat\Elasticsearch\Collection;
 
-
 /**
  * Class Query
  * @package Basemkhirat\Elasticsearch\Query
@@ -38,8 +37,14 @@ class Query
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
     ];
+
+    /**
+     * Index Refresh
+     * @var bool|string
+     */
+    protected $refresh = false;
 
     /**
      * Query array
@@ -162,17 +167,10 @@ class Query
     public $model;
 
     /**
-     * Use model global scopes
-     * @var bool
-     */
-    public $useGlobalScopes = true;
-
-
-    /**
      * Query constructor.
      * @param $connection
      */
-    function __construct($connection = NULL)
+    function __construct($connection = null)
     {
         $this->connection = $connection;
     }
@@ -429,11 +427,12 @@ class Query
      * @param null $value
      * @return $this
      */
-    public function where($name, $operator = "=", $value = NULL)
+    public function where($name, $operator = "=", $value = null)
     {
 
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
@@ -485,11 +484,12 @@ class Query
      * @param null $value
      * @return $this
      */
-    public function whereNot($name, $operator = "=", $value = NULL)
+    public function whereNot($name, $operator = "=", $value = null)
     {
 
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
@@ -580,6 +580,7 @@ class Query
 
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
@@ -599,6 +600,7 @@ class Query
 
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
@@ -606,7 +608,6 @@ class Query
 
         return $this;
     }
-
 
     /**
      * Set the query where exists clause
@@ -646,6 +647,7 @@ class Query
 
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
@@ -653,7 +655,7 @@ class Query
             "geo_distance" => [
                 $name => $value,
                 "distance" => $distance,
-            ]
+            ],
         ];
 
         return $this;
@@ -664,7 +666,7 @@ class Query
      * @param null $q
      * @return $this
      */
-    public function search($q = NULL, $settings = NULL)
+    public function search($q = null, $settings = null)
     {
 
         if ($q) {
@@ -751,10 +753,6 @@ class Query
             $query["type"] = $this->getType();
         }
 
-        if ($this->model && $this->useGlobalScopes) {
-            $this->model->boot($this);
-        }
-
         $query["body"] = $this->getBody();
 
         $query["from"] = $this->getSkip();
@@ -785,14 +783,14 @@ class Query
      * @param  string $scroll_id
      * @return array|Collection
      */
-    public function clear($scroll_id = NULL)
+    public function clear($scroll_id = null)
     {
 
         $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
 
         return $this->connection->clearScroll([
             "scroll_id" => $scroll_id,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ]);
     }
 
@@ -801,10 +799,10 @@ class Query
      * @param string $scroll_id
      * @return array|Collection
      */
-    public function get($scroll_id = NULL)
+    public function get($scroll_id = null)
     {
 
-        $scroll_id = NULL;
+        $scroll_id = null;
 
         $result = $this->getResult($scroll_id);
 
@@ -816,7 +814,7 @@ class Query
      * @param string $scroll_id
      * @return object
      */
-    public function first($scroll_id = NULL)
+    public function first($scroll_id = null)
     {
 
         $this->take(1);
@@ -848,13 +846,12 @@ class Query
         return $result;
     }
 
-
     /**
      * Get non cached results
      * @param null $scroll_id
      * @return mixed
      */
-    public function response($scroll_id = NULL)
+    public function response($scroll_id = null)
     {
 
         $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
@@ -863,7 +860,7 @@ class Query
 
             $result = $this->connection->scroll([
                 "scroll" => $this->scroll,
-                "scroll_id" => $scroll_id
+                "scroll_id" => $scroll_id,
             ]);
 
         } else {
@@ -911,7 +908,6 @@ class Query
         return $this;
     }
 
-
     /**
      * Retrieve all records
      * @param array $result
@@ -920,44 +916,36 @@ class Query
     protected function getAll($result = [])
     {
 
-        if (array_key_exists("hits", $result)) {
+        $new = [];
 
-            $new = [];
+        foreach ($result["hits"]["hits"] as $row) {
 
-            foreach ($result["hits"]["hits"] as $row) {
+            $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
 
-                $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
+            $model->setConnection($model->getConnection());
+            $model->setIndex($row["_index"]);
+            $model->setType($row["_type"]);
 
-                $model->setConnection($model->getConnection());
-                $model->setIndex($row["_index"]);
-                $model->setType($row["_type"]);
+            // match earlier version
 
-                // match earlier version
+            $model->_index = $row["_index"];
+            $model->_type = $row["_type"];
+            $model->_id = $row["_id"];
+            $model->_score = $row["_score"];
 
-                $model->_index = $row["_index"];
-                $model->_type = $row["_type"];
-                $model->_id = $row["_id"];
-                $model->_score = $row["_score"];
-
-                $new[] = $model;
-            }
-
-            $new = new Collection($new);
-
-            $new->total = $result["hits"]["total"];
-            $new->max_score = $result["hits"]["max_score"];
-            $new->took = $result["took"];
-            $new->timed_out = $result["timed_out"];
-            $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
-            $new->shards = (object)$result["_shards"];
-
-            return $new;
-
-        } else {
-
-            return new Collection([]);
-
+            $new[] = $model;
         }
+
+        $new = new Collection($new);
+
+        $new->total = $result["hits"]["total"];
+        $new->max_score = $result["hits"]["max_score"];
+        $new->took = $result["took"];
+        $new->timed_out = $result["timed_out"];
+        $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : null;
+        $new->shards = (object)$result["_shards"];
+
+        return $new;
     }
 
     /**
@@ -968,9 +956,9 @@ class Query
     protected function getFirst($result = [])
     {
 
-        if (array_key_exists("hits", $result) && count($result["hits"]["hits"])) {
+        $data = $result["hits"]["hits"];
 
-            $data = $result["hits"]["hits"];
+        if (count($data)) {
 
             if ($this->model) {
                 $model = new $this->model($data[0]["_source"], true);
@@ -991,7 +979,7 @@ class Query
             $new = $model;
 
         } else {
-            $new = NULL;
+            $new = null;
         }
 
         return $new;
@@ -1024,7 +1012,7 @@ class Query
      * @param null $_id
      * @return object
      */
-    public function insert($data, $_id = NULL)
+    public function insert($data, $_id = null)
     {
 
         if ($_id) {
@@ -1033,7 +1021,7 @@ class Query
 
         $parameters = [
             "body" => $data,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
@@ -1048,7 +1036,16 @@ class Query
             $parameters["id"] = $this->_id;
         }
 
+        $parameters["refresh"] = $this->refresh;
+
         return (object)$this->connection->index($parameters);
+    }
+
+    public function refresh($status = false)
+    {
+        $this->refresh = $status;
+
+        return $this;
     }
 
     /**
@@ -1078,8 +1075,8 @@ class Query
                     'index' => [
                         '_index' => $this->getIndex(),
                         '_type' => $this->getType(),
-                        '_id' => $key
-                    ]
+                        '_id' => $key,
+                    ],
 
                 ];
 
@@ -1098,7 +1095,7 @@ class Query
      * @param null $_id
      * @return object
      */
-    public function update($data, $_id = NULL)
+    public function update($data, $_id = null)
     {
 
         if ($_id) {
@@ -1108,7 +1105,7 @@ class Query
         $parameters = [
             "id" => $this->_id,
             "body" => ['doc' => $data],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
@@ -1122,7 +1119,6 @@ class Query
         return (object)$this->connection->update($parameters);
     }
 
-
     /**
      * Increment a document field
      * @param     $field
@@ -1133,7 +1129,7 @@ class Query
     {
 
         return $this->script("ctx._source.$field += params.count", [
-            "count" => $count
+            "count" => $count,
         ]);
     }
 
@@ -1147,7 +1143,7 @@ class Query
     {
 
         return $this->script("ctx._source.$field -= params.count", [
-            "count" => $count
+            "count" => $count,
         ]);
     }
 
@@ -1165,10 +1161,10 @@ class Query
             "body" => [
                 "script" => [
                     "inline" => $script,
-                    "params" => $params
-                ]
+                    "params" => $params,
+                ],
             ],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
@@ -1187,7 +1183,7 @@ class Query
      * @param null $_id
      * @return object
      */
-    public function delete($_id = NULL)
+    public function delete($_id = null)
     {
 
         if ($_id) {
@@ -1196,7 +1192,7 @@ class Query
 
         $parameters = [
             "id" => $this->_id,
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
@@ -1233,7 +1229,6 @@ class Query
         return $index->exists();
     }
 
-
     /**
      * Create a new index
      * @param      $name
@@ -1249,7 +1244,6 @@ class Query
 
         return $index->create();
     }
-
 
     /**
      * Drop index
@@ -1327,7 +1321,6 @@ class Query
         return $this;
     }
 
-
     /**
      * Get a unique cache key for the complete query.
      *
@@ -1337,7 +1330,6 @@ class Query
     {
         return $this->cachePrefix . ':' . ($this->cacheKey ?: $this->generateCacheKey());
     }
-
 
     /**
      * Generate the unique cache key for the query.
@@ -1392,20 +1384,10 @@ class Query
             if (method_exists($this->model, $method)) {
                 $parameters = array_merge([$this], $parameters);
                 $this->model->$method(...$parameters);
+
                 return $this;
             }
         }
 
-    }
-
-    /**
-     * @return $this
-     */
-    public function withoutGlobalScopes()
-    {
-
-        $this->useGlobalScopes = false;
-
-        return $this;
     }
 }
