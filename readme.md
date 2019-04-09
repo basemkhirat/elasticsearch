@@ -5,9 +5,6 @@
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/license.svg" alt="License"></a>
 </p>
 
-<p align="center"><img src="http://basemkhirat.com/images/basemkhirat-elasticsearch.png?123"></p>
-
-
 ## Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax
 
 - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
