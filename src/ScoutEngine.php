@@ -80,6 +80,25 @@ class ScoutEngine extends Engine
     }
 
     /**
+     * Flush all of the model's records from the engine.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model  $model
+     * @return void
+     */
+    public function flush($model)
+    {
+        $this->elastic->deleteByQuery([
+            'type' => $model->searchableAs(),
+            'index' => $this->index,
+            'body' => [
+                'query' => [
+                    'match_all' => []
+                ]
+            ]
+        ]);
+    }
+
+    /**
      * Perform the given search on the engine.
      * @param  Builder  $builder
      * @return mixed
@@ -162,13 +181,14 @@ class ScoutEngine extends Engine
 
     /**
      * Map the given results to instances of the given model.
+     * @param  Builder $builder
      * @param  mixed  $results
      * @param  \Illuminate\Database\Eloquent\Model  $model
      * @return Collection
      */
-    public function map($results, $model)
+    public function map(Builder $builder, $results, $model)
     {
-        if ($results['hits']['total'] === 0) {
+        if ((int)$results['hits']['total'] === 0) {
             return Collection::make();
         }
 
