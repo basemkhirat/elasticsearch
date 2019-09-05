@@ -1,8 +1,8 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace CarlosOCarvalho\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use CarlosOCarvalho\Elasticsearch\Tests\Traits\ESQueryTrait;
 
 class SearchTest extends \PHPUnit_Framework_TestCase
 {
@@ -38,7 +38,11 @@ class SearchTest extends \PHPUnit_Framework_TestCase
         }
 
         $query["body"]["query"]["bool"]["must"][] = [
-            "query_string" => $search_params
+            "multi_match" =>  [
+                'query' => $q,
+                'type'  => 'best_fields',
+                'fields' => []
+            ]
         ];
 
         return $query;

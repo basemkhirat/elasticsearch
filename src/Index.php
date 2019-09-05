@@ -1,10 +1,10 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace CarlosOCarvalho\Elasticsearch;
 
 /**
  * Class Index
- * @package Basemkhirat\Elasticsearch\Query
+ * @package CarlosOCarvalho\Elasticsearch\Query
  */
 class Index
 {
@@ -60,7 +60,7 @@ class Index
      * @param $name
      * @param null $callback
      */
-    function __construct($name, $callback = NULL)
+    function __construct($name, Callable $callback = NULL)
     {
         $this->name = $name;
         $this->callback = $callback;

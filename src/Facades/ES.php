@@ -1,6 +1,6 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Facades;
+namespace CarlosOCarvalho\Elasticsearch\Facades;
 
 use Illuminate\Support\Facades\Facade;
 

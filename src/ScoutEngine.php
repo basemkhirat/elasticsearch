@@ -1,6 +1,6 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace CarlosOCarvalho\Elasticsearch;
 
 use Laravel\Scout\Builder;
 use Laravel\Scout\Engines\Engine;

@@ -1,6 +1,6 @@
 {
-    "name": "basemkhirat/elasticsearch",
-    "description": "Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax",
+    "name": "carlosocarvalho/elasticsearch",
+    "description": "Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax. This is fork from carlosocarvalho",
     "keywords": [
         "elasticsearch",
         "php",
@@ -13,20 +13,19 @@
     ],
     "license": "MIT",
     "type": "package",
-    "homepage": "http://basemkhirat.com",
-    "support": {
-        "issues": "https://github.com/basemkhirat/elasticsearch/issues",
-        "source": "http://basemkhirat.com/indexing/2016/01/07/laravel-elasticseach-query-builder.html"
-    },
     "authors": [
         {
-            "name": "basemkhirat",
-            "email": "basemkhirat@gmail.com"
+            "name": "carlosocarvalho",
+            "email": "carlosocarvalho@gmail.com"
+        },
+        {
+            "name": "carlosocarvalho",
+            "email": "contato@carlosocarvalho.com.br"
         }
     ],
     "autoload": {
         "psr-4": {
-            "Basemkhirat\\Elasticsearch\\": "src/"
+            "CarlosOCarvalho\\Elasticsearch\\": "src/"
         },
         "files": [
             "src/helpers.php"
@@ -34,12 +33,12 @@
     },
     "autoload-dev": {
         "psr-4": {
-            "Basemkhirat\\Elasticsearch\\Tests\\": "tests/"
+            "CarlosOCarvalho\\Elasticsearch\\Tests\\": "tests/"
         }
     },
     "require": {
         "php": ">=5.6.6",
-        "elasticsearch/elasticsearch": "^5.0|^6.0",
+        "elasticsearch/elasticsearch": "^5.0|~6.7",
         "illuminate/pagination": "*",
         "illuminate/support": "*",
         "symfony/var-dumper": "*",
@@ -51,10 +50,10 @@
     "extra": {
         "laravel": {
             "providers": [
-                "Basemkhirat\\Elasticsearch\\ElasticsearchServiceProvider"
+                "CarlosOCarvalho\\Elasticsearch\\ElasticsearchServiceProvider"
             ],
             "aliases": {
-                "ES": "Basemkhirat\\Elasticsearch\\Facades\\ES"
+                "ES": "CarlosOCarvalho\\Elasticsearch\\Facades\\ES"
             }
         }
     }

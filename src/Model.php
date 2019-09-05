@@ -1,13 +1,13 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace CarlosOCarvalho\Elasticsearch;
 
 use Illuminate\Support\Collection;
 
 /**
  * Elasticsearch data model
  * Class Model
- * @package Basemkhirat\Elasticsearch
+ * @package CarlosOCarvalho\Elasticsearch
  */
 class Model
 {

@@ -1,15 +1,15 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace CarlosOCarvalho\Elasticsearch;
 
-use Basemkhirat\Elasticsearch\Classes\Bulk;
-use Basemkhirat\Elasticsearch\Classes\Search;
-use Basemkhirat\Elasticsearch\Collection;
+use CarlosOCarvalho\Elasticsearch\Classes\Bulk;
+use CarlosOCarvalho\Elasticsearch\Classes\Search;
+use CarlosOCarvalho\Elasticsearch\Collection;
 
 
 /**
  * Class Query
- * @package Basemkhirat\Elasticsearch\Query
+ * @package CarlosOCarvalho\Elasticsearch\Query
  */
 class Query
 {
@@ -78,6 +78,15 @@ class Query
     protected $filter = [];
 
     /**
+     * @var array
+     */
+    protected $aggregations = [];
+
+    /**
+     * @var collection
+     */
+    protected $aggregationResult;
+    /**
      * Query bool must
      * @var array
      */
@@ -100,6 +109,8 @@ class Query
      * @var array
      */
     protected $sort = [];
+
+    protected $highlight = [];
 
     /**
      * Query scroll time
@@ -157,15 +168,9 @@ class Query
 
     /**
      * Elastic model instance
-     * @var \Basemkhirat\Elasticsearch\Model
+     * @var \CarlosOCarvalho\Elasticsearch\Model
      */
     public $model;
-
-    /**
-     * Use model global scopes
-     * @var bool
-     */
-    public $useGlobalScopes = true;
 
 
     /**
@@ -659,6 +664,13 @@ class Query
         return $this;
     }
 
+
+    public function aggregation($name, $options = [])
+    {
+        $this->aggregations = array_merge([$name => $options], $this->aggregations);
+        return $this;
+    }
+
     /**
      * Search the entire document fields
      * @param null $q
@@ -717,6 +729,14 @@ class Query
             $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
 
         }
+        if (count($this->highlight)) {
+
+            $body['highlight'] = ['fields' => $this->highlight];
+        }
+
+        if (count($this->aggregations)) {
+            $body['aggs'] = $this->aggregations;
+        }
 
         $this->body = $body;
 
@@ -749,10 +769,6 @@ class Query
 
         if ($this->getType()) {
             $query["type"] = $this->getType();
-        }
-
-        if ($this->model && $this->useGlobalScopes) {
-            $this->model->boot($this);
         }
 
         $query["body"] = $this->getBody();
@@ -911,6 +927,32 @@ class Query
         return $this;
     }
 
+    /**
+     * @param $row
+     * @return mixed
+     */
+    protected function makeHasHighlight(array $row)
+    {
+
+        if (isset($row['highlight'])) {
+            foreach ($row['highlight'] as $k => $v) {
+                $row['_source'][$k] = implode($v);
+            }
+        }
+        return $row;
+    }
+
+    public function getAggregations()
+    {
+        if ($this->isAggregation()) return $this->aggregationResult;
+    }
+
+
+    protected function isAggregation()
+    {
+        return count($this->aggregations) >= 1;
+    }
+
 
     /**
      * Retrieve all records
@@ -920,44 +962,41 @@ class Query
     protected function getAll($result = [])
     {
 
-        if (array_key_exists("hits", $result)) {
+        $new = [];
 
-            $new = [];
 
-            foreach ($result["hits"]["hits"] as $row) {
+        foreach ($result["hits"]["hits"] as $row) {
+            $row = $this->makeHasHighlight($row);
+            $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
 
-                $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
+            $model->setConnection($model->getConnection());
+            $model->setIndex($row["_index"]);
+            $model->setType($row["_type"]);
 
-                $model->setConnection($model->getConnection());
-                $model->setIndex($row["_index"]);
-                $model->setType($row["_type"]);
+            // match earlier version
 
-                // match earlier version
+            $model->_index = $row["_index"];
+            $model->_type = $row["_type"];
+            $model->_id = $row["_id"];
+            $model->_score = $row["_score"];
 
-                $model->_index = $row["_index"];
-                $model->_type = $row["_type"];
-                $model->_id = $row["_id"];
-                $model->_score = $row["_score"];
-
-                $new[] = $model;
-            }
-
-            $new = new Collection($new);
-
-            $new->total = $result["hits"]["total"];
-            $new->max_score = $result["hits"]["max_score"];
-            $new->took = $result["took"];
-            $new->timed_out = $result["timed_out"];
-            $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
-            $new->shards = (object)$result["_shards"];
-
-            return $new;
-
-        } else {
-
-            return new Collection([]);
-
+            $new[] = $model;
         }
+
+        $new = new Collection($new);
+
+        $new->total = $result["hits"]["total"];
+        $new->max_score = $result["hits"]["max_score"];
+        $new->took = $result["took"];
+        $new->timed_out = $result["timed_out"];
+        $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
+        $new->shards = (object)$result["_shards"];
+
+        if ($this->isAggregation()) {
+            $new->aggregations = new Collection($result['aggregations']);
+        }
+
+        return $new;
     }
 
     /**
@@ -968,9 +1007,9 @@ class Query
     protected function getFirst($result = [])
     {
 
-        if (array_key_exists("hits", $result) && count($result["hits"]["hits"])) {
+        $data = $result["hits"]["hits"];
 
-            $data = $result["hits"]["hits"];
+        if (count($data)) {
 
             if ($this->model) {
                 $model = new $this->model($data[0]["_source"], true);
@@ -1014,9 +1053,34 @@ class Query
         $this->skip(($page * $per_page) - $per_page);
 
         $objects = $this->get();
+        $options = ['path' => Request::url(), 'query' => Request::query()];
 
-        return new Pagination($objects, $objects->total, $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
+        if ($this->isAggregation()) {
+            $options['aggregations'] = $objects->aggregations;
+        }
+        return new Pagination($objects, $objects->total, $per_page, $page, $options);
     }
+
+    /**
+     * Highlight in search options
+     *
+     * @param string|array $field
+     * @param array $pre_tag
+     * @param array $post_tag
+     * @return $this
+     */
+    public function highlight($field, $pre_tag = ['<span class="highlight-elastic">'], $post_tag = ['</span>'])
+    {
+
+        if (is_array($field)) {
+            $this->highlight = array_unique(array_merge($this->highlight, $field), SORT_REGULAR);;
+        }
+        if (is_string($field)) {
+            $this->highlight[$field] = ["number_of_fragments" => 0, 'pre_tags' => $pre_tag, 'post_tags' => $post_tag];
+        }
+        return $this;
+    }
+
 
     /**
      * Insert a document
@@ -1396,16 +1460,5 @@ class Query
             }
         }
 
-    }
-
-    /**
-     * @return $this
-     */
-    public function withoutGlobalScopes()
-    {
-
-        $this->useGlobalScopes = false;
-
-        return $this;
     }
 }
