@@ -83,14 +83,11 @@ return [
                 'posts' => [
                     'properties' => [
                         'title' => [
-                            'type' => 'string'
+                            'type' => 'text'
                         ]
                     ]
                 ]
             ]
-
         ]
-
     ]
-
 ];
