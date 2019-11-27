@@ -81,6 +81,8 @@ class ListIndicesCommand extends Command
     function getIndicesFromArrayResponse($indices)
     {
 
+        $data = [];
+        
         foreach ($indices as $row) {
 
             if (in_array($row['index'], array_keys(config("es.indices")))) {
