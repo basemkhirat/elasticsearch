@@ -3,6 +3,7 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 /**
  * Elasticsearch data model
@@ -179,7 +180,7 @@ class Model
      */
     protected function getOriginalAttribute($name)
     {
-        $method = "get" . ucfirst(camel_case($name)) . "Attribute";
+        $method = "get" . ucfirst(Str::camel($name)) . "Attribute";
         $value = method_exists($this, $method) ? $this->$method($this->attributes[$name]) : $this->attributes[$name];
         return $this->setAttributeType($name, $value);
     }
@@ -191,7 +192,7 @@ class Model
      */
     protected function getAppendsAttribute($name)
     {
-        $method = "get" . ucfirst(camel_case($name)) . "Attribute";
+        $method = "get" . ucfirst(Str::camel($name)) . "Attribute";
         $value = method_exists($this, $method) ? $this->$method(NULL) : NULL;
         return $this->setAttributeType($name, $value);
     }
@@ -253,7 +254,7 @@ class Model
     public function __set($name, $value)
     {
 
-        $method = "set" . ucfirst(camel_case($name)) . "Attribute";
+        $method = "set" . ucfirst(Str::camel($name)) . "Attribute";
 
         $value = method_exists($this, $method) ? $this->$method($value) : $value;
 
