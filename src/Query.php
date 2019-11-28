@@ -399,7 +399,7 @@ class Query
 
     /**
      * Filter by _id
-     * @param bool $_id
+     * @param mixed|bool $_id
      * @return $this
      */
     public function _id($_id = false)
@@ -414,7 +414,7 @@ class Query
 
     /**
      * Just an alias for _id() method
-     * @param bool $_id
+     * @param mixed|bool $_id
      * @return $this
      */
     public function id($_id = false)
@@ -814,7 +814,7 @@ class Query
     /**
      * Get the first object of results
      * @param string $scroll_id
-     * @return object
+     * @return Model|object
      */
     public function first($scroll_id = NULL)
     {
@@ -963,7 +963,7 @@ class Query
     /**
      * Retrieve only first record
      * @param array $result
-     * @return object
+     * @return Model|object
      */
     protected function getFirst($result = [])
     {
