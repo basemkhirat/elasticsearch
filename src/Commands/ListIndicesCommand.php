@@ -3,6 +3,7 @@
 namespace Basemkhirat\Elasticsearch\Commands;
 
 use Illuminate\Console\Command;
+use Illuminate\Support\Arr;
 
 /**
  * Class ListIndicesCommand
@@ -82,13 +83,13 @@ class ListIndicesCommand extends Command
     {
 
         $data = [];
-        
+
         foreach ($indices as $row) {
 
             if (in_array($row['index'], array_keys(config("es.indices")))) {
-                $row = array_prepend($row, "yes");
+                $row = Arr::prepend($row, "yes");
             } else {
-                $row = array_prepend($row, "no");
+                $row = Arr::prepend($row, "no");
             }
 
             $data[] = $row;
@@ -125,9 +126,9 @@ class ListIndicesCommand extends Command
             }
 
             if (in_array($row[2], array_keys(config("es.indices")))) {
-                $row = array_prepend($row, "yes");
+                $row = Arr::prepend($row, "yes");
             } else {
-                $row = array_prepend($row, "no");
+                $row = Arr::prepend($row, "no");
             }
 
             $data[] = $row;
