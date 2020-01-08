@@ -950,6 +950,7 @@ class Query
             $new->timed_out = $result["timed_out"];
             $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
             $new->shards = (object)$result["_shards"];
+            $new->aggregations = isset($result['aggregations']) ? (object) $result['aggregations'] : NULL;
 
             return $new;
 
