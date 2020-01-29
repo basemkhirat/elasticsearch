@@ -988,6 +988,25 @@ ES::type("my_type")->search("hello", function($search){
 })->get();
 ```
 
+##### Search with highlight fields
+    
+```php
+$doc = ES::type("my_type")->highlight("title")->search("hello")->first();
+
+# Multiple fields Highlighting is allowed.
+
+$doc = ES::type("my_type")->highlight("title", "content")->search("hello")->first();
+
+# Return all highlights as array using $doc->getHighlights() method.
+
+$doc->getHighlights();
+
+# Also you can return only highlights of specific field.
+
+$doc->getHighlights("title");
+```
+
+
 ##### Return only first record
 
 ```php    

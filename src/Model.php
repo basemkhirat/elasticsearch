@@ -2,7 +2,6 @@
 
 namespace Basemkhirat\Elasticsearch;
 
-use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 
 /**
@@ -32,6 +31,24 @@ class Model
     protected $type;
 
     /**
+     * Model selectable fields
+     * @var array
+     */
+    protected $selectable = [];
+
+    /**
+     * Model unselectable fields
+     * @var array
+     */
+    protected $unselectable = [];
+
+    /**
+     * Model hidden fields
+     * @var array
+     */
+    protected $hidden = [];
+
+    /**
      * Attribute data type
      * @available boolean, bool, integer, int, float, double, string, array, object, null
      * @var array
@@ -43,7 +60,6 @@ class Model
      * @var array
      */
     protected $attributes = [];
-
 
     /**
      * Model flag indicates row exists in database
@@ -58,27 +74,9 @@ class Model
     protected $appends = [];
 
     /**
-     * Allowed casts
-     * @var array
-     */
-    private $castTypes = [
-        "boolean",
-        "bool",
-        "integer",
-        "int",
-        "float",
-        "double",
-        "string",
-        "array",
-        "object",
-        "null"
-    ];
-
-
-    /**
      * Create a new Elasticsearch model instance.
-     * @param  array $attributes
-     * @param  bool $exists
+     * @param array $attributes
+     * @param bool $exists
      */
     function __construct($attributes = [], $exists = false)
     {
@@ -125,6 +123,26 @@ class Model
     public function setIndex($index)
     {
         $this->index = $index;
+    }
+
+    /**
+     * Get selectable fields
+     *
+     * @return void
+     */
+    public function getSelectable()
+    {
+        return $this->selectable ? $this->selectable : [];
+    }
+
+    /**
+     * Get selectable fields
+     *
+     * @return void
+     */
+    public function getUnSelectable()
+    {
+        return $this->unselectable ? $this->unselectable : [];
     }
 
     /**
@@ -206,13 +224,41 @@ class Model
     protected function setAttributeType($name, $value)
     {
 
+        $castTypes = [
+            "boolean",
+            "bool",
+            "integer",
+            "int",
+            "float",
+            "double",
+            "string",
+            "array",
+            "object",
+            "null"
+        ];
+
         if (array_key_exists($name, $this->casts)) {
-            if (in_array($this->casts[$name], $this->castTypes)) {
+            if (in_array($this->casts[$name], $castTypes)) {
                 settype($value, $this->casts[$name]);
             }
         }
 
         return $value;
+    }
+
+    /**
+     * Get field highlights
+     * @param null $field
+     * @return mixed
+     */
+    public function getHighlights($field = null)
+    {
+
+        $highlights = $this->attributes["_highlight"];
+
+        if ($field && array_key_exists($field, $highlights)) return $highlights[$field];
+
+        return $highlights;
     }
 
     /**
@@ -225,7 +271,9 @@ class Model
         $attributes = [];
 
         foreach ($this->attributes as $name => $value) {
-            $attributes[$name] = $this->getOriginalAttribute($name);
+            if (!in_array($name, $this->hidden)) {
+                $attributes[$name] = $this->getOriginalAttribute($name);
+            }
         }
 
         foreach ($this->appends as $name) {
@@ -237,7 +285,7 @@ class Model
 
     /**
      * Get the collection of items as JSON.
-     * @param  int $options
+     * @param int $options
      * @return string
      */
     public function toJson($options = 0)
@@ -279,6 +327,7 @@ class Model
 
         $query->connection($this->getConnection());
 
+
         if ($index = $this->getIndex()) {
             $query->index($index);
         }
@@ -286,6 +335,9 @@ class Model
         if ($type = $this->getType()) {
             $query->type($type);
         }
+
+        if ($fields = $this->getSelectable()) $query->select($fields);
+        if ($fields = $this->getUnSelectable()) $query->unselect($fields);
 
         return $query;
     }
@@ -400,8 +452,8 @@ class Model
 
     /**
      * Handle dynamic static method calls into the method.
-     * @param  string $method
-     * @param  array $parameters
+     * @param string $method
+     * @param array $parameters
      * @return mixed
      */
     public static function __callStatic($method, $parameters)
@@ -411,16 +463,12 @@ class Model
 
     /**
      * Handle dynamic method calls into the model.
-     * @param  string $method
-     * @param  array $parameters
+     * @param string $method
+     * @param array $parameters
      * @return mixed
      */
     public function __call($method, $parameters)
     {
         return $this->newQuery()->$method(...$parameters);
     }
-
-    public function boot($query){}
-
-
 }

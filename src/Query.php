@@ -4,7 +4,6 @@ namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\Search;
-use Basemkhirat\Elasticsearch\Collection;
 
 
 /**
@@ -93,7 +92,10 @@ class Query
      * Query returned fields list
      * @var array
      */
-    protected $_source = [];
+    protected $_source = [
+        "include" => [],
+        "exclude" => []
+    ];
 
     /**
      * Query sort fields
@@ -384,15 +386,47 @@ class Query
 
         $args = func_get_args();
 
+        $fields = [];
+
         foreach ($args as $arg) {
-
             if (is_array($arg)) {
-                $this->_source = array_merge($this->_source, $arg);
+                $fields = array_merge($fields, $arg);
             } else {
-                $this->_source[] = $arg;
+                $fields[] = $arg;
             }
-
         }
+
+        $this->_source["include"] = array_unique(array_merge($this->_source["include"], $fields));
+        $this->_source["exclude"] = array_values(array_filter($this->_source["exclude"], function ($field) {
+            return !in_array($field, $this->_source["include"]);
+        }));
+
+        return $this;
+    }
+
+    /**
+     * Set the ignored fields to not be returned
+     * @return $this
+     */
+    public function unselect()
+    {
+
+        $args = func_get_args();
+
+        $fields = [];
+
+        foreach ($args as $arg) {
+            if (is_array($arg)) {
+                $fields = array_merge($fields, $arg);
+            } else {
+                $fields[] = $arg;
+            }
+        }
+
+        $this->_source["exclude"] = array_unique(array_merge($this->_source["exclude"], $fields));
+        $this->_source["include"] = array_values(array_filter($this->_source["include"], function ($field) {
+            return !in_array($field, $this->_source["exclude"]);
+        }));
 
         return $this;
     }
@@ -616,7 +650,6 @@ class Query
      */
     public function whereExists($name, $exists = true)
     {
-
         if ($exists) {
             $this->must[] = ["exists" => ["field" => $name]];
         } else {
@@ -682,6 +715,49 @@ class Query
         return $this;
     }
 
+    public function nested($path, $query)
+    {
+        $this->body = [
+            "query" => [
+                "nested" => [
+                    "path" => $path
+                ]
+            ]
+        ];
+    }
+
+    /**
+     * Get highlight result
+     * @return $this
+     */
+    public function highlight()
+    {
+
+        $args = func_get_args();
+
+        $fields = [];
+
+        foreach ($args as $arg) {
+            if (is_array($arg)) {
+                $fields = array_merge($fields, $arg);
+            } else {
+                $fields[] = $arg;
+            }
+        }
+
+        $new_fields = [];
+
+        foreach ($fields as $field) {
+            $new_fields[$field] = new \stdClass();
+        }
+
+        $this->body["highlight"] = [
+            "fields" => $new_fields
+        ];
+
+        return $this;
+    }
+
     /**
      * Generate the query body
      * @return array
@@ -692,11 +768,11 @@ class Query
         $body = $this->body;
 
         if (count($this->_source)) {
-
             $_source = array_key_exists("_source", $body) ? $body["_source"] : [];
-
-            $body["_source"] = array_unique(array_merge($_source, $this->_source));
+            $body["_source"] = array_merge($_source, $this->_source);
         }
+
+        $body["query"] = isset($body["query"]) ? $body["query"]: [];
 
         if (count($this->must)) {
             $body["query"]["bool"]["must"] = $this->must;
@@ -710,12 +786,29 @@ class Query
             $body["query"]["bool"]["filter"] = $this->filter;
         }
 
+        if(count($body["query"]) == 0){
+            unset($body["query"]);
+        }
+
+//        $body = [
+//            "query" => [
+//                "nested" => [
+//                    "path" => "pages",
+//                    "query" => $body["query"],
+//                    "inner_hits" => [
+//                        "highlight" => [
+//                            "fields" => [
+//                                "pages.content" => (object) []
+//                            ]
+//                        ]
+//                    ]
+//                ]
+//            ]
+//        ];
+
         if (count($this->sort)) {
-
             $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
-
             $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
-
         }
 
         $this->body = $body;
@@ -782,7 +875,7 @@ class Query
 
     /**
      * Clear scroll query id
-     * @param  string $scroll_id
+     * @param string $scroll_id
      * @return array|Collection
      */
     public function clear($scroll_id = NULL)
@@ -905,12 +998,9 @@ class Query
      */
     function setModel($model)
     {
-
         $this->model = $model;
-
         return $this;
     }
-
 
     /**
      * Retrieve all records
@@ -938,13 +1028,16 @@ class Query
                 $model->_type = $row["_type"];
                 $model->_id = $row["_id"];
                 $model->_score = $row["_score"];
+                $model->_highlight = isset($row["highlight"]) ? $row["highlight"] : [];
 
                 $new[] = $model;
             }
 
             $new = new Collection($new);
 
-            $new->total = $result["hits"]["total"];
+            $total = $result["hits"]["total"];
+
+            $new->total = is_array($total) ? $total["value"] : $total;
             $new->max_score = $result["hits"]["max_score"];
             $new->took = $result["took"];
             $new->timed_out = $result["timed_out"];
@@ -954,9 +1047,7 @@ class Query
             return $new;
 
         } else {
-
             return new Collection([]);
-
         }
     }
 
@@ -987,6 +1078,8 @@ class Query
             $model->_type = $data[0]["_type"];
             $model->_id = $data[0]["_id"];
             $model->_score = $data[0]["_score"];
+            $model->_highlight = isset($data[0]["highlight"]) ? $data[0]["highlight"] : [];
+
 
             $new = $model;
 
@@ -1008,7 +1101,7 @@ class Query
     {
 
         // Check if the request from PHP CLI
-        if(php_sapi_name() == "cli"){
+        if (php_sapi_name() == "cli") {
             $this->take($per_page);
             $page = $page ?: 1;
             $this->skip(($page * $per_page) - $per_page);
@@ -1309,7 +1402,7 @@ class Query
     /**
      * Indicate that the results, if cached, should use the given cache driver.
      *
-     * @param  string $cacheDriver
+     * @param string $cacheDriver
      *
      * @return $this
      */
@@ -1360,8 +1453,8 @@ class Query
 
     /**
      * Indicate that the query results should be cached.
-     * @param  \DateTime|int $minutes
-     * @param  string $key
+     * @param \DateTime|int $minutes
+     * @param string $key
      * @return $this
      */
     public function remember($minutes, $key = null)
@@ -1374,7 +1467,7 @@ class Query
 
     /**
      * Indicate that the query results should be cached forever.
-     * @param  string $key
+     * @param string $key
      * @return \Illuminate\Database\Query\Builder|static
      */
     public function rememberForever($key = null)
