@@ -759,6 +759,21 @@ class Query
     }
 
     /**
+     * Set the Collapsing field
+     * @param $field
+     * @return $this
+     */
+    public function groupBy($field)
+    {
+
+        $this->body["collapse"] = [
+            "field" => $field
+        ];
+
+        return $this;
+    }
+
+    /**
      * Generate the query body
      * @return array
      */
