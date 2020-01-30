@@ -790,26 +790,12 @@ class Query
             unset($body["query"]);
         }
 
-//        $body = [
-//            "query" => [
-//                "nested" => [
-//                    "path" => "pages",
-//                    "query" => $body["query"],
-//                    "inner_hits" => [
-//                        "highlight" => [
-//                            "fields" => [
-//                                "pages.content" => (object) []
-//                            ]
-//                        ]
-//                    ]
-//                ]
-//            ]
-//        ];
-
         if (count($this->sort)) {
             $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
             $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
         }
+
+        $body["track_total_hits"] = true;
 
         $this->body = $body;
 
