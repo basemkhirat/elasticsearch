@@ -871,6 +871,13 @@ ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
 
 ES::type("my_type")->whereNotBetween("id", [100, 150])->get();
 ```
+
+
+##### Group by method (Collapsing)
+```php    
+ES::type("my_type")->groupBy("age")->get();
+ES::type("my_type")->groupBy("user.id")->get();
+```
    
 ##### Search by a distance from a geo point 
 ```php  
