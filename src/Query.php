@@ -370,7 +370,7 @@ class Query
     protected function isOperator($string)
     {
 
-        if (in_array($string, $this->operators)) {
+        if (in_array($string, $this->operators, true)) {
             return true;
         }
 
@@ -476,36 +476,36 @@ class Query
             $operator = "=";
         }
 
-        if ($operator == "=") {
+        if ($operator === "=") {
 
-            if ($name == "_id") {
+            if ($name === "_id") {
                 return $this->_id($value);
             }
 
             $this->filter[] = ["term" => [$name => $value]];
         }
 
-        if ($operator == ">") {
+        if ($operator === ">") {
             $this->filter[] = ["range" => [$name => ["gt" => $value]]];
         }
 
-        if ($operator == ">=") {
+        if ($operator === ">=") {
             $this->filter[] = ["range" => [$name => ["gte" => $value]]];
         }
 
-        if ($operator == "<") {
+        if ($operator === "<") {
             $this->filter[] = ["range" => [$name => ["lt" => $value]]];
         }
 
-        if ($operator == "<=") {
+        if ($operator === "<=") {
             $this->filter[] = ["range" => [$name => ["lte" => $value]]];
         }
 
-        if ($operator == "like") {
+        if ($operator === "like") {
             $this->must[] = ["match" => [$name => $value]];
         }
 
-        if ($operator == "exists") {
+        if ($operator === "exists") {
             $this->whereExists($name, $value);
         }
 
@@ -532,31 +532,31 @@ class Query
             $operator = "=";
         }
 
-        if ($operator == "=") {
+        if ($operator === "=") {
             $this->must_not[] = ["term" => [$name => $value]];
         }
 
-        if ($operator == ">") {
+        if ($operator === ">") {
             $this->must_not[] = ["range" => [$name => ["gt" => $value]]];
         }
 
-        if ($operator == ">=") {
+        if ($operator === ">=") {
             $this->must_not[] = ["range" => [$name => ["gte" => $value]]];
         }
 
-        if ($operator == "<") {
+        if ($operator === "<") {
             $this->must_not[] = ["range" => [$name => ["lt" => $value]]];
         }
 
-        if ($operator == "<=") {
+        if ($operator === "<=") {
             $this->must_not[] = ["range" => [$name => ["lte" => $value]]];
         }
 
-        if ($operator == "like") {
+        if ($operator === "like") {
             $this->must_not[] = ["match" => [$name => $value]];
         }
 
-        if ($operator == "exists") {
+        if ($operator === "exists") {
             $this->whereExists($name, !$value);
         }
 
