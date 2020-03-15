@@ -105,12 +105,6 @@ class Query
     protected $sort = [];
 
     /**
-     * More like this
-     * @var array
-     */
-    public $more_like_this = [];
-
-    /**
      * Query scroll time
      * @var string
      */
@@ -813,10 +807,6 @@ class Query
         }
 
         $body["query"] = isset($body["query"]) ? $body["query"]: [];
-
-        if (count($this->more_like_this)) {
-            $body["query"]["more_like_this"] = $this->more_like_this;
-        }
 
         if (count($this->must)) {
             $body["query"]["bool"]["must"] = $this->must;

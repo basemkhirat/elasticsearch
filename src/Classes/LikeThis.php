@@ -165,14 +165,16 @@ class LikeThis
      */
     public function build()
     {
-        $this->query->more_like_this = [
-            "fields" => $this->fields,
-            "like" => $this->q,
-            "min_term_freq" => $this->min_term_freq,
-            "max_query_terms" => $this->max_query_terms,
-            "min_word_length" => $this->min_word_length,
-            "max_word_length" => $this->max_word_length,
-            "stop_words" => $this->stop_words
+        $this->query->must[] = [
+            "more_like_this" => [
+                "fields" => $this->fields,
+                "like" => $this->q,
+                "min_term_freq" => $this->min_term_freq,
+                "max_query_terms" => $this->max_query_terms,
+                "min_word_length" => $this->min_word_length,
+                "max_word_length" => $this->max_word_length,
+                "stop_words" => $this->stop_words,
+            ]
         ];
     }
 }
