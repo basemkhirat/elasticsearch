@@ -3,6 +3,7 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Basemkhirat\Elasticsearch\Classes\Bulk;
+use Basemkhirat\Elasticsearch\Classes\LikeThis;
 use Basemkhirat\Elasticsearch\Classes\Search;
 
 
@@ -102,6 +103,12 @@ class Query
      * @var array
      */
     protected $sort = [];
+
+    /**
+     * More like this
+     * @var array
+     */
+    public $more_like_this = [];
 
     /**
      * Query scroll time
@@ -715,6 +722,24 @@ class Query
         return $this;
     }
 
+    /**
+     * Search Document like this string
+     * @param null $q
+     * @return $this
+     */
+    public function likeThis($q = NULL, $settings = NULL)
+    {
+
+        if ($q) {
+
+            $likeThis = new LikeThis($this, $q, $settings);
+
+            $likeThis->build();
+        }
+
+        return $this;
+    }
+
     public function nested($path, $query)
     {
         $this->body = [
@@ -788,6 +813,10 @@ class Query
         }
 
         $body["query"] = isset($body["query"]) ? $body["query"]: [];
+
+        if (count($this->more_like_this)) {
+            $body["query"]["more_like_this"] = $this->more_like_this;
+        }
 
         if (count($this->must)) {
             $body["query"]["bool"]["must"] = $this->must;
