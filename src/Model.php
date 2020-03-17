@@ -323,10 +323,9 @@ class Model
      */
     protected function newQuery()
     {
-        $query = app("es")->setModel($this);
-
-        $query->connection($this->getConnection());
-
+        $es = app("es");
+        $query = $es->connection($this->getConnection());
+        $query->setModel($this);
 
         if ($index = $this->getIndex()) {
             $query->index($index);
