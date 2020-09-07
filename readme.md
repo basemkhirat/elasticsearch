@@ -553,7 +553,7 @@ namespace App;
 
 use Basemkhirat\Elasticsearch\Model;
 
-class post extends Model
+class Post extends Model
 {
     /**
      * Get the post title.
