@@ -1106,7 +1106,7 @@ class Query
             $page = $page ?: 1;
             $this->skip(($page * $per_page) - $per_page);
             $objects = $this->get();
-            return new Pagination($objects, $objects->total, $per_page, $page);
+            return new Pagination($objects, $objects->total['value'], $per_page, $page);
         }
 
         $this->take($per_page);
@@ -1117,7 +1117,7 @@ class Query
 
         $objects = $this->get();
 
-        return new Pagination($objects, $objects->total, $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
+        return new Pagination($objects, $objects->total['value'], $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
     }
 
     /**
