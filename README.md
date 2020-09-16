@@ -12,7 +12,7 @@ As we rely on this library quite heavily, we will attempt to keep it up to date 
 
 **Goals of this fork:**
  - Support for newer versions of Elasticsearch, Laravel and PHP
- - Limited backwards compatibility: PHP version requirement of `>= 7.2`
+ - Limited backwards compatibility: PHP version requirement of `>= 7.3`
  - Strong typing and accurate documentation comments
  - New features and convenience methods
 
@@ -32,7 +32,7 @@ Laravel, Lumen and Native php elasticseach query builder to build complex querie
 
 Requirements
 ------------
-- PHP >= `7.2`  
+- PHP >= `7.3`  
   See [Travis CI Builds](https://travis-ci.org/matchory/elasticsearch).
 - `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or any other application using composer
 
