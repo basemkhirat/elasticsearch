@@ -57,6 +57,7 @@
         "illuminate/database": "^8.3",
         "laravel/scout": "^8.3"
     },
+    "prefer-stable": true,
     "extra": {
         "laravel": {
             "providers": [
