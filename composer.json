@@ -46,10 +46,10 @@
         "php": ">=7.3",
         "ext-json": "*",
         "elasticsearch/elasticsearch": "^5.0|^6.0",
-        "symfony/var-dumper": "*",
-        "monolog/monolog": "^2.1",
+        "illuminate/pagination": "^8.3",
         "illuminate/support": "^8.3",
-        "illuminate/pagination": "^8.3"
+        "monolog/monolog": "^2.1",
+        "symfony/var-dumper": "*"
     },
     "require-dev": {
         "phpunit/phpunit": "^9.3",
@@ -58,13 +58,6 @@
         "laravel/scout": "^8.3"
     },
     "extra": {
-        "foo": {
-            "illuminate/pagination": "^8.3",
-            "illuminate/support": "^8.3",
-            "illuminate/database": "^8.2",
-            "illuminate/contracts": "^8.3",
-            "laravel/scout": "^8.3"
-        },
         "laravel": {
             "providers": [
                 "Matchory\\Elasticsearch\\ElasticsearchServiceProvider"
@@ -73,5 +66,8 @@
                 "ES": "Matchory\\Elasticsearch\\Facades\\ES"
             }
         }
+    },
+    "config": {
+        "sort-packages": true
     }
 }
