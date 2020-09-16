@@ -70,7 +70,6 @@ class Connection
      * @param $config
      *
      * @return Query
-     * @throws RuntimeException
      * @throws InvalidArgumentException
      */
     public static function create($config): Query
