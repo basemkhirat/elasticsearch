@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class WhereNotBetweenTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class WhereNotBetweenTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,15 +15,15 @@ class WhereNotBetweenTest extends \PHPUnit_Framework_TestCase
      * Test the whereNotBetween() method.
      * @return void
      */
-    public function testWhereNotBetweenMethod()
+    public function testWhereNotBetweenMethod(): void
     {
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", 500, 1000),
             $this->getActual("views", 500, 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", [500, 1000]),
             $this->getActual("views", [500, 1000])
         );

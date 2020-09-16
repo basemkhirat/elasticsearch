@@ -1,12 +1,16 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Commands;
+namespace Matchory\Elasticsearch\Commands;
 
 use Illuminate\Console\Command;
+use InvalidArgumentException;
+use Matchory\Elasticsearch\Connection;
+use RuntimeException;
 
 /**
  * Class ReindexCommand
- * @package Basemkhirat\Elasticsearch\Commands
+ *
+ * @package Matchory\Elasticsearch\Commands
  */
 class ReindexCommand extends Command
 {
@@ -31,25 +35,28 @@ class ReindexCommand extends Command
 
     /**
      * ES connection name
+     *
      * @var string
      */
     protected $connection;
 
     /**
      * ES object
-     * @var object
+     *
+     * @var Connection
      */
     protected $es;
 
     /**
      * Query bulk size
+     *
      * @var integer
      */
     protected $size;
 
-
     /**
      * Scroll time
+     *
      * @var string
      */
     protected $scroll;
@@ -57,138 +64,166 @@ class ReindexCommand extends Command
     /**
      * ReindexCommand constructor.
      */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->es = app("es");
     }
 
-
     /**
      * Execute the console command.
      *
-     * @return mixed
+     * @return void
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
-    public function handle()
+    public function handle(): void
     {
-
-        $this->connection = $this->option("connection") ? $this->option("connection") : config("es.default");
-
+        $this->connection = $this->option("connection") ?: config('es.default');
         $this->size = (int)$this->option("bulk-size");
-
         $this->scroll = $this->option("scroll");
 
-        if ($this->size <= 0 or !is_numeric($this->size)) {
-            return $this->warn("Invalide size value");
+        if ($this->size <= 0 || ! is_numeric($this->size)) {
+            $this->warn("Invalid size value");
+
+            return;
         }
 
-        $original_index = $this->argument('index');
+        $originalIndex = $this->argument('index');
+        $newIndex = $this->argument('new_index');
 
-        $new_index = $this->argument('new_index');
+        if ( ! array_key_exists($originalIndex, config('es.indices'))) {
+            $this->warn("Missing configuration for index: {$originalIndex}");
 
-        if (!in_array($original_index, array_keys(config("es.indices")))) {
-            return $this->warn("Missing configuration for index: {$original_index}");
+            return;
         }
 
-        if (!in_array($new_index, array_keys(config("es.indices")))) {
-            return $this->warn("Missing configuration for index: {$new_index}");
+        if ( ! array_key_exists($newIndex, config('es.indices'))) {
+            $this->warn("Missing configuration for index: {$newIndex}");
+
+            return;
         }
 
-        $this->migrate($original_index, $new_index);
+        $this->migrate($originalIndex, $newIndex);
     }
-
 
     /**
      * Migrate data with Scroll queries & Bulk API
-     * @param $original_index
-     * @param $new_index
-     * @param null $scroll_id
-     * @param int $errors
-     * @param int $page
+     *
+     * @param string      $originalIndex
+     * @param string      $newIndex
+     * @param string|null $scroll_id
+     * @param int         $errors
+     * @param int         $page
+     *
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
-    function migrate($original_index, $new_index, $scroll_id = null, $errors = 0, $page = 1)
-    {
+    public function migrate(
+        string $originalIndex,
+        string $newIndex,
+        ?string $scroll_id = null,
+        int $errors = 0,
+        int $page = 1
+    ): void {
+        $connection = $this->es->connection($this->connection);
 
-        if ($page == 1) {
+        if ( ! $connection) {
+            throw new RuntimeException('No connection');
+        }
 
-            $pages = (int)ceil($this->es->connection($this->connection)->index($original_index)->count() / $this->size);
+        if ($page === 1) {
+            $pages = (int)ceil(
+                $connection
+                    ->index($originalIndex)
+                    ->count() / $this->size
+            );
 
             $this->output->progressStart($pages);
 
-            $documents = $this->es->connection($this->connection)->index($original_index)->type("")
+            $documents = $connection
+                ->index($originalIndex)
+                ->type('')
                 ->scroll($this->scroll)
                 ->take($this->size)
                 ->response();
-
         } else {
-
-            $documents = $this->es->connection($this->connection)->index($original_index)->type("")
+            $documents = $connection
+                ->index($originalIndex)
+                ->type('')
                 ->scroll($this->scroll)
                 ->scrollID($scroll_id)
                 ->response();
-
         }
 
-        if (isset($documents["hits"]["hits"]) and count($documents["hits"]["hits"])) {
-
-            $data = $documents["hits"]["hits"];
-
+        if (
+            isset($documents['hits']['hits']) &&
+            count($documents['hits']['hits'])
+        ) {
+            $data = $documents['hits']['hits'];
             $params = [];
 
             foreach ($data as $row) {
-
-                $params["body"][] = [
+                $params['body'][] = [
 
                     'index' => [
-                        '_index' => $new_index,
-                        '_type' => $row["_type"],
-                        '_id' => $row["_id"]
-                    ]
+                        '_index' => $newIndex,
+                        '_type' => $row['_type'],
+                        '_id' => $row['_id'],
+                    ],
 
                 ];
 
-                $params["body"][] = $row["_source"];
-
+                $params['body'][] = $row['_source'];
             }
 
-            $response = $this->es->connection($this->connection)->raw()->bulk($params);
+            $response = $connection->raw()->bulk($params);
 
-            if (isset($response["errors"]) and $response["errors"]) {
+            if (isset($response['errors']) && $response['errors']) {
+                if ( ! $this->option('hide-errors')) {
+                    $items = json_encode($response['items']);
 
-                if (!$this->option("hide-errors")) {
+                    if ( ! $this->option('skip-errors')) {
+                        $this->warn("\n{$items}");
 
-                    if ($this->option("skip-errors")) {
-                        $this->warn("\n" . json_encode($response["items"]));
-                    } else {
-                        return $this->warn("\n" . json_encode($response["items"]));
+                        return;
                     }
 
+                    $this->warn("\n{$items}");
                 }
 
                 $errors++;
             }
 
             $this->output->progressAdvance();
-
         } else {
-
             // Reindexing finished
-
             $this->output->progressFinish();
 
-            $total = $this->es->connection($this->connection)->index($original_index)->count();
+            $total = $connection
+                ->index($originalIndex)
+                ->count();
 
             if ($errors > 0) {
-                return $this->warn("$total documents reindexed with $errors errors.");
-            } else {
-                return $this->info("$total documents reindexed $errors errors.");
+                $this->warn("{$total} documents reindexed with {$errors} errors.");
+
+                return;
             }
 
+            $this->info("{$total} documents reindexed successfully.");
+
+            return;
         }
 
         $page++;
 
-        $this->migrate($original_index, $new_index, $documents["_scroll_id"], $errors, $page);
+        $this->migrate(
+            $originalIndex,
+            $newIndex,
+            $documents['_scroll_id'],
+            $errors,
+            $page
+        );
     }
 
 }

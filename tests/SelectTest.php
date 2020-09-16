@@ -1,21 +1,27 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
-class SelectTest extends \PHPUnit_Framework_TestCase
+class SelectTest extends TestCase
 {
 
     use ESQueryTrait;
 
     /**
      * Test the select() method.
+     *
      * @return void
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
-    public function testIgnoreMethod()
+    public function testIgnoreMethod(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("title", "content"),
             $this->getActual("title", "content")
         );
@@ -23,23 +29,29 @@ class SelectTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Get The expected results.
+     *
      * @return array
      */
-    protected function getExpected()
+    protected function getExpected(): array
     {
         $query = $this->getQueryArray();
 
-        $query["body"]["_source"] = func_get_args();
+        $query["body"]["_source"]['include'] = func_get_args();
+        $query["body"]["_source"]['exclude'] = [];
 
         return $query;
     }
 
     /**
      * Get The actual results.
-     * @return mixed
+     *
+     * @return array
      */
-    protected function getActual()
+    protected function getActual(): array
     {
-        return $this->getQueryObject()->select(func_get_args())->query();
+        return $this
+            ->getQueryObject()
+            ->select(func_get_args())
+            ->query();
     }
 }

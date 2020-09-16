@@ -1,192 +1,295 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+declare(strict_types=1);
 
-use Basemkhirat\Elasticsearch\Classes\Bulk;
-use Basemkhirat\Elasticsearch\Classes\Search;
+namespace Matchory\Elasticsearch;
 
+use DateTime;
+use Elasticsearch\Client;
+use Illuminate\Database\Query\Builder;
+use Matchory\Elasticsearch\Classes\Bulk;
+use Matchory\Elasticsearch\Classes\Search;
+use stdClass;
+
+use function array_filter;
+use function array_key_exists;
+use function array_merge;
+use function array_unique;
+use function array_values;
+use function count;
+use function func_get_args;
+use function in_array;
+use function is_array;
+use function is_callback_function;
+use function is_null;
+use function json_encode;
+use function md5;
+use function method_exists;
+use function ucfirst;
+
+use const PHP_SAPI;
+use const SORT_REGULAR;
 
 /**
  * Class Query
- * @package Basemkhirat\Elasticsearch\Query
+ *
+ * @package Matchory\Elasticsearch\Query
  */
 class Query
 {
 
+    public const DEFAULT_CACHE_PREFIX = 'es';
+
+    public const DEFAULT_LIMIT = 10;
+
+    public const DEFAULT_OFFSET = 0;
+
+    public const EQ = self::OPERATOR_EQUAL;
+
+    public const EXISTS = self::OPERATOR_EXISTS;
+
+    protected const FIELD_HIGHLIGHT = '_highlight';
+
+    protected const FIELD_HITS = 'hits';
+
+    protected const FIELD_ID = '_id';
+
+    protected const FIELD_INDEX = '_index';
+
+    protected const FIELD_NESTED_HITS = 'hits';
+
+    protected const FIELD_SCORE = '_score';
+
+    protected const FIELD_SOURCE = '_source';
+
+    protected const FIELD_TYPE = '_type';
+
+    public const GT = self::OPERATOR_GREATER_THAN;
+
+    public const GTE = self::OPERATOR_GREATER_THAN_OR_EQUAL;
+
+    public const LIKE = self::OPERATOR_LIKE;
+
+    public const LT = self::OPERATOR_LOWER_THAN;
+
+    public const LTE = self::OPERATOR_LOWER_THAN_OR_EQUAL;
+
+    public const NEQ = self::OPERATOR_NOT_EQUAL;
+
+    public const OPERATOR_EQUAL = '=';
+
+    public const OPERATOR_EXISTS = 'exists';
+
+    public const OPERATOR_GREATER_THAN = '>';
+
+    public const OPERATOR_GREATER_THAN_OR_EQUAL = '>=';
+
+    public const OPERATOR_LIKE = 'like';
+
+    public const OPERATOR_LOWER_THAN = '<';
+
+    public const OPERATOR_LOWER_THAN_OR_EQUAL = '<=';
+
+    public const OPERATOR_NOT_EQUAL = '!=';
+
+    public const SOURCE_EXCLUDE = 'exclude';
+
+    public const SOURCE_INCLUDE = 'include';
+
+    protected static $defaultSource = [
+        'include' => [],
+        'exclude' => [],
+    ];
+
     /**
      * Native elasticsearch connection instance
-     * @var Connection
+     *
+     * @var Client
      */
-    public $connection;
+    public $client;
 
     /**
      * Ignored HTTP errors
+     *
      * @var array
      */
     public $ignores = [];
 
     /**
-     * Filter operators
-     * @var array
-     */
-    protected $operators = [
-        "=",
-        "!=",
-        ">",
-        ">=",
-        "<",
-        "<=",
-        "like",
-        "exists"
-    ];
-
-    /**
-     * Query array
-     * @var
-     */
-    protected $query;
-
-    /**
-     * Query index name
-     * @var
-     */
-    protected $index;
-
-    /**
-     * Query type name
-     * @var
-     */
-    protected $type;
-
-    /**
-     * Query type key
-     * @var
-     */
-    protected $_id;
-
-    /**
      * Query body
+     *
      * @var array
      */
     public $body = [];
 
     /**
-     * Query bool filter
-     * @var array
-     */
-    protected $filter = [];
-
-    /**
      * Query bool must
+     *
      * @var array
      */
     public $must = [];
 
     /**
      * Query bool must not
+     *
      * @var array
      */
     public $must_not = [];
 
     /**
-     * Query returned fields list
+     * Elastic model instance
+     *
+     * @var Model&string
+     */
+    public $model;
+
+    /**
+     * Use model global scopes
+     *
+     * @var bool
+     */
+    public $useGlobalScopes = true;
+
+    /**
+     * Filter operators
+     *
      * @var array
      */
-    protected $_source = [
-        "include" => [],
-        "exclude" => []
+    protected $operators = [
+        self::OPERATOR_EQUAL,
+        self::OPERATOR_NOT_EQUAL,
+        self::OPERATOR_GREATER_THAN,
+        self::OPERATOR_GREATER_THAN_OR_EQUAL,
+        self::OPERATOR_LOWER_THAN,
+        self::OPERATOR_LOWER_THAN_OR_EQUAL,
+        self::OPERATOR_LIKE,
+        self::OPERATOR_EXISTS,
     ];
 
     /**
+     * Query index name
+     *
+     * @var string|null
+     */
+    protected $index;
+
+    /**
+     * Query type name
+     *
+     * @var string|null
+     */
+    protected $type;
+
+    /**
+     * Query type key
+     *
+     * @var string|null
+     */
+    protected $_id;
+
+    /**
+     * Query bool filter
+     *
+     * @var array
+     */
+    protected $filter = [];
+
+    /**
+     * Query returned fields list
+     *
+     * @var array|null
+     */
+    protected $source;
+
+    /**
      * Query sort fields
+     *
      * @var array
      */
     protected $sort = [];
 
     /**
      * Query scroll time
+     *
      * @var string
      */
     protected $scroll;
 
     /**
      * Query scroll id
+     *
      * @var string
      */
-    protected $scroll_id;
+    protected $scrollId;
 
     /**
      * Query search type
+     *
      * @var int
      */
     protected $search_type;
 
     /**
      * Query limit
+     *
      * @var int
      */
-    protected $take = 10;
+    protected $take = self::DEFAULT_LIMIT;
 
     /**
      * Query offset
+     *
      * @var int
      */
-    protected $skip = 0;
+    protected $skip = self::DEFAULT_OFFSET;
 
     /**
      * The key that should be used when caching the query.
+     *
      * @var string
      */
     protected $cacheKey;
 
     /**
      * The number of minutes to cache the query.
+     *
      * @var int
      */
     protected $cacheMinutes;
 
     /**
      * The cache driver to be used.
+     *
      * @var string
      */
     protected $cacheDriver;
 
     /**
      * A cache prefix.
+     *
      * @var string
      */
-    protected $cachePrefix = 'es';
-
-    /**
-     * Elastic model instance
-     * @var \Basemkhirat\Elasticsearch\Model
-     */
-    public $model;
-
-    /**
-     * Use model global scopes
-     * @var bool
-     */
-    public $useGlobalScopes = true;
-
+    protected $cachePrefix = self::DEFAULT_CACHE_PREFIX;
 
     /**
      * Query constructor.
-     * @param $connection
+     *
+     * @param Client|null $client
      */
-    function __construct($connection = NULL)
+    public function __construct(?Client $client = null)
     {
-        $this->connection = $connection;
+        $this->client = $client;
     }
 
     /**
      * Set the index name
-     * @param $index
+     *
+     * @param string $index
+     *
      * @return $this
      */
-    public function index($index)
+    public function index(string $index): self
     {
-
         $this->index = $index;
 
         return $this;
@@ -194,21 +297,23 @@ class Query
 
     /**
      * Get the index name
-     * @return mixed
+     *
+     * @return string|null
      */
-    public function getIndex()
+    public function getIndex(): ?string
     {
         return $this->index;
     }
 
     /**
      * Set the type name
-     * @param $type
+     *
+     * @param string $type
+     *
      * @return $this
      */
-    public function type($type)
+    public function type(string $type): self
     {
-
         $this->type = $type;
 
         return $this;
@@ -216,21 +321,23 @@ class Query
 
     /**
      * Get the type name
-     * @return mixed
+     *
+     * @return string|null
      */
-    public function getType()
+    public function getType(): ?string
     {
         return $this->type;
     }
 
     /**
      * Set the query scroll
+     *
      * @param string $scroll
+     *
      * @return $this
      */
-    public function scroll($scroll)
+    public function scroll(string $scroll): self
     {
-
         $this->scroll = $scroll;
 
         return $this;
@@ -238,25 +345,27 @@ class Query
 
     /**
      * Set the query scroll ID
+     *
      * @param string $scroll
+     *
      * @return $this
      */
-    public function scrollID($scroll)
+    public function scrollID(string $scroll): self
     {
-
-        $this->scroll_id = $scroll;
+        $this->scrollId = $scroll;
 
         return $this;
     }
 
     /**
      * Set the query search type
+     *
      * @param string $type
+     *
      * @return $this
      */
-    public function searchType($type)
+    public function searchType(string $type): self
     {
-
         $this->search_type = $type;
 
         return $this;
@@ -264,30 +373,33 @@ class Query
 
     /**
      * get the query search type
-     * @return $this
+     *
+     * @return int|null
      */
-    public function getSearchType()
+    public function getSearchType(): ?int
     {
         return $this->search_type;
     }
 
     /**
      * Get the query scroll
-     * @return $this
+     *
+     * @return string|null
      */
-    public function getScroll()
+    public function getScroll(): ?string
     {
         return $this->scroll;
     }
 
     /**
      * Set the query limit
+     *
      * @param int $take
+     *
      * @return $this
      */
-    public function take($take = 10)
+    public function take(int $take = 10): self
     {
-
         $this->take = $take;
 
         return $this;
@@ -295,21 +407,20 @@ class Query
 
     /**
      * Ignore bad HTTP response
+     *
      * @return $this
      */
-    public function ignore()
+    public function ignore(): self
     {
-
         $args = func_get_args();
 
         foreach ($args as $arg) {
-
             if (is_array($arg)) {
+                /** @noinspection SlowArrayOperationsInLoopInspection */
                 $this->ignores = array_merge($this->ignores, $arg);
             } else {
                 $this->ignores[] = $arg;
             }
-
         }
 
         $this->ignores = array_unique($this->ignores);
@@ -318,87 +429,66 @@ class Query
     }
 
     /**
-     * Get the query limit
-     * @return int
-     */
-    protected function getTake()
-    {
-        return $this->take;
-    }
-
-    /**
      * Set the query offset
+     *
      * @param int $skip
+     *
      * @return $this
      */
-    public function skip($skip = 0)
+    public function skip(int $skip = 0): self
     {
-
         $this->skip = $skip;
 
         return $this;
     }
 
     /**
-     * Get the query offset
-     * @return int
-     */
-    protected function getSkip()
-    {
-        return $this->skip;
-    }
-
-    /**
      * Set the sorting field
-     * @param        $field
-     * @param string $direction
+     *
+     * @param string|int $field
+     * @param string     $direction
+     *
      * @return $this
      */
-    public function orderBy($field, $direction = "asc")
+    public function orderBy($field, string $direction = 'asc'): self
     {
-
         $this->sort[] = [$field => $direction];
 
         return $this;
     }
 
     /**
-     * check if it's a valid operator
-     * @param $string
-     * @return bool
-     */
-    protected function isOperator($string)
-    {
-
-        if (in_array($string, $this->operators)) {
-            return true;
-        }
-
-        return false;
-    }
-
-    /**
      * Set the query fields to return
+     *
      * @return $this
      */
-    public function select()
+    public function select(): self
     {
-
         $args = func_get_args();
 
         $fields = [];
 
         foreach ($args as $arg) {
             if (is_array($arg)) {
+                /** @noinspection SlowArrayOperationsInLoopInspection */
                 $fields = array_merge($fields, $arg);
             } else {
                 $fields[] = $arg;
             }
         }
 
-        $this->_source["include"] = array_unique(array_merge($this->_source["include"], $fields));
-        $this->_source["exclude"] = array_values(array_filter($this->_source["exclude"], function ($field) {
-            return !in_array($field, $this->_source["include"]);
+        $this->source['include'] = array_unique(array_merge(
+            $this->source['include'] ?? [],
+            $fields
+        ));
+
+        $this->source['exclude'] = array_values(array_filter(
+            $this->source['exclude'] ?? [], function ($field) {
+            return ! in_array(
+                $field,
+                $this->source['include'],
+                false
+            );
         }));
 
         return $this;
@@ -406,26 +496,36 @@ class Query
 
     /**
      * Set the ignored fields to not be returned
+     *
      * @return $this
      */
-    public function unselect()
+    public function unselect(): self
     {
-
         $args = func_get_args();
 
         $fields = [];
 
         foreach ($args as $arg) {
             if (is_array($arg)) {
+                /** @noinspection SlowArrayOperationsInLoopInspection */
                 $fields = array_merge($fields, $arg);
             } else {
                 $fields[] = $arg;
             }
         }
 
-        $this->_source["exclude"] = array_unique(array_merge($this->_source["exclude"], $fields));
-        $this->_source["include"] = array_values(array_filter($this->_source["include"], function ($field) {
-            return !in_array($field, $this->_source["exclude"]);
+        $this->source[self::SOURCE_EXCLUDE] = array_unique(array_merge(
+            $this->source[self::SOURCE_EXCLUDE],
+            $fields
+        ));
+
+        $this->source[self::SOURCE_INCLUDE] = array_values(array_filter(
+            $this->source[self::SOURCE_INCLUDE], function ($field) {
+            return ! in_array(
+                $field,
+                $this->source[self::SOURCE_EXCLUDE],
+                false
+            );
         }));
 
         return $this;
@@ -433,80 +533,91 @@ class Query
 
     /**
      * Filter by _id
-     * @param mixed|bool $_id
+     *
+     * @param string|null $_id
+     *
      * @return $this
      */
-    public function _id($_id = false)
+    public function _id(?string $_id = null): Query
     {
-
         $this->_id = $_id;
-
-        $this->filter[] = ["term" => ["_id" => $_id]];
+        $this->filter[] = [
+            'term' => [
+                '_id' => $_id,
+            ],
+        ];
 
         return $this;
     }
 
     /**
      * Just an alias for _id() method
-     * @param mixed|bool $_id
+     *
+     * @param string|null $_id
+     *
      * @return $this
      */
-    public function id($_id = false)
+    public function id(?string $_id = null): self
     {
         return $this->_id($_id);
     }
 
     /**
      * Set the query where clause
-     * @param        $name
-     * @param string $operator
-     * @param null $value
+     *
+     * @param string     $name
+     * @param string     $operator
+     * @param mixed|null $value
+     *
      * @return $this
      */
-    public function where($name, $operator = "=", $value = NULL)
-    {
-
+    public function where(
+        string $name,
+        $operator = self::OPERATOR_EQUAL,
+        $value = null
+    ): self {
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
-        if (!$this->isOperator($operator)) {
+        if ( ! $this->isOperator((string)$operator)) {
             $value = $operator;
-            $operator = "=";
+            $operator = self::OPERATOR_EQUAL;
         }
 
-        if ($operator == "=") {
+        switch ((string)$operator) {
+            case self::OPERATOR_EQUAL:
+                if ($name === '_id') {
+                    return $this->_id($value);
+                }
 
-            if ($name == "_id") {
-                return $this->_id($value);
-            }
+                $this->filter[] = ['term' => [$name => $value]];
+                break;
 
-            $this->filter[] = ["term" => [$name => $value]];
-        }
+            case self::OPERATOR_GREATER_THAN:
+                $this->filter[] = ['range' => [$name => ['gt' => $value]]];
+                break;
 
-        if ($operator == ">") {
-            $this->filter[] = ["range" => [$name => ["gt" => $value]]];
-        }
+            case self::OPERATOR_GREATER_THAN_OR_EQUAL:
+                $this->filter[] = ['range' => [$name => ['gte' => $value]]];
+                break;
 
-        if ($operator == ">=") {
-            $this->filter[] = ["range" => [$name => ["gte" => $value]]];
-        }
+            case self::OPERATOR_LOWER_THAN:
+                $this->filter[] = ['range' => [$name => ['lt' => $value]]];
+                break;
 
-        if ($operator == "<") {
-            $this->filter[] = ["range" => [$name => ["lt" => $value]]];
-        }
+            case self::OPERATOR_LOWER_THAN_OR_EQUAL:
+                $this->filter[] = ['range' => [$name => ['lte' => $value]]];
+                break;
 
-        if ($operator == "<=") {
-            $this->filter[] = ["range" => [$name => ["lte" => $value]]];
-        }
+            case self::OPERATOR_LIKE:
+                $this->must[] = ['match' => [$name => $value]];
+                break;
 
-        if ($operator == "like") {
-            $this->must[] = ["match" => [$name => $value]];
-        }
-
-        if ($operator == "exists") {
-            $this->whereExists($name, $value);
+            case self::OPERATOR_EXISTS:
+                $this->whereExists($name, $value);
         }
 
         return $this;
@@ -514,50 +625,56 @@ class Query
 
     /**
      * Set the query inverse where clause
+     *
      * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return $this
      */
-    public function whereNot($name, $operator = "=", $value = NULL)
-    {
-
+    public function whereNot(
+        $name,
+        $operator = self::OPERATOR_EQUAL,
+        $value = null
+    ): self {
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
-        if (!$this->isOperator($operator)) {
+        if ( ! $this->isOperator($operator)) {
             $value = $operator;
-            $operator = "=";
+            $operator = self::OPERATOR_EQUAL;
         }
 
-        if ($operator == "=") {
-            $this->must_not[] = ["term" => [$name => $value]];
-        }
+        switch ($operator) {
+            case self::OPERATOR_EQUAL:
+                $this->must_not[] = ['term' => [$name => $value]];
+                break;
 
-        if ($operator == ">") {
-            $this->must_not[] = ["range" => [$name => ["gt" => $value]]];
-        }
+            case self::OPERATOR_GREATER_THAN:
+                $this->must_not[] = ['range' => [$name => ['gt' => $value]]];
+                break;
 
-        if ($operator == ">=") {
-            $this->must_not[] = ["range" => [$name => ["gte" => $value]]];
-        }
+            case self::OPERATOR_GREATER_THAN_OR_EQUAL:
+                $this->must_not[] = ['range' => [$name => ['gte' => $value]]];
+                break;
 
-        if ($operator == "<") {
-            $this->must_not[] = ["range" => [$name => ["lt" => $value]]];
-        }
+            case self::OPERATOR_LOWER_THAN:
+                $this->must_not[] = ['range' => [$name => ['lt' => $value]]];
+                break;
 
-        if ($operator == "<=") {
-            $this->must_not[] = ["range" => [$name => ["lte" => $value]]];
-        }
+            case self::OPERATOR_LOWER_THAN_OR_EQUAL:
+                $this->must_not[] = ['range' => [$name => ['lte' => $value]]];
+                break;
 
-        if ($operator == "like") {
-            $this->must_not[] = ["match" => [$name => $value]];
-        }
+            case self::OPERATOR_LIKE:
+                $this->must_not[] = ['match' => [$name => $value]];
+                break;
 
-        if ($operator == "exists") {
-            $this->whereExists($name, !$value);
+            case self::OPERATOR_EXISTS:
+                $this->whereExists($name, ! $value);
         }
 
         return $this;
@@ -565,128 +682,159 @@ class Query
 
     /**
      * Set the query where between clause
+     *
      * @param $name
      * @param $first_value
      * @param $last_value
+     *
      * @return $this
      */
-    public function whereBetween($name, $first_value, $last_value = null)
+    public function whereBetween($name, $first_value, $last_value = null): self
     {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
+        if (is_array($first_value) && count($first_value) === 2) {
+            [$first_value, $last_value] = $first_value;
         }
 
-        $this->filter[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
+        $this->filter[] = [
+            'range' => [
+                $name => [
+                    'gte' => $first_value,
+                    'lte' => $last_value,
+                ],
+            ],
+        ];
 
         return $this;
     }
 
     /**
      * Set the query where not between clause
+     *
      * @param $name
      * @param $first_value
      * @param $last_value
+     *
      * @return $this
      */
-    public function whereNotBetween($name, $first_value, $last_value = null)
-    {
-
-        if (is_array($first_value) && count($first_value) == 2) {
-            $last_value = $first_value[1];
-            $first_value = $first_value[0];
+    public function whereNotBetween(
+        $name,
+        $first_value,
+        $last_value = null
+    ): self {
+        if (is_array($first_value) && count($first_value) === 2) {
+            [$first_value, $last_value] = $first_value;
         }
 
-        $this->must_not[] = ["range" => [$name => ["gte" => $first_value, "lte" => $last_value]]];
+        $this->must_not[] = [
+            'range' => [
+                $name => [
+                    'gte' => $first_value,
+                    'lte' => $last_value,
+                ],
+            ],
+        ];
 
         return $this;
     }
 
     /**
      * Set the query where in clause
+     *
      * @param       $name
      * @param array $value
+     *
      * @return $this
      */
-    public function whereIn($name, $value = [])
+    public function whereIn($name, $value = []): self
     {
-
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
-        $this->filter[] = ["terms" => [$name => $value]];
+        $this->filter[] = [
+            'terms' => [$name => $value],
+        ];
 
         return $this;
     }
 
     /**
      * Set the query where not in clause
+     *
      * @param       $name
      * @param array $value
+     *
      * @return $this
      */
-    public function whereNotIn($name, $value = [])
+    public function whereNotIn($name, $value = []): self
     {
-
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
-        $this->must_not[] = ["terms" => [$name => $value]];
+        $this->must_not[] = [
+            'terms' => [$name => $value],
+        ];
 
         return $this;
     }
 
-
     /**
      * Set the query where exists clause
-     * @param      $name
-     * @param bool $exists
+     *
+     * @param string $name
+     * @param bool   $exists
+     *
      * @return $this
      */
-    public function whereExists($name, $exists = true)
+    public function whereExists(string $name, bool $exists = true): self
     {
         if ($exists) {
-            $this->must[] = ["exists" => ["field" => $name]];
+            $this->must[] = [
+                'exists' => ['field' => $name],
+            ];
         } else {
-            $this->must_not[] = ["exists" => ["field" => $name]];
+            $this->must_not[] = [
+                'exists' => ['field' => $name],
+            ];
         }
 
         return $this;
     }
 
     /**
-     * Add a condition to find documents which are some distance away from the given geo point.
+     * Add a condition to find documents which are some distance away from the
+     * given geo point.
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
      *
-     * @param        $name
-     *   A name of the field.
-     * @param mixed $value
-     *   A starting geo point which can be represented by a string "lat,lon",
-     *   an object {"lat": lat, "lon": lon} or an array [lon,lat].
-     * @param string $distance
-     *   A distance from the starting geo point. It can be for example "20km".
+     * @param string $name     A name of the field.
+     * @param mixed  $value    A starting geo point which can be represented by
+     *                         a string 'lat,lon', an object like
+     *                         `{'lat': lat, 'lon': lon}` or an array
+     *                         like `[lon,lat]`.
+     * @param string $distance A distance from the starting geo point. It can be
+     *                         for example '20km'.
      *
      * @return $this
      */
-    public function distance($name, $value, $distance)
+    public function distance(string $name, $value, string $distance): self
     {
-
         if (is_callback_function($name)) {
             $name($this);
+
             return $this;
         }
 
         $this->filter[] = [
-            "geo_distance" => [
+            'geo_distance' => [
                 $name => $value,
-                "distance" => $distance,
-            ]
+                'distance' => $distance,
+            ],
         ];
 
         return $this;
@@ -694,51 +842,63 @@ class Query
 
     /**
      * Search the entire document fields
-     * @param null $q
+     *
+     * @param string|null       $queryString
+     * @param callable|int|null $settings
+     *
      * @return $this
      */
-    public function search($q = NULL, $settings = NULL)
+    public function search(?string $queryString = null, $settings = null): self
     {
+        if ($queryString) {
+            $search = new Search(
+                $this,
+                $queryString,
+                $settings
+            );
 
-        if ($q) {
-
-            $search = new Search($this, $q, $settings);
-
-            if (!is_callback_function($settings)) {
-                $search->boost($settings ? $settings : 1);
+            if ( ! is_callback_function($settings)) {
+                $search->boost($settings ?: 1);
             }
 
             $search->build();
-
         }
 
         return $this;
     }
 
-    public function nested($path, $query)
+    /**
+     * @param $path
+     *
+     * @return Query
+     */
+    public function nested($path): self
     {
         $this->body = [
-            "query" => [
-                "nested" => [
-                    "path" => $path
-                ]
-            ]
+            'query' => [
+                'nested' => [
+                    'path' => $path,
+                ],
+            ],
         ];
+
+        return $this;
     }
 
     /**
      * Get highlight result
+     *
      * @return $this
      */
-    public function highlight()
+    public function highlight(): self
     {
-
         $args = func_get_args();
 
         $fields = [];
 
         foreach ($args as $arg) {
             if (is_array($arg)) {
+                /** @noinspection SlowArrayOperationsInLoopInspection */
                 $fields = array_merge($fields, $arg);
             } else {
                 $fields[] = $arg;
@@ -748,82 +908,25 @@ class Query
         $new_fields = [];
 
         foreach ($fields as $field) {
-            $new_fields[$field] = new \stdClass();
+            $new_fields[$field] = new stdClass();
         }
 
-        $this->body["highlight"] = [
-            "fields" => $new_fields
+        $this->body['highlight'] = [
+            'fields' => $new_fields,
         ];
 
         return $this;
     }
 
     /**
-     * Generate the query body
-     * @return array
-     */
-    protected function getBody()
-    {
-
-        $body = $this->body;
-
-        if (count($this->_source)) {
-            $_source = array_key_exists("_source", $body) ? $body["_source"] : [];
-            $body["_source"] = array_merge($_source, $this->_source);
-        }
-
-        $body["query"] = isset($body["query"]) ? $body["query"]: [];
-
-        if (count($this->must)) {
-            $body["query"]["bool"]["must"] = $this->must;
-        }
-
-        if (count($this->must_not)) {
-            $body["query"]["bool"]["must_not"] = $this->must_not;
-        }
-
-        if (count($this->filter)) {
-            $body["query"]["bool"]["filter"] = $this->filter;
-        }
-
-        if(count($body["query"]) == 0){
-            unset($body["query"]);
-        }
-
-//        $body = [
-//            "query" => [
-//                "nested" => [
-//                    "path" => "pages",
-//                    "query" => $body["query"],
-//                    "inner_hits" => [
-//                        "highlight" => [
-//                            "fields" => [
-//                                "pages.content" => (object) []
-//                            ]
-//                        ]
-//                    ]
-//                ]
-//            ]
-//        ];
-
-        if (count($this->sort)) {
-            $sortFields = array_key_exists("sort", $body) ? $body["sort"] : [];
-            $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
-        }
-
-        $this->body = $body;
-
-        return $body;
-    }
-
-    /**
      * set the query body array
+     *
      * @param array $body
+     *
      * @return $this
      */
-    function body($body = [])
+    public function body(array $body = []): self
     {
-
         $this->body = $body;
 
         return $this;
@@ -831,43 +934,42 @@ class Query
 
     /**
      * Generate the query to be executed
+     *
      * @return array
      */
-    public function query()
+    public function query(): array
     {
-
         $query = [];
 
-        $query["index"] = $this->getIndex();
+        $query['index'] = $this->getIndex();
 
         if ($this->getType()) {
-            $query["type"] = $this->getType();
+            $query['type'] = $this->getType();
         }
 
+        // TODO: What should be happening here?
         if ($this->model && $this->useGlobalScopes) {
             $this->model->boot($this);
         }
 
-        $query["body"] = $this->getBody();
-
-        $query["from"] = $this->getSkip();
-
-        $query["size"] = $this->getTake();
+        $query['body'] = $this->getBody();
+        $query['from'] = $this->getSkip();
+        $query['size'] = $this->getTake();
 
         if (count($this->ignores)) {
-            $query["client"] = ['ignore' => $this->ignores];
+            $query['client'] = ['ignore' => $this->ignores];
         }
 
         $search_type = $this->getSearchType();
 
         if ($search_type) {
-            $query["search_type"] = $search_type;
+            $query['search_type'] = $search_type;
         }
 
         $scroll = $this->getScroll();
 
         if ($scroll) {
-            $query["scroll"] = $scroll;
+            $query['scroll'] = $scroll;
         }
 
         return $query;
@@ -875,43 +977,44 @@ class Query
 
     /**
      * Clear scroll query id
-     * @param string $scroll_id
-     * @return array|Collection
+     *
+     * @param string|null $scrollId
+     *
+     * @return Collection
      */
-    public function clear($scroll_id = NULL)
+    public function clear(?string $scrollId = null): Collection
     {
+        $scrollId = $scrollId ?? $this->scrollId;
 
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
-
-        return $this->connection->clearScroll([
-            "scroll_id" => $scroll_id,
-            'client' => ['ignore' => $this->ignores]
-        ]);
+        return new Collection($this->client->clearScroll([
+            'scroll_id' => $scrollId,
+            'client' => ['ignore' => $this->ignores],
+        ]));
     }
 
     /**
      * Get the collection of results
-     * @param string $scroll_id
-     * @return array|Collection
+     *
+     * @param string|null $scrollId
+     *
+     * @return Collection
      */
-    public function get($scroll_id = NULL)
+    public function get(?string $scrollId = null): Collection
     {
-
-        $scroll_id = NULL;
-
-        $result = $this->getResult($scroll_id);
+        $result = $this->getResult($scrollId);
 
         return $this->getAll($result);
     }
 
     /**
      * Get the first object of results
-     * @param string $scroll_id
+     *
+     * @param string|null $scroll_id
+     *
      * @return Model|object
      */
-    public function first($scroll_id = NULL)
+    public function first(?string $scroll_id = null)
     {
-
         $this->take(1);
 
         $result = $this->getResult($scroll_id);
@@ -920,51 +1023,29 @@ class Query
     }
 
     /**
-     * Get query result
-     * @param $scroll_id
-     * @return mixed
+     * Get non-cached results
+     *
+     * @param string|null $scrollId
+     *
+     * @return array
      */
-    protected function getResult($scroll_id)
+    public function response(?string $scrollId = null): array
     {
+        $scrollId = $scrollId ?? $this->scrollId;
 
-        if (is_null($this->cacheMinutes)) {
-            $result = $this->response($scroll_id);
-        } else {
-
-            $result = app("cache")->driver($this->cacheDriver)->get($this->getCacheKey());
-
-            if (is_null($result)) {
-                $result = $this->response($scroll_id);
-            }
-        }
-
-        return $result;
-    }
-
-
-    /**
-     * Get non cached results
-     * @param null $scroll_id
-     * @return mixed
-     */
-    public function response($scroll_id = NULL)
-    {
-
-        $scroll_id = !is_null($scroll_id) ? $scroll_id : $this->scroll_id;
-
-        if ($scroll_id) {
-
-            $result = $this->connection->scroll([
-                "scroll" => $this->scroll,
-                "scroll_id" => $scroll_id
+        if ($scrollId) {
+            $result = $this->client->scroll([
+                'scroll' => $this->scroll,
+                'scroll_id' => $scrollId,
             ]);
-
         } else {
-            $result = $this->connection->search($this->query());
+            $result = $this->client->search($this->query());
         }
 
-        if (!is_null($this->cacheMinutes)) {
-            app("cache")->driver($this->cacheDriver)->put($this->getCacheKey(), $result, $this->cacheMinutes);
+        if ( ! is_null($this->cacheMinutes)) {
+            app('cache')
+                ->driver($this->cacheDriver)
+                ->put($this->getCacheKey(), $result, $this->cacheMinutes);
         }
 
         return $result;
@@ -972,141 +1053,65 @@ class Query
 
     /**
      * Get the count of result
-     * @return mixed
+     *
+     * @return int
      */
-    public function count()
+    public function count(): int
     {
-
         $query = $this->query();
 
         // Remove unsupported count query keys
-
         unset(
-            $query["size"],
-            $query["from"],
-            $query["body"]["_source"],
-            $query["body"]["sort"]
+            $query['size'],
+            $query['from'],
+            $query['body']['_source'],
+            $query['body']['sort']
         );
 
-        return $this->connection->count($query)["count"];
+        return (int)$this->client->count($query)['count'];
     }
 
     /**
      * Set the query model
-     * @param $model
+     *
+     * @param Model $model
+     *
      * @return $this
      */
-    function setModel($model)
+    public function setModel(Model $model): self
     {
         $this->model = $model;
+
         return $this;
     }
 
     /**
-     * Retrieve all records
-     * @param array $result
-     * @return array|Collection
-     */
-    protected function getAll($result = [])
-    {
-
-        if (array_key_exists("hits", $result)) {
-
-            $new = [];
-
-            foreach ($result["hits"]["hits"] as $row) {
-
-                $model = $this->model ? new $this->model($row["_source"], true) : new Model($row["_source"], true);
-
-                $model->setConnection($model->getConnection());
-                $model->setIndex($row["_index"]);
-                $model->setType($row["_type"]);
-
-                // match earlier version
-
-                $model->_index = $row["_index"];
-                $model->_type = $row["_type"];
-                $model->_id = $row["_id"];
-                $model->_score = $row["_score"];
-                $model->_highlight = isset($row["highlight"]) ? $row["highlight"] : [];
-
-                $new[] = $model;
-            }
-
-            $new = new Collection($new);
-
-            $total = $result["hits"]["total"];
-
-            $new->total = is_array($total) ? $total["value"] : $total;
-            $new->max_score = $result["hits"]["max_score"];
-            $new->took = $result["took"];
-            $new->timed_out = $result["timed_out"];
-            $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
-            $new->shards = (object)$result["_shards"];
-
-            return $new;
-
-        } else {
-            return new Collection([]);
-        }
-    }
-
-    /**
-     * Retrieve only first record
-     * @param array $result
-     * @return Model|object
-     */
-    protected function getFirst($result = [])
-    {
-
-        if (array_key_exists("hits", $result) && count($result["hits"]["hits"])) {
-
-            $data = $result["hits"]["hits"];
-
-            if ($this->model) {
-                $model = new $this->model($data[0]["_source"], true);
-            } else {
-                $model = new Model($data[0]["_source"], true);
-                $model->setConnection($model->getConnection());
-                $model->setIndex($data[0]["_index"]);
-                $model->setType($data[0]["_type"]);
-            }
-
-            // match earlier version
-
-            $model->_index = $data[0]["_index"];
-            $model->_type = $data[0]["_type"];
-            $model->_id = $data[0]["_id"];
-            $model->_score = $data[0]["_score"];
-            $model->_highlight = isset($data[0]["highlight"]) ? $data[0]["highlight"] : [];
-
-
-            $new = $model;
-
-        } else {
-            $new = NULL;
-        }
-
-        return $new;
-    }
-
-    /**
      * Paginate collection of results
-     * @param int $per_page
-     * @param      $page_name
-     * @param null $page
+     *
+     * @param int      $per_page
+     * @param string   $page_name
+     * @param int|null $page
+     *
      * @return Pagination
      */
-    public function paginate($per_page = 10, $page_name = "page", $page = null)
-    {
-
+    public function paginate(
+        int $per_page = 10,
+        string $page_name = 'page',
+        ?int $page = null
+    ): Pagination {
         // Check if the request from PHP CLI
-        if (php_sapi_name() == "cli") {
+        if (PHP_SAPI === 'cli') {
             $this->take($per_page);
             $page = $page ?: 1;
             $this->skip(($page * $per_page) - $per_page);
-            $objects = $this->get();
-            return new Pagination($objects, $objects->total['value'], $per_page, $page);
+            $collection = $this->get();
+
+            return new Pagination(
+                $collection,
+                $collection->getTotal() ?? 0,
+                $per_page,
+                $page
+            );
         }
 
         $this->take($per_page);
@@ -1115,284 +1120,291 @@ class Query
 
         $this->skip(($page * $per_page) - $per_page);
 
-        $objects = $this->get();
+        $collection = $this->get();
 
-        return new Pagination($objects, $objects->total['value'], $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
+        return new Pagination(
+            $collection,
+            $collection->getTotal() ?? 0,
+            $per_page,
+            $page,
+            ['path' => Request::url(), 'query' => Request::query()]
+        );
     }
 
     /**
      * Insert a document
-     * @param      $data
-     * @param null $_id
+     *
+     * @param mixed       $data
+     * @param string|null $_id
+     *
      * @return object
      */
-    public function insert($data, $_id = NULL)
+    public function insert($data, ?string $_id = null): object
     {
-
         if ($_id) {
             $this->_id = $_id;
         }
 
         $parameters = [
-            "body" => $data,
-            'client' => ['ignore' => $this->ignores]
+            'body' => $data,
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
-            $parameters["index"] = $index;
+            $parameters['index'] = $index;
         }
 
         if ($type = $this->getType()) {
-            $parameters["type"] = $type;
+            $parameters['type'] = $type;
         }
 
         if ($this->_id) {
-            $parameters["id"] = $this->_id;
+            $parameters['id'] = $this->_id;
         }
 
-        return (object)$this->connection->index($parameters);
+        return (object)$this->client->index($parameters);
     }
 
     /**
      * Insert a bulk of documents
-     * @param $data multidimensional array of [id => data] pairs
+     *
+     * @param array|callable $data multidimensional array of [id => data] pairs
+     *
      * @return object
      */
-    public function bulk($data)
+    public function bulk($data): object
     {
-
         if (is_callback_function($data)) {
-
             $bulk = new Bulk($this);
 
             $data($bulk);
 
             $params = $bulk->body();
-
         } else {
-
             $params = [];
 
             foreach ($data as $key => $value) {
-
-                $params["body"][] = [
+                $params['body'][] = [
 
                     'index' => [
                         '_index' => $this->getIndex(),
                         '_type' => $this->getType(),
-                        '_id' => $key
-                    ]
+                        '_id' => $key,
+                    ],
 
                 ];
 
-                $params["body"][] = $value;
-
+                $params['body'][] = $value;
             }
-
         }
 
-        return (object)$this->connection->bulk($params);
+        return (object)$this->client->bulk($params);
     }
 
     /**
      * Update a document
-     * @param      $data
-     * @param null $_id
+     *
+     * @param mixed       $data
+     * @param string|null $_id
+     *
      * @return object
      */
-    public function update($data, $_id = NULL)
+    public function update($data, $_id = null): object
     {
-
         if ($_id) {
             $this->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
-            "body" => ['doc' => $data],
-            'client' => ['ignore' => $this->ignores]
+            'id' => $this->_id,
+            'body' => ['doc' => $data],
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
-            $parameters["index"] = $index;
+            $parameters['index'] = $index;
         }
 
         if ($type = $this->getType()) {
-            $parameters["type"] = $type;
+            $parameters['type'] = $type;
         }
 
-        return (object)$this->connection->update($parameters);
+        return (object)$this->client->update($parameters);
     }
-
 
     /**
      * Increment a document field
-     * @param     $field
-     * @param int $count
+     *
+     * @param mixed $field
+     * @param int   $count
+     *
      * @return object
      */
-    public function increment($field, $count = 1)
+    public function increment($field, int $count = 1): object
     {
-
-        return $this->script("ctx._source.$field += params.count", [
-            "count" => $count
+        return $this->script("ctx._source.{$field} += params.count", [
+            'count' => $count,
         ]);
     }
 
     /**
      * Increment a document field
-     * @param     $field
-     * @param int $count
+     *
+     * @param mixed $field
+     * @param int   $count
+     *
      * @return object
      */
-    public function decrement($field, $count = 1)
+    public function decrement($field, int $count = 1): object
     {
-
-        return $this->script("ctx._source.$field -= params.count", [
-            "count" => $count
+        return $this->script("ctx._source.{$field} -= params.count", [
+            'count' => $count,
         ]);
     }
 
     /**
      * Update by script
-     * @param       $script
+     *
+     * @param mixed $script
      * @param array $params
+     *
      * @return object
      */
-    public function script($script, $params = [])
+    public function script($script, array $params = []): object
     {
-
         $parameters = [
-            "id" => $this->_id,
-            "body" => [
-                "script" => [
-                    "inline" => $script,
-                    "params" => $params
-                ]
+            'id' => $this->_id,
+            'body' => [
+                'script' => [
+                    'inline' => $script,
+                    'params' => $params,
+                ],
             ],
-            'client' => ['ignore' => $this->ignores]
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
-            $parameters["index"] = $index;
+            $parameters['index'] = $index;
         }
 
         if ($type = $this->getType()) {
-            $parameters["type"] = $type;
+            $parameters['type'] = $type;
         }
 
-        return (object)$this->connection->update($parameters);
+        return (object)$this->client->update($parameters);
     }
 
     /**
      * Delete a document
-     * @param null $_id
+     *
+     * @param string|null $_id
+     *
      * @return object
      */
-    public function delete($_id = NULL)
+    public function delete(?string $_id = null): object
     {
-
         if ($_id) {
             $this->_id = $_id;
         }
 
         $parameters = [
-            "id" => $this->_id,
-            'client' => ['ignore' => $this->ignores]
+            'id' => $this->_id,
+            'client' => ['ignore' => $this->ignores],
         ];
 
         if ($index = $this->getIndex()) {
-            $parameters["index"] = $index;
+            $parameters['index'] = $index;
         }
 
         if ($type = $this->getType()) {
-            $parameters["type"] = $type;
+            $parameters['type'] = $type;
         }
 
-        return (object)$this->connection->delete($parameters);
+        return (object)$this->client->delete($parameters);
     }
 
     /**
-     * Return the native connection to execute native query
-     * @return object
+     * Return the native client to execute native queries
+     *
+     * @return Client
      */
-    public function raw()
+    public function raw(): Client
     {
-        return $this->connection;
+        return $this->client;
     }
 
     /**
      * Check existence of index
-     * @return mixed
+     *
+     * @return bool
      */
-    function exists()
+    public function exists(): bool
     {
-
         $index = new Index($this->index);
 
-        $index->connection = $this->connection;
+        $index->setClient($this->client);
 
         return $index->exists();
     }
 
-
     /**
      * Create a new index
-     * @param      $name
-     * @param bool $callback
-     * @return mixed
+     *
+     * @param string        $name
+     * @param callable|null $callback
+     *
+     * @return array
      */
-    function createIndex($name, $callback = false)
+    public function createIndex(string $name, ?callable $callback = null): array
     {
-
         $index = new Index($name, $callback);
 
-        $index->connection = $this->connection;
+        $index->client = $this->client;
 
         return $index->create();
     }
 
-
     /**
      * Drop index
+     *
      * @param $name
-     * @return mixed
+     *
+     * @return array
      */
-    function dropIndex($name)
+    public function dropIndex($name): array
     {
-
         $index = new Index($name);
 
-        $index->connection = $this->connection;
+        $index->client = $this->client;
 
         return $index->drop();
     }
 
     /**
      * create a new index [alias to createIndex method]
-     * @param bool $callback
-     * @return mixed
+     *
+     * @param callable|null $callback
+     *
+     * @return array
      */
-    function create($callback = false)
+    public function create(?callable $callback = null): array
     {
-
         $index = new Index($this->index, $callback);
-
-        $index->connection = $this->connection;
+        $index->client = $this->client;
 
         return $index->create();
     }
 
     /**
      * Drop index [alias to dropIndex method]
-     * @return mixed
+     *
+     * @return array
      */
-    function drop()
+    public function drop(): array
     {
-
         $index = new Index($this->index);
 
-        $index->connection = $this->connection;
+        $index->client = $this->client;
 
         return $index->drop();
     }
@@ -1406,9 +1418,8 @@ class Query
      *
      * @return $this
      */
-    public function cacheDriver($cacheDriver)
+    public function cacheDriver(string $cacheDriver): self
     {
-
         $this->cacheDriver = $cacheDriver;
 
         return $this;
@@ -1421,93 +1432,278 @@ class Query
      *
      * @return $this
      */
-    public function CachePrefix($prefix)
+    public function cachePrefix(string $prefix): self
     {
-
         $this->cachePrefix = $prefix;
 
         return $this;
     }
-
 
     /**
      * Get a unique cache key for the complete query.
      *
      * @return string
      */
-    public function getCacheKey()
+    public function getCacheKey(): string
     {
-        return $this->cachePrefix . ':' . ($this->cacheKey ?: $this->generateCacheKey());
-    }
+        $cacheKey = $this->cacheKey ?: $this->generateCacheKey();
 
+        return "{$this->cachePrefix}:{$cacheKey}";
+    }
 
     /**
      * Generate the unique cache key for the query.
+     *
      * @return string
      */
-    public function generateCacheKey()
+    public function generateCacheKey(): string
     {
-
         return md5(json_encode($this->query()));
     }
 
     /**
      * Indicate that the query results should be cached.
-     * @param \DateTime|int $minutes
-     * @param string $key
+     *
+     * @param DateTime|int $minutes
+     * @param string|null  $key
+     *
      * @return $this
      */
-    public function remember($minutes, $key = null)
+    public function remember($minutes, ?string $key = null): self
     {
-
-        list($this->cacheMinutes, $this->cacheKey) = [$minutes, $key];
+        [$this->cacheMinutes, $this->cacheKey] = [$minutes, $key];
 
         return $this;
     }
 
     /**
      * Indicate that the query results should be cached forever.
-     * @param string $key
-     * @return \Illuminate\Database\Query\Builder|static
+     *
+     * @param string|null $key
+     *
+     * @return Builder|static
      */
-    public function rememberForever($key = null)
+    public function rememberForever(?string $key = null)
     {
         return $this->remember(-1, $key);
     }
 
     /**
-     * @param $method
-     * @param $parameters
+     * @param string $method
+     * @param array  $parameters
+     *
      * @return $this
      */
-    function __call($method, $parameters)
+    public function __call(string $method, array $parameters): self
     {
+        // Check for model scopes
+        $method = 'scope' . ucfirst($method);
 
-        if (method_exists($this, $method)) {
-            return $this->$method(...$parameters);
-        } else {
+        if (method_exists($this->model, $method)) {
+            $parameters = array_merge([$this], $parameters);
+            $this->model->$method(...$parameters);
 
-            // Check for model scopes
-
-            $method = "scope" . ucfirst($method);
-
-            if (method_exists($this->model, $method)) {
-                $parameters = array_merge([$this], $parameters);
-                $this->model->$method(...$parameters);
-                return $this;
-            }
+            return $this;
         }
 
+        return $this;
     }
 
     /**
      * @return $this
      */
-    public function withoutGlobalScopes()
+    public function withoutGlobalScopes(): self
     {
-
         $this->useGlobalScopes = false;
 
         return $this;
+    }
+
+    /**
+     * Get the query limit
+     *
+     * @return int
+     */
+    protected function getTake(): int
+    {
+        return $this->take;
+    }
+
+    /**
+     * Get the query offset
+     *
+     * @return int
+     */
+    protected function getSkip(): int
+    {
+        return $this->skip;
+    }
+
+    /**
+     * check if it's a valid operator
+     *
+     * @param $string
+     *
+     * @return bool
+     */
+    protected function isOperator(string $string): bool
+    {
+        return in_array(
+            $string,
+            $this->operators,
+            true
+        );
+    }
+
+    /**
+     * Generate the query body
+     *
+     * @return array
+     */
+    protected function getBody(): array
+    {
+        $body = $this->body;
+
+        if ($this->source !== null) {
+            $source = $body[self::FIELD_SOURCE] ?? [];
+
+            // TODO: Shouldn't the body-defined source take precedence here?
+            $body[self::FIELD_SOURCE] = array_merge(
+                $source,
+                $this->source
+            );
+        }
+
+        $body['query'] = $body['query'] ?? [];
+
+        if (count($this->must)) {
+            $body['query']['bool']['must'] = $this->must;
+        }
+
+        if (count($this->must_not)) {
+            $body['query']['bool']['must_not'] = $this->must_not;
+        }
+
+        if (count($this->filter)) {
+            $body['query']['bool']['filter'] = $this->filter;
+        }
+
+        if (count($body['query']) === 0) {
+            unset($body['query']);
+        }
+
+        if (count($this->sort)) {
+            $sortFields = array_key_exists('sort', $body)
+                ? $body['sort']
+                : [];
+
+            if (isset($body['sort'])) {
+                $body['sort'] = array_unique(
+                    array_merge($sortFields, $this->sort),
+                    SORT_REGULAR
+                );
+            }
+        }
+
+        $this->body = $body;
+
+        return $body;
+    }
+
+    /**
+     * Get query result
+     *
+     * @param string|null $scrollId
+     *
+     * @return array|null
+     */
+    protected function getResult(?string $scrollId = null): ?array
+    {
+        if (is_null($this->cacheMinutes)) {
+            return $this->response($scrollId);
+        }
+
+        $result = app('cache')
+            ->driver($this->cacheDriver)
+            ->get($this->getCacheKey());
+
+        if (is_null($result)) {
+            return $this->response($scrollId);
+        }
+
+        return $result;
+    }
+
+    /**
+     * Retrieve all records
+     *
+     * @param array $result
+     *
+     * @return Collection
+     */
+    protected function getAll(array $result = []): Collection
+    {
+        if ( ! array_key_exists(self::FIELD_HITS, $result)) {
+            return new Collection([]);
+        }
+
+        $items = [];
+
+        foreach ($result[self::FIELD_HITS][self::FIELD_NESTED_HITS] as $row) {
+            // Fallback to default model class
+            $modelClass = $this->model ?? Model::class;
+            $model = new $modelClass($row[self::FIELD_SOURCE], true);
+
+            $model->setConnection($model->getConnection());
+            $model->setIndex($row[self::FIELD_INDEX]);
+            $model->setType($row[self::FIELD_TYPE]);
+
+            // match earlier version
+            $model->_index = $row[self::FIELD_INDEX];
+            $model->_type = $row[self::FIELD_TYPE];
+            $model->_id = $row[self::FIELD_ID];
+            $model->_score = $row[self::FIELD_SCORE];
+            $model->_highlight = $row[self::FIELD_HIGHLIGHT] ?? [];
+
+            $items[] = $model;
+        }
+
+        return Collection::fromResponse($result, $items);
+    }
+
+    /**
+     * Retrieve only first record
+     *
+     * @param array $result
+     *
+     * @return Model|null
+     */
+    protected function getFirst(array $result = []): ?Model
+    {
+        if (
+            ! array_key_exists(self::FIELD_HITS, $result) ||
+            ! count($result[self::FIELD_HITS][self::FIELD_NESTED_HITS])
+        ) {
+            return null;
+        }
+
+        $data = $result[self::FIELD_HITS][self::FIELD_NESTED_HITS];
+        $modelClass = $this->model ?? Model::class;
+
+        /** @var Model $model */
+        $model = new $modelClass($data[0][self::FIELD_SOURCE], true);
+
+        $model->setConnection($model->getConnection());
+        $model->setIndex($data[0][self::FIELD_INDEX]);
+        $model->setType($data[0][self::FIELD_TYPE]);
+
+        // match earlier version
+        $model->_index = $data[0][self::FIELD_INDEX];
+        $model->_type = $data[0][self::FIELD_TYPE];
+        $model->_id = $data[0][self::FIELD_ID];
+        $model->_score = $data[0][self::FIELD_SCORE];
+        $model->_highlight = $data[0][self::FIELD_HIGHLIGHT] ?? [];
+
+        return $model;
     }
 }

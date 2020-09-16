@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class DistanceTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class DistanceTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,14 +15,14 @@ class DistanceTest extends \PHPUnit_Framework_TestCase
      * Test the distance() method.
      * @return void
      */
-    public function testDistanceMethod()
+    public function testDistanceMethod(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("location", ['lat' => -33.8688197, 'lon' => 151.20929550000005], "10km"),
             $this->getActual("location", ['lat' => -33.8688197, 'lon' => 151.20929550000005], "10km")
         );
 
-        $this->assertNotEquals(
+        self::assertNotEquals(
             $this->getExpected("location", ['lat' => -33.8688197, 'lon' => 151.20929550000005], "10km"),
             $this->getActual("location", ['lat' => -33.8688197, 'lon' => 151.20929550000005], "15km")
         );

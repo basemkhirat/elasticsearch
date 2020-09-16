@@ -1,42 +1,40 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace Matchory\Elasticsearch;
 
 /**
  * Class Request
- * @package Basemkhirat\Elasticsearch
+ *
+ * TODO: Scrap this.
+ *
+ * @package Matchory\Elasticsearch
  */
 class Request
 {
-
     /**
      * Get the request url
+     *
      * @return string
      */
-    public static function url()
+    public static function url(): string
     {
-
         $server = $_SERVER;
-
-        $ssl = (!empty($server['HTTPS']) && $server['HTTPS'] == 'on');
-
+        $ssl = ( ! empty($server['HTTPS']) && $server['HTTPS'] === 'on');
         $sp = strtolower($server['SERVER_PROTOCOL']);
-
         $protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
-
-        $port = $server['SERVER_PORT'];
-
-        $port = ((!$ssl && $port == '80') || ($ssl && $port == '443')) ? '' : ':' . $port;
-
-        $host = isset($host) ? $host : $server['SERVER_NAME'] . $port;
-
+        $port = (int)$server['SERVER_PORT'];
+        $port = (( ! $ssl && $port === 80) || ($ssl && $port === 443))
+            ? ''
+            : ':' . $port;
+        $host = $host ?? ($server['SERVER_NAME'] . $port);
         $host .= preg_replace("/\?.*/", "", $server["REQUEST_URI"]);
 
-        return $protocol . '://' . $host;
+        return "{$protocol}://{$host}";
     }
 
     /**
      * Get all query string parameters
+     *
      * @return mixed
      */
     public static function query()
@@ -46,13 +44,15 @@ class Request
 
     /**
      * Get value of query string parameter
-     * @param $name
-     * @param null $value
-     * @return null
+     *
+     * @param string $name
+     * @param mixed  $fallback
+     *
+     * @return mixed
      */
-    public static function get($name, $value = NULL)
+    public static function get(string $name, $fallback = null)
     {
-        return isset($_GET[$name]) ? $_GET[$name] : $value;
+        return $_GET[$name] ?? $fallback;
     }
 
 }

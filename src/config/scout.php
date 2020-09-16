@@ -14,7 +14,6 @@ return [
     | Supported: "es", "algolia", "null"
     |
     */
-
     'driver' => env('SCOUT_DRIVER', 'es'),
 
     /*
@@ -27,7 +26,6 @@ return [
     | "tenants" or applications sharing the same search infrastructure.
     |
     */
-
     'prefix' => env('SCOUT_PREFIX', ''),
 
     /*
@@ -40,7 +38,6 @@ return [
     | all automatic data syncing will get queued for better performance.
     |
     */
-
     'queue' => false,
 
     /*
@@ -53,7 +50,6 @@ return [
     | in your application ID and admin API key to get started searching.
     |
     */
-
     'algolia' => [
         'id' => env('ALGOLIA_APP_ID', ''),
         'secret' => env('ALGOLIA_SECRET', ''),
@@ -62,5 +58,4 @@ return [
     'es' => [
         'connection' => env('ELASTIC_CONNECTION', 'default'),
     ],
-
 ];

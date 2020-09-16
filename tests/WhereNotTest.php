@@ -1,16 +1,18 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\TestCase;
 
-class WhereNotTest extends \PHPUnit_Framework_TestCase
+class WhereNotTest extends TestCase
 {
 
     use ESQueryTrait;
 
     /**
      * Filter operators
+     *
      * @var array
      */
     protected $operators = [
@@ -21,70 +23,78 @@ class WhereNotTest extends \PHPUnit_Framework_TestCase
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
     ];
 
     /**
      * Test the whereNot() method.
+     *
      * @return void
      */
-    public function testWhereNotMethod()
+    public function testWhereNotMethod(): void
     {
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("status", "published"),
             $this->getActual("status", "published")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("status", "=", "published"),
             $this->getActual("status", "=", "published")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", ">", 1000),
             $this->getActual("views", ">", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", ">=", 1000),
             $this->getActual("views", ">=", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", "<=", 1000),
             $this->getActual("views", "<=", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("content", "like", "hello"),
             $this->getActual("content", "like", "hello")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("website", "exists", true),
             $this->getActual("website", "exists", true)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("website", "exists", false),
             $this->getActual("website", "exists", false)
         );
-
     }
-
 
     /**
      * Get The expected results.
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return array
      */
-    protected function getExpected($name, $operator = "=", $value = NULL)
-    {
+    protected function getExpected(
+        string $name,
+        string $operator = "=",
+        $value = null
+    ): array {
         $query = $this->getQueryArray();
 
-        if (!in_array($operator, $this->operators)) {
+        if ( ! in_array(
+            $operator,
+            $this->operators,
+            true
+        )) {
             $value = $operator;
             $operator = "=";
         }
@@ -92,19 +102,19 @@ class WhereNotTest extends \PHPUnit_Framework_TestCase
         $must = [];
         $must_not = [];
 
-        if ($operator == "=") {
+        if ($operator === "=") {
             $must_not[] = ["term" => [$name => $value]];
         }
 
-        if ($operator == ">") {
+        if ($operator === ">") {
             $must_not[] = ["range" => [$name => ["gt" => $value]]];
         }
 
-        if ($operator == ">=") {
+        if ($operator === ">=") {
             $must_not[] = ["range" => [$name => ["gte" => $value]]];
         }
 
-        if ($operator == "<") {
+        if ($operator === "<") {
             $must_not[] = ["range" => [$name => ["lt" => $value]]];
         }
 
@@ -112,18 +122,16 @@ class WhereNotTest extends \PHPUnit_Framework_TestCase
             $must_not[] = ["range" => [$name => ["lte" => $value]]];
         }
 
-        if ($operator == "like") {
+        if ($operator === "like") {
             $must_not[] = ["match" => [$name => $value]];
         }
 
-        if ($operator == "exists") {
-
+        if ($operator === "exists") {
             if ($value) {
                 $must_not[] = ["exists" => ["field" => $name]];
             } else {
                 $must[] = ["exists" => ["field" => $name]];
             }
-
         }
 
         // Build query body
@@ -143,15 +151,16 @@ class WhereNotTest extends \PHPUnit_Framework_TestCase
         return $query;
     }
 
-
     /**
      * Get The actual results.
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return mixed
      */
-    protected function getActual($name, $operator = "=", $value = NULL)
+    protected function getActual($name, $operator = "=", $value = null)
     {
         return $this->getQueryObject()->whereNot($name, $operator, $value)->query();
     }

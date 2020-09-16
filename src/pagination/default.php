@@ -1,33 +1,50 @@
-<?php if ($paginator->hasPages()) { ?>
+<?php
+/**
+ * @var Pagination $paginator
+ * @var string[][] $elements
+ */
+
+use Matchory\Elasticsearch\Pagination;
+
+?>
+<?php if ($paginator->hasPages()): ?>
     <ul class="pagination">
 
-        <?php if ($paginator->onFirstPage()) { ?>
+        <?php if ($paginator->onFirstPage()): ?>
             <li class="disabled"><span>&laquo;</span></li>
-        <?php } else { ?>
-            <li><a href="<?php echo $paginator->previousPageUrl() ?>" rel="prev">&laquo;</a></li>
-        <?php } ?>
+        <?php else: ?>
+            <li>
+                <a href="<?= $paginator->previousPageUrl() ?>" rel="prev">&laquo;</a>
+            </li>
+        <?php endif ?>
 
-        <?php foreach ($elements as $element) { ?>
+        <?php foreach ($elements as $element): ?>
 
-            <?php if (is_string($element)) { ?>
-                <li class="disabled"><span><?php echo $element ?></span></li>
-            <?php } ?>
+            <?php if (is_string($element)): ?>
+                <li class="disabled"><span><?= $element ?></span></li>
+            <?php endif ?>
 
-            <?php if (is_array($element)) { ?>
-                <?php foreach ($element as $page => $url) { ?>
-                    <?php if ($page == $paginator->currentPage()) { ?>
-                        <li class="active"><span><?php echo $page ?></span></li>
-                    <?php } else { ?>
-                        <li><a href="<?php echo $url ?>"><?php echo $page ?></a></li>
-                    <?php } ?>
-                <?php } ?>
-            <?php } ?>
-        <?php } ?>
+            <?php if (is_array($element)): ?>
+                <?php foreach ($element as $page => $url): ?>
+                    <?php if ($page === $paginator->currentPage()): ?>
+                        <li class="active">
+                            <span><?= $page ?></span>
+                        </li>
+                    <?php else: ?>
+                        <li>
+                            <a href="<?= $url ?>"><?= $page ?></a>
+                        </li>
+                    <?php endif ?>
+                <?php endforeach ?>
+            <?php endif ?>
+        <?php endforeach ?>
 
-        <?php if ($paginator->hasMorePages()) { ?>
-            <li><a href="<?php echo $paginator->nextPageUrl() ?>" rel="next">&raquo;</a></li>
-        <?php } else { ?>
+        <?php if ($paginator->hasMorePages()): ?>
+            <li>
+                <a href="<?= $paginator->nextPageUrl() ?>" rel="next">&raquo;</a>
+            </li>
+        <?php else: ?>
             <li class="disabled"><span>&raquo;</span></li>
-        <?php } ?>
+        <?php endif ?>
     </ul>
-<?php } ?>
+<?php endif ?>

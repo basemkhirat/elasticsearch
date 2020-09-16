@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class TakeTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class TakeTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,9 +15,9 @@ class TakeTest extends \PHPUnit_Framework_TestCase
      * Test the take() method.
      * @return void
      */
-    public function testTakeMethod()
+    public function testTakeMethod(): void
     {
-        $this->assertEquals($this->getExpected(15), $this->getActual(15));
+        self::assertEquals($this->getExpected(15), $this->getActual(15));
     }
 
 

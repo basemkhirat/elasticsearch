@@ -1,55 +1,45 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace Matchory\Elasticsearch;
 
 use Illuminate\Pagination\LengthAwarePaginator;
-use Illuminate\Pagination\UrlWindow;
+
+use const EXTR_OVERWRITE;
 
 class Pagination extends LengthAwarePaginator
 {
 
     /**
      * Render the paginator using the given view.
-     * @param  string  $view
-     * @param  array  $data
+     *
+     * @param string $view
+     * @param array  $data
+     *
      * @return string
+     * @noinspection PhpUnusedLocalVariableInspection
      */
-    public function links($view = "default", $data = [])
+    public function links($view = 'default', $data = []): string
     {
-        extract($data);
+        extract($data, EXTR_OVERWRITE);
 
         $paginator = $this;
-
         $elements = $this->elements();
 
-        require dirname(__FILE__) . "/pagination/" . $view . ".php";
-    }
+        switch ($view) {
+            case 'bootstrap-4':
+                return require __DIR__ . '/pagination/bootstrap-4.php';
 
+            case 'default':
+                return require __DIR__ . '/pagination/default.php';
 
-    /**
-     * Get the array of elements to pass to the view.
-     * @return array
-     */
-    protected function elements()
-    {
+            case 'simple-bootstrap-4':
+                return require __DIR__ . '/pagination/simple-bootstrap-4.php';
 
-        $window = UrlWindow::make($this);
+            case 'simple-default':
+                return require __DIR__ . '/pagination/simple-default.php';
 
-        return array_filter([
-            $window['first'],
-            is_array($window['slider']) ? '...' : null,
-            $window['slider'],
-            is_array($window['last']) ? '...' : null,
-            $window['last'],
-        ]);
-    }
-
-    /**
-     * Determine if the paginator is on the first page.
-     * @return bool
-     */
-    public function onFirstPage()
-    {
-        return $this->currentPage() <= 1;
+            default:
+                return '';
+        }
     }
 }

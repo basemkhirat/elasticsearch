@@ -1,4 +1,6 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
+
 /**
  * Created by PhpStorm.
  * User: mike
@@ -6,28 +8,29 @@
  * Time: 19:58
  */
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-
-use Basemkhirat\Elasticsearch\Connection;
 use Elasticsearch\ClientBuilder;
-use Monolog\Logger;
+use Matchory\Elasticsearch\Connection;
+use PHPUnit\Framework\TestCase;
 
-class LoggingTest extends \PHPUnit_Framework_TestCase
+class LoggingTest extends TestCase
 {
 
-    public function testConfigureLogging()
+    public function testConfigureLogging(): void
     {
         $client = ClientBuilder::create();
-        $newClientBuilder = Connection::configureLogging($client,[
-            'logging'=>[
-                'enabled'=>true,
-                'level'=>'all',
-                'location'=>'../src/storage/logs/elasticsearch.log'
-            ]
+        $newClientBuilder = Connection::configureLogging($client, [
+            'logging' => [
+                'enabled' => true,
+                'level' => 'all',
+                'location' => '../src/storage/logs/elasticsearch.log',
+            ],
         ]);
 
-        $this->assertInstanceOf(ClientBuilder::class,$newClientBuilder);
-        $this->assertAttributeInstanceOf(Logger::class,'logger',$newClientBuilder);
+        self::assertInstanceOf(
+            ClientBuilder::class,
+            $newClientBuilder
+        );
     }
 }

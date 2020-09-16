@@ -11,7 +11,6 @@ return [
     | to use as your default connection for all work. Of course.
     |
     */
-
     'default' => env('ELASTIC_CONNECTION', 'default'),
 
     /*
@@ -23,20 +22,16 @@ return [
     | Of course, examples of configuring each Elasticsearch platform.
     |
     */
-
     'connections' => [
-
         'default' => [
-
             'servers' => [
-
                 [
                     'host' => env('ELASTIC_HOST', '127.0.0.1'),
                     'port' => env('ELASTIC_PORT', 9200),
                     'user' => env('ELASTIC_USER', ''),
                     'pass' => env('ELASTIC_PASS', ''),
                     'scheme' => env('ELASTIC_SCHEME', 'http'),
-                ]
+                ],
 
             ],
 
@@ -48,9 +43,9 @@ return [
             'logging' => [
                 'enabled' => env('ELASTIC_LOGGING_ENABLED', false),
                 'level' => env('ELASTIC_LOGGING_LEVEL', 'all'),
-                'location' => env('ELASTIC_LOGGING_LOCATION', base_path('storage/logs/elasticsearch.log'))
+                'location' => env('ELASTIC_LOGGING_LOCATION', base_path('storage/logs/elasticsearch.log')),
             ],
-        ]
+        ],
     ],
 
     /*
@@ -65,17 +60,13 @@ return [
     | 'my_index' is just for test. Replace it with a real index name.
     |
     */
-
     'indices' => [
-
         'my_index_1' => [
-
             'aliases' => [
-                'my_index'
+                'my_index',
             ],
 
             'settings' => [
-
                 'number_of_shards' => 1,
                 'number_of_replicas' => 0,
                 "index.mapping.ignore_malformed" => false,
@@ -84,20 +75,20 @@ return [
                     "filter" => [
                         "english_stop" => [
                             "type" => "stop",
-                            "stopwords" => "_english_"
+                            "stopwords" => "_english_",
                         ],
                         "english_keywords" => [
                             "type" => "keyword_marker",
-                            "keywords" => ["example"]
+                            "keywords" => ["example"],
                         ],
                         "english_stemmer" => [
                             "type" => "stemmer",
-                            "language" => "english"
+                            "language" => "english",
                         ],
                         "english_possessive_stemmer" => [
                             "type" => "stemmer",
-                            "language" => "possessive_english"
-                        ]
+                            "language" => "possessive_english",
+                        ],
                     ],
                     "analyzer" => [
                         "rebuilt_english" => [
@@ -107,11 +98,11 @@ return [
                                 "lowercase",
                                 "english_stop",
                                 "english_keywords",
-                                "english_stemmer"
-                            ]
-                        ]
-                    ]
-                ]
+                                "english_stemmer",
+                            ],
+                        ],
+                    ],
+                ],
             ],
 
             'mappings' => [
@@ -119,13 +110,11 @@ return [
                     'properties' => [
                         'title' => [
                             'type' => 'text',
-                            'analyzer' => 'english'
-                        ]
-                    ]
-                ]
-            ]
-        ]
-
-    ]
-
+                            'analyzer' => 'english',
+                        ],
+                    ],
+                ],
+            ],
+        ],
+    ],
 ];

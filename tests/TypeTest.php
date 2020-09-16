@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class TypeTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class TypeTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,9 +15,9 @@ class TypeTest extends \PHPUnit_Framework_TestCase
      * Test the type() method.
      * @return void
      */
-    public function testTypeMethod()
+    public function testTypeMethod(): void
     {
-        $this->assertEquals($this->getExpected("type_1"), $this->getActual("type_1"));
+        self::assertEquals($this->getExpected("type_1"), $this->getActual("type_1"));
     }
 
 

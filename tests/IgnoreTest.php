@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class IgnoreTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class IgnoreTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,10 +15,10 @@ class IgnoreTest extends \PHPUnit_Framework_TestCase
      * Test the ignore() method.
      * @return void
      */
-    public function testIgnoreMethod()
+    public function testIgnoreMethod(): void
     {
-        $this->assertEquals($this->getExpected(404), $this->getActual(404));
-        $this->assertEquals($this->getExpected(500, 404), $this->getActual(500, 404));
+        self::assertEquals($this->getExpected(404), $this->getActual(404));
+        self::assertEquals($this->getExpected(500, 404), $this->getActual(500, 404));
     }
 
     /**

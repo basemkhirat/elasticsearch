@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class OrderTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class OrderTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,10 +15,10 @@ class OrderTest extends \PHPUnit_Framework_TestCase
      * Test the orderBy() method.
      * @return void
      */
-    public function testOrderByMethod()
+    public function testOrderByMethod(): void
     {
-        $this->assertEquals($this->getExpected("created_at", "asc"), $this->getActual("created_at", "asc"));
-        $this->assertEquals($this->getExpected("_score"), $this->getActual("_score"));
+        self::assertEquals($this->getExpected("created_at", "asc"), $this->getActual("created_at", "asc"));
+        self::assertEquals($this->getExpected("_score"), $this->getActual("_score"));
     }
 
 

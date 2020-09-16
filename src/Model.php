@@ -1,55 +1,79 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch;
+namespace Matchory\Elasticsearch;
 
 use Illuminate\Support\Str;
+use InvalidArgumentException;
+use RuntimeException;
+
+use function array_diff;
+use function array_key_exists;
+use function in_array;
+use function json_encode;
+use function method_exists;
+use function property_exists;
+use function settype;
+use function ucfirst;
 
 /**
  * Elasticsearch data model
- * Class Model
- * @package Basemkhirat\Elasticsearch
+ *
+ * @property string|null _id
+ * @property string|null _index
+ * @property string|null _type
+ * @property string|null _score
+ * @property string|null _highlight
+ * @package Matchory\Elasticsearch
  */
 class Model
 {
+    protected const FIELD_ID = '_id';
 
     /**
      * Model connection name
+     *
      * @var string
      */
     protected $connection;
 
     /**
      * Model index name
+     *
      * @var string
      */
     protected $index;
 
     /**
      * Model type name
+     *
      * @var string
      */
     protected $type;
 
     /**
      * Model selectable fields
+     *
      * @var array
      */
     protected $selectable = [];
 
     /**
      * Model unselectable fields
+     *
      * @var array
      */
     protected $unselectable = [];
 
     /**
      * Model hidden fields
+     *
      * @var array
      */
     protected $hidden = [];
 
     /**
      * Attribute data type
+     *
      * @available boolean, bool, integer, int, float, double, string, array, object, null
      * @var array
      */
@@ -57,28 +81,32 @@ class Model
 
     /**
      * Model attributes
+     *
      * @var array
      */
     protected $attributes = [];
 
     /**
      * Model flag indicates row exists in database
+     *
      * @var bool
      */
     protected $exists = false;
 
     /**
      * Additional custom attributes
+     *
      * @var array
      */
     protected $appends = [];
 
     /**
      * Create a new Elasticsearch model instance.
+     *
      * @param array $attributes
-     * @param bool $exists
+     * @param bool  $exists
      */
-    function __construct($attributes = [], $exists = false)
+    public function __construct($attributes = [], $exists = false)
     {
         $this->attributes = $attributes;
 
@@ -88,19 +116,73 @@ class Model
     }
 
     /**
-     * Get current connection
-     * @return string
+     * Get all model records
+     *
+     * @return mixed
      */
-    public function getConnection()
+    public static function all(): Collection
     {
-        return $this->connection ? $this->connection : config("es.default");
+        $instance = new static();
+
+        return $instance->newQuery()->get();
+    }
+
+    /**
+     * Get model by key
+     *
+     * @param $key
+     *
+     * @return Model|null
+     */
+    public static function find(string $key): ?Model
+    {
+        $instance = new static();
+
+        $model = $instance
+            ->newQuery()
+            ->id($key)
+            ->take(1)
+            ->first();
+
+        if ($model) {
+            $model->exists = true;
+        }
+
+        return $model;
+    }
+
+    /**
+     * Handle dynamic static method calls into the method.
+     *
+     * @param string $method
+     * @param array  $parameters
+     *
+     * @return mixed
+     */
+    public static function __callStatic($method, $parameters)
+    {
+        return (new static())->$method(...$parameters);
+    }
+
+    /**
+     * Get current connection
+     *
+     * @return Connection
+     */
+    public function getConnection(): Connection
+    {
+        /** @noinspection PhpUndefinedFunctionInspection */
+        return $this->connection ?: config('es.default');
     }
 
     /**
      * Set current connection
+     *
+     * @param Connection $connection
+     *
      * @return void
      */
-    public function setConnection($connection)
+    public function setConnection(Connection $connection): void
     {
         $this->connection = $connection;
     }
@@ -110,7 +192,7 @@ class Model
      *
      * @return string
      */
-    public function getIndex()
+    public function getIndex(): string
     {
         return $this->index;
     }
@@ -118,9 +200,11 @@ class Model
     /**
      * Set index name
      *
+     * @param string $index
+     *
      * @return void
      */
-    public function setIndex($index)
+    public function setIndex(string $index): void
     {
         $this->index = $index;
     }
@@ -128,150 +212,137 @@ class Model
     /**
      * Get selectable fields
      *
-     * @return void
+     * @return array
      */
-    public function getSelectable()
+    public function getSelectable(): array
     {
-        return $this->selectable ? $this->selectable : [];
+        return $this->selectable ?: [];
     }
 
     /**
      * Get selectable fields
      *
-     * @return void
+     * @return array
      */
-    public function getUnSelectable()
+    public function getUnSelectable(): array
     {
-        return $this->unselectable ? $this->unselectable : [];
+        return $this->unselectable ?: [];
     }
 
     /**
      * Get type name
+     *
      * @return string
      */
-    public function getType()
+    public function getType(): string
     {
         return $this->type;
     }
 
     /**
      * Set type name
+     *
+     * @param string $type
+     *
      * @return void
      */
-    public function setType($type)
+    public function setType(string $type): void
     {
         $this->type = $type;
     }
 
     /**
      * Magic getter for model properties
-     * @param $name
-     * @return null
+     *
+     * @param string $name
+     *
+     * @return mixed|null
      */
-    public function __get($name)
+    public function __get(string $name)
     {
+        // Search in original model attributes
         if (array_key_exists($name, $this->attributes)) {
-
-            // Search in original model attributes
-
             return $this->getOriginalAttribute($name);
-
-        } elseif (in_array($name, $this->appends)) {
-
-            // Search in appends model attributes
-
-            return $this->getAppendsAttribute($name);
-
-        } elseif (property_exists($this, $name)) {
-
-            return $this->$name;
-
         }
 
-        return NULL;
+        // Search in appends model attributes
+        if (in_array($name, $this->appends, true)) {
+            return $this->getAppendsAttribute($name);
+        }
+
+        if (property_exists($this, $name)) {
+            return $this->$name;
+        }
+
+        return null;
     }
 
     /**
-     * Get original model attribute
-     * @param $name
-     * @return mixed
-     */
-    protected function getOriginalAttribute($name)
-    {
-        $method = "get" . ucfirst(Str::camel($name)) . "Attribute";
-        $value = method_exists($this, $method) ? $this->$method($this->attributes[$name]) : $this->attributes[$name];
-        return $this->setAttributeType($name, $value);
-    }
-
-    /**
-     * Get Appends model attribute
-     * @param $name
-     * @return mixed
-     */
-    protected function getAppendsAttribute($name)
-    {
-        $method = "get" . ucfirst(Str::camel($name)) . "Attribute";
-        $value = method_exists($this, $method) ? $this->$method(NULL) : NULL;
-        return $this->setAttributeType($name, $value);
-    }
-
-    /**
-     * Set attributes casting
+     * Handle model properties setter
+     *
      * @param $name
      * @param $value
-     * @return mixed
+     *
+     * @return void
      */
-    protected function setAttributeType($name, $value)
+    public function __set(string $name, $value): void
     {
+        $method = sprintf('set%sAttribute', ucfirst(Str::camel(
+            $name
+        )));
 
-        $castTypes = [
-            "boolean",
-            "bool",
-            "integer",
-            "int",
-            "float",
-            "double",
-            "string",
-            "array",
-            "object",
-            "null"
-        ];
+        $value = method_exists($this, $method)
+            ? $this->$method($value)
+            : $value;
 
-        if (array_key_exists($name, $this->casts)) {
-            if (in_array($this->casts[$name], $castTypes)) {
-                settype($value, $this->casts[$name]);
-            }
+        $value = $this->setAttributeType($name, $value);
+
+        // Check if it's a key. Set model key
+        if ($name === self::FIELD_ID) {
+            $this->_id = $value;
         }
 
-        return $value;
+        $this->attributes[$name] = $value;
+    }
+
+    public function __isset(string $name): bool
+    {
+        if ($name === self::FIELD_ID) {
+            return isset($this->_id);
+        }
+
+        return isset($this->attributes[$name]);
     }
 
     /**
      * Get field highlights
-     * @param null $field
+     *
+     * @param string|null $field
+     *
      * @return mixed
      */
     public function getHighlights($field = null)
     {
+        $highlights = $this->attributes['_highlight'];
 
-        $highlights = $this->attributes["_highlight"];
-
-        if ($field && array_key_exists($field, $highlights)) return $highlights[$field];
+        if ($field && array_key_exists($field, $highlights)) {
+            return $highlights[$field];
+        }
 
         return $highlights;
     }
 
     /**
      * Get model as array
+     *
      * @return array
      */
-    public function toArray()
+    public function toArray(): array
     {
-
         $attributes = [];
 
         foreach ($this->attributes as $name => $value) {
-            if (!in_array($name, $this->hidden)) {
+            if ( ! in_array($name, $this->hidden, true)) {
                 $attributes[$name] = $this->getOriginalAttribute($name);
             }
         }
@@ -285,106 +356,31 @@ class Model
 
     /**
      * Get the collection of items as JSON.
+     *
      * @param int $options
+     *
      * @return string
      */
-    public function toJson($options = 0)
+    public function toJson($options = 0): string
     {
         return json_encode($this->toArray(), $options);
     }
 
     /**
-     * Handle model properties setter
-     * @param $name
-     * @param $value
-     * @return null
-     */
-    public function __set($name, $value)
-    {
-
-        $method = "set" . ucfirst(Str::camel($name)) . "Attribute";
-
-        $value = method_exists($this, $method) ? $this->$method($value) : $value;
-
-        $value = $this->setAttributeType($name, $value);
-
-        // Check if it's a key. Set model key
-
-        if ($name == "_id") {
-            $this->_id = $value;
-        }
-
-        $this->attributes[$name] = $value;
-    }
-
-    /**
-     * Create a new model query
-     * @return mixed
-     */
-    protected function newQuery()
-    {
-        $query = app("es")->setModel($this);
-
-        $query->connection($this->getConnection());
-
-
-        if ($index = $this->getIndex()) {
-            $query->index($index);
-        }
-
-        if ($type = $this->getType()) {
-            $query->type($type);
-        }
-
-        if ($fields = $this->getSelectable()) $query->select($fields);
-        if ($fields = $this->getUnSelectable()) $query->unselect($fields);
-
-        return $query;
-    }
-
-    /**
-     * Get all model records
-     * @return mixed
-     */
-    public static function all()
-    {
-        $instance = new static;
-
-        $model = $instance->newQuery()->get();
-
-        return $model;
-    }
-
-    /**
-     * Get model by key
-     * @param $key
-     * @return mixed
-     */
-    public static function find($key)
-    {
-        $instance = new static;
-
-        $model = $instance->newQuery()->id($key)->take(1)->first();
-
-        if ($model) {
-            $model->exists = true;
-        }
-
-        return $model;
-    }
-
-    /**
      * Delete model record
-     * @return $this|bool
+     *
+     * @return $this
      */
-    function delete()
+    public function delete(): ?self
     {
-
-        if (!$this->exists()) {
-            return false;
+        if ( ! $this->exists()) {
+            return null;
         }
 
-        $this->newQuery()->id($this->getID())->delete();
+        $this
+            ->newQuery()
+            ->id($this->getID())
+            ->delete();
 
         $this->exists = false;
 
@@ -393,26 +389,34 @@ class Model
 
     /**
      * Save data to model
+     *
      * @return string
      */
-    public function save()
+    public function save(): string
     {
-
-        $fields = array_except($this->attributes, ["_index", "_type", "_id", "_score"]);
+        $fields = array_diff($this->attributes, [
+            '_index',
+            '_type',
+            '_id',
+            '_score',
+        ]);
 
         if ($this->exists()) {
-
             // Update the current document
 
-            $this->newQuery()->id($this->getID())->update($fields);
-
+            $this
+                ->newQuery()
+                ->id($this->getID())
+                ->update($fields);
         } else {
-
             // Check if model key exists in items
 
-            if (array_key_exists("_id", $this->attributes)) {
-                $created = $this->newQuery()->id($this->attributes["_id"])->insert($fields);
-                $this->_id = $this->attributes["_id"];
+            if (array_key_exists('_id', $this->attributes)) {
+                $created = $this
+                    ->newQuery()
+                    ->id($this->attributes['_id'])
+                    ->insert($fields);
+                $this->_id = $this->attributes['_id'];
             } else {
                 $created = $this->newQuery()->insert($fields);
                 $this->_id = $created->_id;
@@ -422,7 +426,6 @@ class Model
             $this->setIndex($created->_index);
 
             // Match earlier versions
-
             $this->_index = $created->_index;
             $this->_type = $this->type;
 
@@ -434,41 +437,144 @@ class Model
 
     /**
      * Check model is exists
+     *
      * @return bool
      */
-    function exists()
+    public function exists(): bool
     {
         return $this->exists;
     }
 
     /**
      * Get model key
+     *
      * @return mixed
      */
-    function getID()
+    public function getID()
     {
-        return $this->attributes["_id"];
-    }
-
-    /**
-     * Handle dynamic static method calls into the method.
-     * @param string $method
-     * @param array $parameters
-     * @return mixed
-     */
-    public static function __callStatic($method, $parameters)
-    {
-        return (new static)->$method(...$parameters);
+        return $this->attributes['_id'];
     }
 
     /**
      * Handle dynamic method calls into the model.
+     *
      * @param string $method
-     * @param array $parameters
+     * @param array  $parameters
+     *
      * @return mixed
      */
-    public function __call($method, $parameters)
+    public function __call(string $method, array $parameters)
     {
         return $this->newQuery()->$method(...$parameters);
+    }
+
+    /**
+     * Get original model attribute
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
+    protected function getOriginalAttribute(string $name)
+    {
+        $method = sprintf('get%sAttribute', ucfirst(Str::camel(
+            $name
+        )));
+
+        $value = method_exists($this, $method)
+            ? $this->$method($this->attributes[$name])
+            : $this->attributes[$name];
+
+        return $this->setAttributeType($name, $value);
+    }
+
+    /**
+     * Get Appends model attribute
+     *
+     * @param string $name
+     *
+     * @return mixed
+     */
+    protected function getAppendsAttribute(string $name)
+    {
+        $method = sprintf('get%sAttribute', ucfirst(Str::camel(
+            $name
+        )));
+
+        $value = method_exists($this, $method)
+            ? $this->$method(null)
+            : null;
+
+        return $this->setAttributeType($name, $value);
+    }
+
+    /**
+     * Set attributes casting
+     *
+     * @param string $name
+     * @param mixed  $value
+     *
+     * @return mixed
+     */
+    protected function setAttributeType(string $name, $value)
+    {
+        $castTypes = [
+            'boolean',
+            'bool',
+            'integer',
+            'int',
+            'float',
+            'double',
+            'string',
+            'array',
+            'object',
+            'null',
+        ];
+
+        if (
+            array_key_exists($name, $this->casts) &&
+            in_array(
+                $this->casts[$name],
+                $castTypes,
+                true
+            )
+        ) {
+            settype($value, $this->casts[$name]);
+        }
+
+        return $value;
+    }
+
+    /**
+     * Create a new model query
+     *
+     * @return Query
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
+     */
+    protected function newQuery(): Query
+    {
+        /** @var Connection $elastic */
+        $elastic = app('es');
+        $query = $elastic->connection($this->getConnection());
+        $query->setModel($this);
+
+        if ($index = $this->getIndex()) {
+            $query->index($index);
+        }
+
+        if ($type = $this->getType()) {
+            $query->type($type);
+        }
+
+        if ($fields = $this->getSelectable()) {
+            $query->select($fields);
+        }
+
+        if ($fields = $this->getUnSelectable()) {
+            $query->unselect($fields);
+        }
+
+        return $query;
     }
 }

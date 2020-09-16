@@ -1,42 +1,38 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\TestCase;
 
-class WhereBetweenTest extends \PHPUnit_Framework_TestCase
+class WhereBetweenTest extends TestCase
 {
-
     use ESQueryTrait;
 
-    /**
-     * Test the whereBetween() method.
-     * @return void
-     */
-    public function testWhereBetweenMethod()
+    public function testWhereBetweenMethod(): void
     {
-
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", 500, 1000),
             $this->getActual("views", 500, 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", [500, 1000]),
             $this->getActual("views", [500, 1000])
         );
-
     }
-
 
     /**
      * Get The expected results.
+     *
      * @param $name
      * @param $first_value
      * @param $second_value
+     *
      * @return array
      */
-    protected function getExpected($name, $first_value, $second_value = null)
+    protected function getExpected($name, $first_value, $second_value = null): array
     {
         $query = $this->getQueryArray();
 
@@ -45,17 +41,25 @@ class WhereBetweenTest extends \PHPUnit_Framework_TestCase
             $first_value = $first_value[0];
         }
 
-        $query["body"]["query"]["bool"]["filter"][] = ["range" => [$name => ["gte" => $first_value, "lte" => $second_value]]];
+        $query["body"]["query"]["bool"]["filter"][] = [
+            "range" => [
+                $name => [
+                    "gte" => $first_value,
+                    "lte" => $second_value,
+                ],
+            ],
+        ];
 
         return $query;
     }
 
-
     /**
      * Get The actual results.
+     *
      * @param $name
      * @param $first_value
      * @param $second_value
+     *
      * @return mixed
      */
     protected function getActual($name, $first_value, $second_value = null)

@@ -1,8 +1,11 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Commands;
+namespace Matchory\Elasticsearch\Commands;
 
 use Illuminate\Console\Command;
+use InvalidArgumentException;
+use Matchory\Elasticsearch\Connection;
+use RuntimeException;
 
 class DropIndexCommand extends Command
 {
@@ -24,14 +27,12 @@ class DropIndexCommand extends Command
 
     /**
      * ES object
-     * @var object
+     *
+     * @var Connection
      */
     protected $es;
 
-    /**
-     * DropIndexCommand constructor.
-     */
-    function __construct()
+    public function __construct()
     {
         parent::__construct();
         $this->es = app("es");
@@ -41,36 +42,40 @@ class DropIndexCommand extends Command
      * Execute the console command.
      *
      * @return mixed
+     * @throws RuntimeException
+     * @throws InvalidArgumentException
      */
     public function handle()
     {
+        $connectionName = $this->option("connection") ?: config('es.default');
+        $connection = $this->es->connection($connectionName);
 
-        $connection = $this->option("connection") ? $this->option("connection") : config("es.default");
-        $force = $this->option("force") ? $this->option("force") : 0;
+        if ( ! $connection) {
+            throw new RuntimeException('No connection');
+        }
 
-        $client = $this->es->connection($connection)->raw();
-
-        $indices = !is_null($this->argument('index')) ?
-            [$this->argument('index')] :
-            array_keys(config('es.indices'));
+        $force = $this->option("force") ?: 0;
+        $client = $connection->raw();
+        $indices = ! is_null($this->argument('index'))
+            ? [$this->argument('index')]
+            : array_keys(config('es.indices'));
 
         foreach ($indices as $index) {
+            if ( ! $client->indices()->exists(['index' => $index])) {
+                $this->warn("Index '{$index}' does not exist.");
 
-            if (!$client->indices()->exists(['index' => $index])) {
-                $this->warn("Index: {$index} is not exist!");
                 continue;
             }
 
-            if ($force or $this->confirm("Are you sure to drop \"$index\" index")) {
-
+            if (
+                $force ||
+                $this->confirm("Are you sure to drop '{$index}' index")
+            ) {
                 $this->info("Dropping index: {$index}");
 
                 $client->indices()->delete(['index' => $index]);
-
             }
-
         }
-
     }
 
 }

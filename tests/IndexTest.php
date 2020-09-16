@@ -1,10 +1,12 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 
-class IndexTest extends \PHPUnit_Framework_TestCase
+use PHPUnit\Framework\TestCase;
+
+class IndexTest extends TestCase
 {
 
     use ESQueryTrait;
@@ -13,9 +15,9 @@ class IndexTest extends \PHPUnit_Framework_TestCase
      * Test the index() method.
      * @return void
      */
-    public function testIndexMethod()
+    public function testIndexMethod(): void
     {
-        $this->assertEquals($this->getExpected("index_1"), $this->getActual("index_1"));
+        self::assertEquals($this->getExpected("index_1"), $this->getActual("index_1"));
     }
 
 

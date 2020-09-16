@@ -1,28 +1,40 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
-class SkipTest extends \PHPUnit_Framework_TestCase
+class SkipTest extends TestCase
 {
 
     use ESQueryTrait;
 
     /**
      * Test the skip() method.
+     *
      * @return void
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
-    public function testSkipMethod()
+    public function testSkipMethod(): void
     {
-        $this->assertEquals($this->getExpected(10), $this->getActual(10));
+        self::assertEquals(
+            $this->getExpected(10),
+            $this->getActual(10)
+        );
     }
 
     /**
      * Get The expected results.
+     *
+     * @param string $from
+     *
      * @return array
      */
-    protected function getExpected($from)
+    protected function getExpected(string $from): array
     {
         $query = $this->getQueryArray();
 
@@ -33,9 +45,12 @@ class SkipTest extends \PHPUnit_Framework_TestCase
 
     /**
      * Get The actual results.
-     * @return mixed
+     *
+     * @param string $from
+     *
+     * @return array
      */
-    protected function getActual($from)
+    protected function getActual(string $from): array
     {
         return $this->getQueryObject()->skip($from)->query();
     }

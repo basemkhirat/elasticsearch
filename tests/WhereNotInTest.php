@@ -1,53 +1,64 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
-class WhereNotInTest extends \PHPUnit_Framework_TestCase
+class WhereNotInTest extends TestCase
 {
 
     use ESQueryTrait;
 
     /**
      * Test the whereNotIn() method.
+     *
      * @return void
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
-    public function testWhereNotInMethod()
+    public function testWhereNotInMethod(): void
     {
-
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("status", ["pending", "draft"]),
             $this->getActual("status", ["pending", "draft"])
         );
-
     }
-
 
     /**
      * Get The expected results.
-     * @param $name
-     * @param array $value
+     *
+     * @param string $name
+     * @param array  $value
+     *
      * @return array
      */
-    protected function getExpected($name, $value = [])
+    protected function getExpected(string $name, array $value = []): array
     {
         $query = $this->getQueryArray();
 
-        $query["body"]["query"]["bool"]["must_not"][] = ["terms" => [$name => $value]];
+        $query["body"]["query"]["bool"]["must_not"][] = [
+            "terms" => [$name => $value],
+        ];
 
         return $query;
     }
 
-
     /**
      * Get The actual results.
-     * @param $name
+     *
+     * @param       $name
      * @param array $value
+     *
      * @return mixed
      */
     protected function getActual($name, $value = [])
     {
-        return $this->getQueryObject()->whereNotIn($name, $value)->query();
+        return $this
+            ->getQueryObject()
+            ->whereNotIn($name, $value)
+            ->query();
     }
 }

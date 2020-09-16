@@ -1,64 +1,82 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Classes;
+namespace Matchory\Elasticsearch\Classes;
 
-use Basemkhirat\Elasticsearch\Query;
+use Matchory\Elasticsearch\Query;
 
 /**
  * Class Search
- * @package Basemkhirat\Elasticsearch\Classes
+ *
+ * @package Matchory\Elasticsearch\Classes
  */
 class Search
 {
+    public const PARAMETER_BOOST = "boost";
+
+    public const PARAMETER_FIELDS = "fields";
+
+    public const PARAMETER_QUERY = "query";
 
     /**
      * The query object
+     *
      * @var Query
      */
     public $query;
 
     /**
      * The search query string
+     *
      * @var string
      */
-    public $q;
+    public $queryString;
 
     /**
      * The search query boost factor
+     *
      * @var integer
      */
     public $boost;
 
     /**
      * The search fields
+     *
      * @var array
      */
     public $fields = [];
 
-    /**
-     * Search constructor.
-     * @param Query $query
-     */
-    public function __construct(Query $query, $q, $settings = NULL)
-    {
-        $this->query = $query;
-        $this->q = $q;
+    protected $settings;
 
-        if(is_callback_function($settings)){
+    /**
+     * @param Query               $query
+     * @param string              $queryString
+     * @param callable|array|null $settings
+     */
+    public function __construct(
+        Query $query,
+        string $queryString,
+        $settings = null
+    ) {
+        $this->query = $query;
+        $this->queryString = $queryString;
+
+        if (is_callback_function($settings)) {
             $settings($this);
         }
 
+        // TODO: What is the purpose of this property?
         $this->settings = $settings;
     }
 
     /**
      * Set searchable fields
+     *
      * @param array $fields
+     *
      * @return $this
      */
-    public function fields($fields = [])
+    public function fields(array $fields = []): self
     {
-
         $searchable = [];
 
         foreach ($fields as $field => $weight) {
@@ -73,10 +91,12 @@ class Search
 
     /**
      * Set search boost factor
+     *
      * @param int $boost
+     *
      * @return $this
      */
-    public function boost($boost = 1)
+    public function boost(int $boost = 1): self
     {
         $this->boost = $boost;
 
@@ -86,23 +106,22 @@ class Search
     /**
      * Build the native query
      */
-    public function build()
+    public function build(): void
     {
+        $query_params = [
+            self::PARAMETER_QUERY => $this->queryString,
+        ];
 
-        $query_params = [];
-
-        $query_params["query"] = $this->q;
-
-        if($this->boost > 1) {
-            $query_params["boost"] = $this->boost;
+        if ($this->boost > 1) {
+            $query_params[self::PARAMETER_BOOST] = $this->boost;
         }
 
-        if(count($this->fields)){
-            $query_params["fields"] = $this->fields;
+        if (count($this->fields)) {
+            $query_params[self::PARAMETER_FIELDS] = $this->fields;
         }
 
         $this->query->must[] = [
-            "query_string" => $query_params
+            "query_string" => $query_params,
         ];
     }
 }

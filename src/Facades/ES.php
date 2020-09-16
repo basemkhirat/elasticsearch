@@ -1,12 +1,15 @@
 <?php
 
-namespace Basemkhirat\Elasticsearch\Facades;
+namespace Matchory\Elasticsearch\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
 class ES extends Facade
 {
-    protected static function getFacadeAccessor()
+    /**
+     * @inheritDoc
+     */
+    protected static function getFacadeAccessor(): string
     {
         return 'es';
     }

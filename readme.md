@@ -44,13 +44,13 @@ $ composer require basemkhirat/elasticsearch
 ##### 2) Add package service provider (< laravel 5.5).
 
 ```php
-Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class
+Matchory\Elasticsearch\ElasticsearchServiceProvider::class
 ```
 
 ##### 3) Add package alias (< laravel 5.5).
 
 ```php
-'ES' => Basemkhirat\Elasticsearch\Facades\ES::class
+'ES' => Matchory\Elasticsearch\Facades\ES::class
 ```
 	
 ##### 4) Publishing.
@@ -69,7 +69,7 @@ $ composer require basemkhirat/elasticsearch
 ##### 2) Add package service provider in `bootstrap/app.php`.
 
 ```php
-$app->register(Basemkhirat\Elasticsearch\ElasticsearchServiceProvider::class);
+$app->register(Matchory\Elasticsearch\ElasticsearchServiceProvider::class);
 ```
 	
 ##### 3) Copy package config directory `vendor/basemkhirat/elasticsearch/src/config` to root folder alongside with `app` directory.
@@ -106,7 +106,7 @@ $ composer require basemkhirat/elasticsearch
 ```php
 require "vendor/autoload.php";
 
-use Basemkhirat\Elasticsearch\Connection;
+use Matchory\Elasticsearch\Connection;
 
 $connection = Connection::create([
     'servers' => [
@@ -362,7 +362,7 @@ Models allow you to query for data in your types or indices, as well as insert n
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
@@ -379,7 +379,7 @@ The above example will use the default connection and default index in `es.php`.
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
@@ -443,7 +443,7 @@ $posts = App\Post::find("AVp_tCaAoV7YQD3Esfmp");
 To create a new document, simply create a new model instance, set attributes on the model, then call the `save()` method:
 
 ```php
-<?php
+<?php/** @noinspection ALL *//** @noinspection ALL */
 
 namespace App\Http\Controllers;
 
@@ -505,15 +505,15 @@ Scopes should always return a Query instance.
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
     /**
      * Scope a query to only include popular posts.
      *
-     * @param \Basemkhirat\Elasticsearch\Query $query
-     * @return \Basemkhirat\Elasticsearch\Query
+     * @param \Matchory\Elasticsearch\Query $query
+     * @return \Matchory\Elasticsearch\Query
      */
     public function scopePopular($query, $votes)
     {
@@ -523,8 +523,8 @@ class Post extends Model
     /**
      * Scope a query to only include active posts.
      *
-     * @param \Basemkhirat\Elasticsearch\Query $query
-     * @return \Basemkhirat\Elasticsearch\Query
+     * @param \Matchory\Elasticsearch\Query $query
+     * @return \Matchory\Elasticsearch\Query
      */
     public function scopeActive($query)
     {
@@ -551,7 +551,7 @@ To define an `accessor`, create a getFooAttribute method on your model where `Fo
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class post extends Model
 {
@@ -602,7 +602,7 @@ To define a mutator, define a `setFooAttribute` method on your model where `Foo`
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class post extends Model
 {
@@ -644,7 +644,7 @@ For example, let's cast the `is_published` attribute, which is stored in our ind
 
 namespace App;
 
-use Basemkhirat\Elasticsearch\Model;
+use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {

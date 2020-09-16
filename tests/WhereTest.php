@@ -1,16 +1,20 @@
 <?php
+/** @noinspection PhpUnhandledExceptionInspection */
 
-namespace Basemkhirat\Elasticsearch\Tests;
+namespace Matchory\Elasticsearch\Tests;
 
-use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\TestCase;
+use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
-class WhereTest extends \PHPUnit_Framework_TestCase
+class WhereTest extends TestCase
 {
-
     use ESQueryTrait;
 
     /**
      * Filter operators
+     *
      * @var array
      */
     protected $operators = [
@@ -21,71 +25,77 @@ class WhereTest extends \PHPUnit_Framework_TestCase
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
     ];
 
     /**
      * Test the where() method.
+     *
      * @return void
+     * @throws ExpectationFailedException
+     * @throws InvalidArgumentException
      */
-    public function testWhereMethod()
+    public function testWhereMethod(): void
     {
-
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("status", "published"),
             $this->getActual("status", "published")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("status", "=", "published"),
             $this->getActual("status", "=", "published")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", ">", 1000),
             $this->getActual("views", ">", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", ">=", 1000),
             $this->getActual("views", ">=", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("views", "<=", 1000),
             $this->getActual("views", "<=", 1000)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("content", "like", "hello"),
             $this->getActual("content", "like", "hello")
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("website", "exists", true),
             $this->getActual("website", "exists", true)
         );
 
-        $this->assertEquals(
+        self::assertEquals(
             $this->getExpected("website", "exists", false),
             $this->getActual("website", "exists", false)
         );
-
     }
-
 
     /**
      * Get The expected results.
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return array
      */
-    protected function getExpected($name, $operator = "=", $value = NULL)
+    protected function getExpected(string $name, string $operator = "=", $value = null): array
     {
         $query = $this->getQueryArray();
 
-        if (!in_array($operator, $this->operators)) {
+        if ( ! in_array(
+            $operator,
+            $this->operators,
+            true
+        )) {
             $value = $operator;
             $operator = "=";
         }
@@ -94,38 +104,36 @@ class WhereTest extends \PHPUnit_Framework_TestCase
         $must = [];
         $must_not = [];
 
-        if ($operator == "=") {
+        if ($operator === "=") {
             $filter[] = ["term" => [$name => $value]];
         }
 
-        if ($operator == ">") {
+        if ($operator === ">") {
             $filter[] = ["range" => [$name => ["gt" => $value]]];
         }
 
-        if ($operator == ">=") {
+        if ($operator === ">=") {
             $filter[] = ["range" => [$name => ["gte" => $value]]];
         }
 
-        if ($operator == "<") {
+        if ($operator === "<") {
             $filter[] = ["range" => [$name => ["lt" => $value]]];
         }
 
-        if ($operator == "<=") {
+        if ($operator === "<=") {
             $filter[] = ["range" => [$name => ["lte" => $value]]];
         }
 
-        if ($operator == "like") {
+        if ($operator === "like") {
             $must[] = ["match" => [$name => $value]];
         }
 
-        if ($operator == "exists") {
-
+        if ($operator === "exists") {
             if ($value) {
                 $must[] = ["exists" => ["field" => $name]];
             } else {
                 $must_not[] = ["exists" => ["field" => $name]];
             }
-
         }
 
         // Build query body
@@ -144,21 +152,21 @@ class WhereTest extends \PHPUnit_Framework_TestCase
             $bool["filter"] = $filter;
         }
 
-
         $query["body"]["query"]["bool"] = $bool;
 
         return $query;
     }
 
-
     /**
      * Get The actual results.
-     * @param $name
+     *
+     * @param        $name
      * @param string $operator
-     * @param null $value
+     * @param null   $value
+     *
      * @return mixed
      */
-    protected function getActual($name, $operator = "=", $value = NULL)
+    protected function getActual($name, $operator = "=", $value = null)
     {
         return $this->getQueryObject()->where($name, $operator, $value)->query();
     }
