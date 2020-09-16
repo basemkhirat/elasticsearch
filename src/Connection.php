@@ -7,6 +7,7 @@ use Elasticsearch\ClientBuilder;
 use Illuminate\Contracts\Foundation\Application;
 use Illuminate\Support\Arr;
 use InvalidArgumentException;
+use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use RuntimeException;
 
@@ -21,6 +22,8 @@ use function method_exists;
  */
 class Connection
 {
+    private const DEFAULT_LOGGER_NAME = 'elasticsearch';
+
     /**
      * Laravel app instance
      *
@@ -109,7 +112,8 @@ class Connection
         array $config
     ): ClientBuilder {
         if (Arr::get($config, 'logging.enabled')) {
-            $logger = ClientBuilder::defaultLogger(
+            $logger = new Logger(self::DEFAULT_LOGGER_NAME);
+            $logger->pushHandler(new StreamHandler(
                 Arr::get(
                     $config,
                     'logging.location'
@@ -119,7 +123,7 @@ class Connection
                     'logging.level',
                     Logger::INFO
                 )
-            );
+            ));
 
             $clientBuilder->setLogger($logger);
         }
