@@ -145,7 +145,7 @@ class Connection
         if ($this->isLoaded($name)) {
             $this->client = $this->clients[$name];
 
-            return $this->newQuery($this->client);
+            return $this->newQuery($name);
         }
 
         // Create a new connection.
@@ -170,7 +170,7 @@ class Connection
             $this->client = $clientBuilder->build();
             $this->clients[$name] = $this->client;
 
-            return $this->newQuery($this->client);
+            return $this->newQuery($name);
         }
 
         throw new RuntimeException(

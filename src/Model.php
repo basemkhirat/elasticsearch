@@ -165,24 +165,23 @@ class Model
     }
 
     /**
-     * Get current connection
+     * Get current connection name
      *
-     * @return Connection
+     * @return string
      */
-    public function getConnection(): Connection
+    public function getConnection(): string
     {
-        /** @noinspection PhpUndefinedFunctionInspection */
         return $this->connection ?: config('es.default');
     }
 
     /**
-     * Set current connection
+     * Set current connection name
      *
-     * @param Connection $connection
+     * @param string $connection
      *
      * @return void
      */
-    public function setConnection(Connection $connection): void
+    public function setConnection(string $connection): void
     {
         $this->connection = $connection;
     }
