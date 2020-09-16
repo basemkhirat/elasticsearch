@@ -1132,6 +1132,22 @@ class Query
     }
 
     /**
+     * Set the collapse field
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function groupBy(string $field): self
+    {
+        $this->body["collapse"] = [
+            "field" => $field,
+        ];
+
+        return $this;
+    }
+
+    /**
      * Insert a document
      *
      * @param mixed       $data
