@@ -1,5 +1,6 @@
-.idea/
-/vendor
+/.idea/
+/vendor/
 composer.lock
 .gitattributes
 .DS_Store
+.phpunit.result.cache
