@@ -1,8 +1,7 @@
 <p align="center">
-<!-- <a href="https://travis-ci.org/matchory/elasticsearch"><img src="https://travis-ci.org/matchory/elasticsearch.svg?branch=master" alt="Build Status"></a> -->
-<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/license.svg" alt="License"></a>
+
+[![Latest Stable Version](https://poser.pugx.org/matchory/elasticsearch/v)](//packagist.org/packages/matchory/elasticsearch) [![Total Downloads](https://poser.pugx.org/matchory/elasticsearch/downloads)](//packagist.org/packages/matchory/elasticsearch) [![Latest Unstable Version](https://poser.pugx.org/matchory/elasticsearch/v/unstable)](//packagist.org/packages/matchory/elasticsearch) [![License](https://poser.pugx.org/matchory/elasticsearch/license)](//packagist.org/packages/matchory/elasticsearch)
+
 </p>
 
 Fork of [`basemkhirat/elasticsearch`](https://github.com/basemkhirat/elasticsearch)
