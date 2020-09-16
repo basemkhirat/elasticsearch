@@ -1,108 +1,109 @@
 <p align="center">
-<!-- <a href="https://travis-ci.org/basemkhirat/elasticsearch"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg?branch=master" alt="Build Status"></a> -->
-<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/d/total.svg" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/license.svg" alt="License"></a>
+<!-- <a href="https://travis-ci.org/matchory/elasticsearch"><img src="https://travis-ci.org/matchory/elasticsearch.svg?branch=master" alt="Build Status"></a> -->
+<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
+<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/d/total.svg" alt="Total Downloads"></a>
+<a href="https://packagist.org/packages/matchory/elasticsearch"><img src="https://poser.pugx.org/matchory/elasticsearch/license.svg" alt="License"></a>
 </p>
 
-## Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax
+Fork of [`basemkhirat/elasticsearch`](https://github.com/basemkhirat/elasticsearch)
+===================================================================================
+This is a fork of the excellent library by [@basemkhirat](https://github.com/basemkhirat), who sadly seems to have abandoned it by now.  
+As we rely on this library quite heavily, we will attempt to keep it up to date and compatible with newer Laravel and Elasticsearch versions.
 
-- Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
-- Elasticsearch data model for types and indices inspired from laravel eloquent.
-- Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
-- Lumen framework support.
-- Native php and composer based applications support.
-- Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
-- Dealing with multiple elasticsearch connections at the same time.
-- Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
-- Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
+**Goals of this fork:**
+ - Support for newer versions of Elasticsearch, Laravel and PHP
+ - Limited backwards compatibility: PHP version requirement of `>= 7.2`
+ - Strong typing and accurate documentation comments
+ - New features and convenience methods
 
-## Requirements
+If you're interested in contributing to this fork, please submit a PR or open an issue.
 
-- `php` >= 5.6.6 
-  
-  See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
+Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax
+---------------------------------------------------------------------------------------------------------
+ - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
+ - Elasticsearch data model for types and indices inspired from laravel eloquent.
+ - Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
+ - Lumen framework support.
+ - Native php and composer based applications support.
+ - Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
+ - Dealing with multiple elasticsearch connections at the same time.
+ - Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
+ - Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
 
-- `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
+Requirements
+------------
+- PHP >= `7.2`  
+  See [Travis CI Builds](https://travis-ci.org/matchory/elasticsearch).
+- `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or any other application using composer
 
+Documentation
+-------------
+See [Full Documentation](https://github.com/matchory/elasticsearch/wiki/1.-Installation).
 
-## Documentation
+Installation
+------------
+This section describes the installation process for all supported application types.
 
-See [Full Documentation](https://github.com/basemkhirat/elasticsearch/wiki/1.-Installation).
-
-## Installation
-
-### <u>Laravel Installation</u>
-
-
-##### 1) Install package using composer.
-
+### Install package using composer
+Whether you're using Laravel, Lumen or another framework, start by installing the package using composer:
 ```bash
-$ composer require basemkhirat/elasticsearch
+composer require matchory/elasticsearch
 ```
 
-##### 2) Add package service provider (< laravel 5.5).
-
+#### Laravel Installation
+**If you're using an older release of Laravel than `5.5`**, add the service provider and facade to your `config/app.php`:
 ```php
-Matchory\Elasticsearch\ElasticsearchServiceProvider::class
+    'providers' => [
+        // ...
+
+        Matchory\Elasticsearch\ElasticsearchServiceProvider::class,
+
+        // ...
+    ],
+
+    // ...
+
+    'aliases' => [
+        // ...
+
+        'ES' => Matchory\Elasticsearch\Facades\ES::class,
+
+        // ...
+    ],
 ```
 
-##### 3) Add package alias (< laravel 5.5).
-
-```php
-'ES' => Matchory\Elasticsearch\Facades\ES::class
-```
-	
-##### 4) Publishing.
-
+Lastly, publish the service provider to your configuration directory:
 ```bash
-$ php artisan vendor:publish --provider="Basemkhirat\Elasticsearch\ElasticsearchServiceProvider"
+php artisan vendor:publish --provider="Matchory\Elasticsearch\ElasticsearchServiceProvider"
 ```
 
-### <u>Lumen Installation</u>
-
-##### 1) Install package using composer.
-```bash
-$ composer require basemkhirat/elasticsearch
-```
-
-##### 2) Add package service provider in `bootstrap/app.php`.
-
+#### Lumen Installation
+After installing the package from composer, add package service provider in `bootstrap/app.php`:
 ```php
 $app->register(Matchory\Elasticsearch\ElasticsearchServiceProvider::class);
 ```
-	
-##### 3) Copy package config directory `vendor/basemkhirat/elasticsearch/src/config` to root folder alongside with `app` directory.
-	
-	
-##### 4) Making Lumen work with facades by uncommenting this line in `bootstrap/app.php`.
 
+Copy the package config directory at `vendor/matchory/elasticsearch/src/config/` to your project root folder alongside with your `app/` directory:
+```bash
+cp -r ./vendor/matchory/elasticsearch/src/config ./config
+```
+
+If you haven't already, make Lumen work with facades by uncommenting this line in `bootstrap/app.php`:
 ```php
 $app->withFacades();
 ```
 
-If you don't want to enable working with Lumen facades you can access the query builder using `app("es")`.
-
+If you don't want to enable facades in Lumen, you can access the query builder using `app("es")`:
 ```php
 app("es")->index("my_index")->type("my_type")->get();
 
-# is similar to 
-
+# This is similar to:
 ES::index("my_index")->type("my_type")->get();
 ```   
    
-### <u>Composer Installation</u>
-
-You can install package with any composer-based applications
-
-##### 1) Install package using composer.
-
-```bash
-$ composer require basemkhirat/elasticsearch
-```
-
-##### 2) Creating a connection.
-
+### Generic app installation
+You can install package with any composer-based application. While we can't provide general instructions, the following example should give you an idea of how
+it works:
 ```php
 require "vendor/autoload.php";
 
@@ -133,25 +134,18 @@ $connection = Connection::create([
 
 
 # access the query builder using created connection
-
 $documents = $connection->search("hello")->get();
 ```
 
-
-## Configuration (Laravel & Lumen)
-
-  
-After publishing, two configuration files will be created.
-  
-  - `config/es.php` where you can add more than one elasticsearch server.
-
+Configuration (Laravel & Lumen)
+-------------------------------
+After publishing the service provider, a configuration file has been created at `config/es.php`. Here, you can add one or more Elasticsearch connections, with
+multiple servers each. Take a look at the following example:
 ```php
 # Here you can define the default connection name.
-
 'default' => env('ELASTIC_CONNECTION', 'default'),
 
 # Here you can define your connections.
-
 'connections' => [
 	'default' => [
 	    'servers' => [
@@ -166,13 +160,11 @@ After publishing, two configuration files will be created.
 	    
 		// Custom handlers
 		// 'handler' => new MyCustomHandler(),
-		
 		'index' => env('ELASTIC_INDEX', 'my_index')
 	]
 ],
  
 # Here you can define your indices.
- 
 'indices' => [
 	'my_index_1' => [
 	    "aliases" => [
@@ -193,219 +185,165 @@ After publishing, two configuration files will be created.
 	    ]
 	]
 ]
-
 ```
-  
-  - `config/scout.php` where you can use package as a laravel scout driver.
 
-## Working with console environment (Laravel & Lumen)
+If you'd like to use Elasticsearch with [Laravel Scout](https://laravel.com/docs/8.x/scout#introduction), you can find the scout specific settings in 
+`config/scout.php`.
 
-With some artisan commands you can do some tasks such as creating or updating settings, mappings and aliases.
+Artisan commands (Laravel & Lumen)
+----------------------------------
+With the artisan commands included with this package, you can create or update settings, mappings and aliases. Note that all commands use the default connection
+by default. You can change this by passing the `--connection <your_connection_name>` option.
 
-Note that all commands are running with `--connection=default` option, you can change it through the command.
+The following commands are available:
 
-These are all available commands:
-
-#### List All indices on server
-
+### `es:indices:list`: List all indices on server
 ```bash
 $ php artisan es:indices:list
-
 +----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
 | configured (es.php)  | health | status | index    | uuid                   | pri | rep | docs.count | docs.deleted | store.size | pri.store.size |
 +----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
 | yes                  | green  | open   | my_index | 5URW60KJQNionAJgL6Q2TQ | 1   | 0   | 0          | 0            | 260b       | 260b           |
 +----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
-
 ```
 
-#### Create indices defined in `es.php` config file
-
+### `es:indices:create`: Create indices defined in `config/es.php`
 Note that creating operation skips the index if exists.
-
 ```bash
 # Create all indices in config file.
-
-$ php artisan es:indices:create
+php artisan es:indices:create
 
 # Create only 'my_index' index in config file
-
-$ php artisan es:indices:create my_index 
-
+php artisan es:indices:create my_index 
 ```
 
-#### Update indices defined in `es.php` config file
-
+### `es:indices:update`: Update indices defined in `config/es.php`
 Note that updating operation updates indices setting, aliases and mapping and doesn't delete the indexed data.
-
 ```bash
 # Update all indices in config file.
-
-$ php artisan es:indices:update
+php artisan es:indices:update
 
 # Update only 'my_index' index in config file
-
-$ php artisan es:indices:update my_index 
-
+php artisan es:indices:update my_index 
 ```
 
-#### Drop index
-
-Be careful when using this command, you will lose your index data!
-
+### `es:indices:drop`: Drop index
+**Be careful when using this command, as you will lose your index data!**  
 Running drop command with `--force` option will skip all confirmation messages.
-
 ```bash
 # Drop all indices in config file.
-
-$ php artisan es:indices:drop
+php artisan es:indices:drop
 
 # Drop specific index on sever. Not matter for index to be exist in config file or not.
-
-$ php artisan es:indices:drop my_index 
-
+php artisan es:indices:drop my_index 
 ```
 
+### Reindexing data (with zero downtime)
 
-#### Reindexing data (with zero downtime)
-
-##### First, why reindexing?
-
-Changing index mapping doesn't reflect without data reindexing, otherwise your search results will not work on the right way.
-
-To avoid down time, your application should work with index `alias` not index `name`.
-
+**First, why reindexing?**  
+Changing index mapping doesn't reflect without data reindexing, otherwise your search results will not work on the right way.  
+To avoid down time, your application should work with index `alias` not index `name`.  
 The index `alias` is a constant name that application should work with to avoid change index names.
 
-##### Assume that we want to change mapping for `my_index`, this is how to do that:
+**Assume that we want to change mapping for `my_index`, this is how to do that:**  
+ 1. Add `alias` as example `my_index_alias` to `my_index` configuration and make sure your application is working with it.
+    ```php
+    "aliases" => [
+        "my_index_alias"
+    ]       
+    ```
 
-1) Add `alias` as example `my_index_alias` to `my_index` configuration and make sure that application is working with.
+ 2. Update index with command:
+    ```bash
+    php artisan es:indices:update my_index
+    ```
 
-```php
-"aliases" => [
-    "my_index_alias"
-]       
-```
+ 3. Create a new index as example `my_new_index` with your new mapping in configuration file.
+    ```bash
+    $ php artisan es:indices:create my_new_index
+    ```
 
-2) Update index with command:
-
-```bash
-$ php artisan es:indices:update my_index
-```
-
-3) Create a new index as example `my_new_index` with your new mapping in configuration file.
-
-```bash
-$ php artisan es:indices:create my_new_index
-```
-
-4) Reindex data from `my_index` into `my_new_index` with command:
-
-```bash
-$ php artisan es:indices:reindex my_index my_new_index
-
-# Control bulk size. Adjust it with your server.
-
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
-
-# Control query scroll value.
-
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
-
-# Skip reindexing errors such as mapper parsing exceptions.
-
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
-
-# Hide all reindexing errors and show the progres bar only.
-
-$ php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
-```
-
-5) Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
-
-```bash
-$ php artisan es:indices:update
-```
+ 4. Reindex data from `my_index` into `my_new_index` with command:
+    ```bash
+    php artisan es:indices:reindex my_index my_new_index
+    
+    # Control bulk size. Adjust it with your server.
+    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
+    
+    # Control query scroll value.
+    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
+    
+    # Skip reindexing errors such as mapper parsing exceptions.
+    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
+    
+    # Hide all reindexing errors and show the progres bar only.
+    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
+    ```
+    
+ 5. Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
+    ```bash
+    php artisan es:indices:update
+    ```
 
 
-## Usage as a Laravel Scout driver
-
-First, follow [Laravel Scout installation](https://laravel.com/docs/5.4/scout#installation).
-
-All you have to do is updating these lines in `config/scout.php` configuration file.
-
+Usage as a Laravel Scout driver
+-------------------------------
+First, follow [Laravel Scout installation](https://laravel.com/docs/8.0/scout#installation).  
+All you have to do is updating the following lines in `config/scout.php`:
 ```php
 # change the default driver to 'es'
-	
 'driver' => env('SCOUT_DRIVER', 'es'),
-	
+
 # link `es` driver with default elasticsearch connection in config/es.php
-	
 'es' => [
     'connection' => env('ELASTIC_CONNECTION', 'default'),
 ],
 ```
 
-Have a look at [laravel Scout documentation](https://laravel.com/docs/5.4/scout#configuration).
+Have a look at [Laravel Scout documentation](https://laravel.com/docs/8.0/scout#configuration), too!
 
+Elasticsearch data model
+------------------------
+Each index type has a corresponding _"Model"_ which is used to interact with that type. Models allow you to query for data in your types or indices, as well as 
+insert new documents into the type. The work pretty much like Eloquent models you might know from Laravel already.
 
-
-## Elasticsearch data model
-
-Each index type has a corresponding "Model" which is used to interact with that type.
-Models allow you to query for data in your types or indices, as well as insert new documents into the type.
-
-
-##### Basic usage
+### Basic usage
 ```php
-<?php
-
 namespace App;
 
 use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
-        
-    protected $type = "posts";
-    
+    protected $type = 'posts';
 }
 ```
 
-The above example will use the default connection and default index in `es.php`. You can override both in the next example.
-
+The above example will use the default connection and default index in `config/es.php`. You can override both in the next example.
 ```php
-<?php
-
 namespace App;
 
 use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
-    
     # [optional] Default: default elasticsearch driver
-    # To override default conenction name of es.php file.
+    # To override default connection name of es.php file.
     # Assumed that there is a connection with name 'my_connection'
-    protected $connection = "my_connection";
+    protected $connection = 'my_connection';
     
     # [optional] Default: default connection index
     # To override default index name of es.php file.
-    protected $index = "my_index";
+    protected $index = 'my_index';
     
-    protected $type = "posts";
-    
+    protected $type = 'posts';
 }
 ```
 
-##### Retrieving Models
-
+### Retrieving Models
 Once you have created a model and its associated index type, you are ready to start retrieving data from your index. For example:
 
-
 ```php
-<?php
-
 use App\Post;
 
 $posts = App\Post::all();
@@ -416,39 +354,33 @@ foreach ($posts as $post) {
 
 ```
 
-##### Adding Additional Constraints
-
-The `all` method will return all of the results in the model's type. Each elasticsearch model serves as a query builder, you may also add constraints to queries, and then use the `get()` method to retrieve the results:
+### Adding additional constraints
+The `all` method will return all the results in the model's type. Each elasticsearch model serves as a query builder, you may also add constraints to
+queries, and then use the `get()` method to retrieve the results:
 
 ```php
 $posts = App\Post::where('status', 1)
                ->orderBy('created_at', 'desc')
                ->take(10)
                ->get();
-
 ```
 
-
-##### Retrieving Single Models
-
+### Retrieving Single Models
 ```php
 // Retrieve a model by document key...
 $posts = App\Post::find("AVp_tCaAoV7YQD3Esfmp");
 ```
 
 
-##### Inserting Models
-
-
+### Inserting Models
 To create a new document, simply create a new model instance, set attributes on the model, then call the `save()` method:
 
 ```php
-<?php/** @noinspection ALL *//** @noinspection ALL */
-
 namespace App\Http\Controllers;
 
 use App\Post;
 use Illuminate\Http\Request;
+use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
 
 class PostController extends Controller
@@ -459,12 +391,11 @@ class PostController extends Controller
      * @param  Request  $request
      * @return Response
      */
-    public function store(Request $request)
+    public function store(Request $request): Response
     {
         // Validate the request...
 
         $post = new Post;
-
         $post->title = $request->title;
 
         $post->save();
@@ -473,8 +404,8 @@ class PostController extends Controller
 ```
 
 ##### Updating Models
-
-The `save()` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and then call the save method.
+The `save()` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and 
+then call the save method.
 
 ```php
 $post = App\Post::find(1);
@@ -485,7 +416,6 @@ $post->save();
 ```
 
 ##### Deleting Models
-
 To delete a model, call the `delete()` method on a model instance:
 
 ```php
@@ -495,27 +425,27 @@ $post->delete();
 ```
 
 ##### Query Scopes
-
-Scopes allow you to define common sets of constraints that you may easily re-use throughout your application. For example, you may need to frequently retrieve all posts that are considered "popular". To define a scope, simply prefix an Eloquent model method with scope.
+Scopes allow you to define common sets of constraints that you may easily re-use throughout your application. For example, you may need to frequently retrieve
+all posts that are considered "popular". To define a scope, simply prefix an Eloquent model method with scope.
 
 Scopes should always return a Query instance.
 
 ```php
-<?php
-
 namespace App;
 
 use Matchory\Elasticsearch\Model;
+use Matchory\Elasticsearch\Query;
 
 class Post extends Model
 {
     /**
      * Scope a query to only include popular posts.
      *
-     * @param \Matchory\Elasticsearch\Query $query
-     * @return \Matchory\Elasticsearch\Query
+     * @param Query $query
+     * @param int $votes
+     * @return Query
      */
-    public function scopePopular($query, $votes)
+    public function scopePopular(Query $query, int $votes): Query
     {
         return $query->where('votes', '>', $votes);
     }
@@ -523,17 +453,18 @@ class Post extends Model
     /**
      * Scope a query to only include active posts.
      *
-     * @param \Matchory\Elasticsearch\Query $query
-     * @return \Matchory\Elasticsearch\Query
+     * @param Query $query
+     * @return Query
      */
-    public function scopeActive($query)
+    public function scopeActive(Query $query): Query
     {
         return $query->where('active', 1);
     }
 }
 ```
 
-Once the scope has been defined, you may call the scope methods when querying the model. However, you do not need to include the scope prefix when calling the method. You can even chain calls to various scopes, for example:
+Once the scope has been defined, you may call the scope methods when querying the model. However, you do not need to include the scope prefix when calling the 
+method. You can even chain calls to various scopes, for example:
 
 ```php
 $posts = App\Post::popular(100)->active()->orderBy('created_at')->get();
@@ -543,11 +474,10 @@ $posts = App\Post::popular(100)->active()->orderBy('created_at')->get();
 ##### Accessors & Mutators
 
 ###### Defining An Accessor
-To define an `accessor`, create a getFooAttribute method on your model where `Foo` is the "studly" cased name of the column you wish to access. In this example, we'll define an accessor for the `title` attribute. The accessor will automatically be called by model when attempting to retrieve the value of the `title` attribute:
-
-
+To define an `accessor`, create a getFooAttribute method on your model where `Foo` is the "studly" cased name of the column you wish to access. In this
+example, we'll define an accessor for the `title` attribute. The accessor will automatically be called by model when attempting to retrieve the value of
+the `title` attribute:
 ```php
-<?php
 
 namespace App;
 
@@ -561,15 +491,15 @@ class post extends Model
      * @param  string  $value
      * @return string
      */
-    public function getTitleAttribute($value)
+    public function getTitleAttribute(string $value): string
     {
         return ucfirst($value);
     }
 }
 ```
 
-As you can see, the original value of the column is passed to the accessor, allowing you to manipulate and return the value. To access the value of the accessor, you may simply access the `title` attribute on a model instance:
-
+As you can see, the original value of the column is passed to the accessor, allowing you to manipulate and return the value. To access the value of the 
+accessor, you may simply access the `title` attribute on a model instance:
 ```php
 $post = App\Post::find(1);
 
@@ -577,11 +507,10 @@ $title = $post->title;
 ```
 
 Occasionally, you may need to add array attributes that do not have a corresponding field in your index. To do so, simply define an accessor for the value:
-
 ```php
-public function getIsPublishedAttribute()
+public function getIsPublishedAttribute(): bool
 {
-    return $this->attributes['status'] == 1;
+    return $this->attributes['status'] === 1;
 }
 ```
 
@@ -594,12 +523,9 @@ protected $appends = ['is_published'];
 Once the attribute has been added to the appends list, it will be included in model's array.
 
 ###### Defining A Mutator
-
-To define a mutator, define a `setFooAttribute` method on your model where `Foo` is the "studly" cased name of the column you wish to access. So, again, let's define a mutator for the `title` attribute. This mutator will be automatically called when we attempt to set the value of the `title`attribute on the model:
-
+To define a mutator, define a `setFooAttribute` method on your model where `Foo` is the "studly" cased name of the column you wish to access. So, again, let's 
+define a mutator for the `title` attribute. This mutator will be automatically called when we attempt to set the value of the `title`attribute on the model:
 ```php
-<?php
-
 namespace App;
 
 use Matchory\Elasticsearch\Model;
@@ -610,38 +536,33 @@ class post extends Model
      * Set the post title.
      *
      * @param  string  $value
-     * @return void
+     * @return string
      */
-    public function setTitleAttribute($value)
+    public function setTitleAttribute(string $value): string
     {
         return strtolower($value);
     }
 }
 ```
 
-The mutator will receive the value that is being set on the attribute, allowing you to manipulate the value and set the manipulated value on the model's internal `$attributes` property. So, for example, if we attempt to set the title attribute to `Awesome post to read`:
-
+The mutator will receive the value that is being set on the attribute, allowing you to manipulate the value and set the manipulated value on the model's 
+internal `$attributes` property. So, for example, if we attempt to set the title attribute to `Awesome post to read`:
 ```php
 $post = App\Post::find(1);
 
 $post->title = 'Awesome post to read';
 ```
 
-In this example, the setTitleAttribute function will be called with the value `Awesome post to read`. The mutator will then apply the strtolower function to the name and set its resulting value in the internal $attributes array.
+In this example, the setTitleAttribute function will be called with the value `Awesome post to read`. The mutator will then apply the strtolower function
+to the name and set its resulting value in the internal $attributes array.
 
-
-
-##### Attribute Casting
-
-
-The `$casts` property on your model provides a convenient method of converting attributes to common data types. The `$casts` property should be an array where the key is the name of the attribute being cast and the value is the type you wish to cast the column to. The supported cast types are: `integer`, `float`, `double`, `string`, `boolean`, `object` and `array`.
-
+### Attribute Casting
+The `$casts` property on your model provides a convenient method of converting attributes to common data types. The `$casts` property should be an array
+where the key is the name of the casted attribute, and the value is the type you wish to cast the column to. The supported cast types are: `integer`, 
+`float`, `double`, `string`, `boolean`, `object` and `array`.
 
 For example, let's cast the `is_published` attribute, which is stored in our index as an integer (0 or  1) to a `boolean` value:
-
 ```php
-<?php
-
 namespace App;
 
 use Matchory\Elasticsearch\Model;
@@ -657,12 +578,9 @@ class Post extends Model
         'is_published' => 'boolean',
     ];
 }
-
 ```
 
-Now the `is_published` attribute will always be cast to a `boolean` when you access it, even if the underlying value is stored in the index as an integer:
-
-
+Now the `is_published` attribute will always be cast to a `boolean` when you access it, even if the underlying, stored value in the index as an integer:
 ```php
 $post = App\Post::find(1);
 
@@ -671,25 +589,25 @@ if ($post->is_published) {
 }
 ```
 
+Usage as a query builder
+------------------------
+You can use the `ES` facade to access the query builder directly, from anywhere in your application.
 
-
-## Usage as a query builder
-
-#### Creating a new index
-
+### Creating a new index
 ```php
-ES::create("my_index");
+ES::create('my_index');
     
 # or 
     
-ES::index("my_index")->create();
+ES::index('my_index')->create();
 ```
     
-##### Creating index with custom options (optional)
-   
+### Creating index with custom options (optional)
 ```php
-ES::index("my_index")->create(function($index){
-        
+use Matchory\Elasticsearch\Facades\ES;
+use Matchory\Elasticsearch\Index;
+
+ES::index('my_index')->create(function(Index $index) {
     $index->shards(5)->replicas(1)->mapping([
         'my_type' => [
             'properties' => [
@@ -702,12 +620,11 @@ ES::index("my_index")->create(function($index){
             ]
         ]
     ])
-    
 });
     
 # or
     
-ES::create("my_index", function($index){
+ES::create('my_index', function(Index $index){
   
       $index->shards(5)->replicas(1)->mapping([
           'my_type' => [
@@ -721,37 +638,35 @@ ES::create("my_index", function($index){
               ]
           ]
       ])
-  
 });
-
 ```
-#### Dropping index
 
+### Dropping an index
 ```php
 ES::drop("my_index");
     
 # or
-    
+
 ES::index("my_index")->drop();
 ```
-#### Running queries
+
+### Running queries
+To run a query, start by (optionally) selecting the connection and index.
 ```php
 $documents = ES::connection("default")
                 ->index("my_index")
                 ->type("my_type")
                 ->get();    # return a collection of results
 ```
-You can rewrite the above query to
 
+You can shorten the above query to:
 ```php
 $documents = ES::type("my_type")->get();    # return a collection of results
 ```
 
-The query builder will use the default connection, index name in configuration file `es.php`. 
- 
-Connection and index names in query overrides connection and index names in configuration file `es.php`.
+Explicitly setting connection or index name in the query overrides configuration in `config/es.php`.
 
-##### Getting document by id
+### Getting documents by id
 ```php
 ES::type("my_type")->id(3)->first();
     
@@ -759,51 +674,61 @@ ES::type("my_type")->id(3)->first();
     
 ES::type("my_type")->_id(3)->first();
 ```
-##### Sorting
-```php 
+
+### Sorting
+```php
 ES::type("my_type")->orderBy("created_at", "desc")->get();
     
 # Sorting with text search score
     
 ES::type("my_type")->orderBy("_score")->get();
 ```
-##### Limit and offset
+
+### Limit and offset
 ```php
 ES::type("my_type")->take(10)->skip(5)->get();
 ```
-##### Select only specific fields
-```php    
+
+### Select only specific fields
+```php
 ES::type("my_type")->select("title", "content")->take(10)->skip(5)->get();
 ```
-##### Where clause
-```php    
+
+### Where clause
+```php
 ES::type("my_type")->where("status", "published")->get();
 
 # or
 
 ES::type("my_type")->where("status", "=", "published")->get();
 ```
-##### Where greater than
+
+### Where greater than
 ```php
 ES::type("my_type")->where("views", ">", 150)->get();
 ```
-##### Where greater than or equal
+
+### Where greater than or equal
 ```php
 ES::type("my_type")->where("views", ">=", 150)->get();
 ```
-##### Where less than
+
+### Where less than
 ```php
 ES::type("my_type")->where("views", "<", 150)->get();
 ```
-##### Where less than or equal
+
+### Where less than or equal
 ```php
 ES::type("my_type")->where("views", "<=", 150)->get();
 ```
-##### Where like
+
+### Where like
 ```php
 ES::type("my_type")->where("title", "like", "foo")->get();
 ```
-##### Where field exists
+
+### Where field exists
 ```php
 ES::type("my_type")->where("hobbies", "exists", true)->get(); 
 
@@ -811,60 +736,71 @@ ES::type("my_type")->where("hobbies", "exists", true)->get();
 
 ES::type("my_type")->whereExists("hobbies", true)->get();
 ```    
-##### Where in clause
-```php    
+
+### Where in clause
+```php
 ES::type("my_type")->whereIn("id", [100, 150])->get();
 ```
-##### Where between clause 
-```php    
+
+### Where between clause 
+```php
 ES::type("my_type")->whereBetween("id", 100, 150)->get();
 
 # or 
 
 ES::type("my_type")->whereBetween("id", [100, 150])->get();
-```    
-##### Where not clause
-```php    
+```
+
+### Where not clause
+```php
 ES::type("my_type")->whereNot("status", "published")->get(); 
 
 # or
 
 ES::type("my_type")->whereNot("status", "=", "published")->get();
 ```
-##### Where not greater than
+
+### Where not greater than
 ```php
 ES::type("my_type")->whereNot("views", ">", 150)->get();
 ```
-##### Where not greater than or equal
+
+### Where not greater than or equal
 ```php
 ES::type("my_type")->whereNot("views", ">=", 150)->get();
 ```
-##### Where not less than
+
+### Where not less than
 ```php
 ES::type("my_type")->whereNot("views", "<", 150)->get();
 ```
-##### Where not less than or equal
+
+### Where not less than or equal
 ```php
 ES::type("my_type")->whereNot("views", "<=", 150)->get();
 ```
-##### Where not like
+
+### Where not like
 ```php
 ES::type("my_type")->whereNot("title", "like", "foo")->get();
 ```
-##### Where not field exists
+
+### Where not field exists
 ```php
 ES::type("my_type")->whereNot("hobbies", "exists", true)->get(); 
 
 # or
 
 ES::type("my_type")->whereExists("hobbies", true)->get();
-```    
-##### Where not in clause
-```php    
+```
+
+### Where not in clause
+```php
 ES::type("my_type")->whereNotIn("id", [100, 150])->get();
 ```
-##### Where not between clause 
-```php    
+
+### Where not between clause 
+```php
 ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
 
 # or
@@ -872,8 +808,8 @@ ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
 ES::type("my_type")->whereNotBetween("id", [100, 150])->get();
 ```
    
-##### Search by a distance from a geo point 
-```php  
+### Search by a distance from a geo point 
+```php
 ES::type("my_type")->distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
 
 # or
@@ -884,10 +820,8 @@ ES::type("my_type")->distance("location", "-33.8688197,151.20929550000005", "10k
 
 ES::type("my_type")->distance("location", [151.20929550000005, -33.8688197], "10km")->get();  
 ```
-  
-  
-##### Search using array queries
-      
+
+### Search using array queries
 ```php
 ES::type("my_type")->body([
     "query" => [
@@ -904,7 +838,6 @@ ES::type("my_type")->body([
 # The query builder will will be merged with the array query.
 
 ES::type("my_type")->body([
-
 	"_source" => ["content"]
 	
 	"query" => [
@@ -969,11 +902,9 @@ Array
         )
 )
 */
-
 ```
   
-##### Search the entire document
-    
+### Search the entire document
 ```php
 ES::type("my_type")->search("hello")->get();
     
@@ -988,8 +919,7 @@ ES::type("my_type")->search("hello", function($search){
 })->get();
 ```
 
-##### Search with highlight fields
-    
+### Search with highlight fields
 ```php
 $doc = ES::type("my_type")->highlight("title")->search("hello")->first();
 
@@ -1006,22 +936,17 @@ $doc->getHighlights();
 $doc->getHighlights("title");
 ```
 
-
-##### Return only first record
-
-```php    
+### Return only first record
+```php
 ES::type("my_type")->search("hello")->first();
 ```
   
-##### Return only count
-```php    
+### Return only count
+```php
 ES::type("my_type")->search("hello")->count();
 ```
-    
-##### Scan-and-Scroll queries
-    
 
-
+### Scan-and-Scroll queries
 ```php
 # These queries are suitable for large amount of data. 
 # A scrolled search allows you to do an initial search and to keep pulling batches of results
@@ -1049,9 +974,8 @@ ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhc
         ->clear();
 ```
     
-##### Paginate results with 5 records per page
-
-```php   
+### Paginate results with 5 records per page
+```php
 $documents = ES::type("my_type")->search("hello")->paginate(5);
     
 # Getting pagination links
@@ -1072,7 +996,6 @@ $documents->links("simple-default");
 ```
 
 These are all pagination methods you may use:
-
 ```php
 $documents->count()
 $documents->currentPage()
@@ -1087,46 +1010,38 @@ $documents->total()
 $documents->url($page)
 ```
 
-##### Getting the query array without execution
-
+### Getting the query array without execution
 ```php
 ES::type("my_type")->search("hello")->where("views", ">", 150)->query();
 ```
 
-##### Getting the original elasticsearch response
-
+### Getting the original elasticsearch response
 ```php
 ES::type("my_type")->search("hello")->where("views", ">", 150)->response();
 ```
 
-##### Ignoring bad HTTP response
-
-```php      
+### Ignoring bad HTTP response
+```php
 ES::type("my_type")->ignore(404, 500)->id(5)->first();
 ```
 
-##### Query Caching (Laravel & Lumen)
-
+### Query Caching (Laravel & Lumen)
 Package comes with a built-in caching layer based on laravel cache.
 
 ```php
 ES::type("my_type")->search("hello")->remember(10)->get();
-	
-# Specify a custom cache key
 
+# Specify a custom cache key
 ES::type("my_type")->search("hello")->remember(10, "last_documents")->get();
-	
+
 # Caching using other available driver
-	
 ES::type("my_type")->search("hello")->cacheDriver("redis")->remember(10, "last_documents")->get();
-	
+
 # Caching with cache key prefix
-	
 ES::type("my_type")->search("hello")->cacheDriver("redis")->cachePrefix("docs")->remember(10, "last_documents")->get();
 ```
 
-##### Executing elasticsearch raw queries
-
+### Executing elasticsearch raw queries
 ```php
 ES::raw()->search([
     "index" => "my_index",
@@ -1144,8 +1059,7 @@ ES::raw()->search([
 ]);
 ```
    
-##### Insert a new document
-    
+### Insert a new document
 ```php
 ES::type("my_type")->id(3)->insert([
     "title" => "Test document",
@@ -1153,20 +1067,16 @@ ES::type("my_type")->id(3)->insert([
 ]);
      
 # A new document will be inserted with _id = 3.
-  
 # [id is optional] if not specified, a unique hash key will be generated.
 ```
-  >
-    
-##### Bulk insert a multiple of documents at once.
+
+### Bulk insert a multiple of documents at once.
      
 ```php
 # Main query
-
 ES::index("my_index")->type("my_type")->bulk(function ($bulk){
 
     # Sub queries
-
 	$bulk->index("my_index_1")->type("my_type_1")->id(10)->insert(["title" => "Test document 1","content" => "Sample content 1"]);
 	$bulk->index("my_index_2")->id(11)->insert(["title" => "Test document 2","content" => "Sample content 2"]);
 	$bulk->id(12)->insert(["title" => "Test document 3", "content" => "Sample content 3"]);
@@ -1185,7 +1095,6 @@ ES::index("my_index")->type("my_type")->bulk(function ($bulk){
 
 # If type() is not specified in subquery:
 # -- The builder will get type name from the main query.
-
 # you can use old bulk code style using multidimensional array of [id => data] pairs
  
 ES::type("my_type")->bulk([
@@ -1194,7 +1103,7 @@ ES::type("my_type")->bulk([
 		"title" => "Test document 1",
 		"content" => "Sample content 1"
 	],
-	 
+
 	11 => [
 		"title" => "Test document 2",
 		"content" => "Sample content 2"
@@ -1205,8 +1114,8 @@ ES::type("my_type")->bulk([
 # The two given documents will be inserted with its associated ids
 ```
 
-##### Update an existing document
-```php     
+### Update an existing document
+```php
 ES::type("my_type")->id(3)->update([
    "title" => "Test document",
    "content" => "sample content"
@@ -1226,21 +1135,21 @@ ES::type("my_type")->bulk(function ($bulk){
 });
 ```
    
-##### Incrementing field
+### Incrementing field
 ```php
 ES::type("my_type")->id(3)->increment("views");
     
 # Document has _id = 3 will be incremented by 1.
-    
+
 ES::type("my_type")->id(3)->increment("views", 3);
-    
+
 # Document has _id = 3 will be incremented by 3.
 
 # [id is required]
 ```
    
-##### Decrementing field
-```php 
+### Decrementing field
+```php
 ES::type("my_type")->id(3)->decrement("views");
     
 # Document has _id = 3 will be decremented by 1.
@@ -1252,67 +1161,60 @@ ES::type("my_type")->id(3)->decrement("views", 3);
 # [id is required]
 ```
    
-##### Update using script
-       
+### Update using script
 ```php
 # increment field by script
-    
 ES::type("my_type")->id(3)->script(
     "ctx._source.$field += params.count",
     ["count" => 1]
 );
     
 # add php tag to tags array list
-    
 ES::type("my_type")->id(3)->script(
     "ctx._source.tags.add(params.tag)",
     ["tag" => "php"]
 );
     
 # delete the doc if the tags field contain mongodb, otherwise it does nothing (noop)
-    
 ES::type("my_type")->id(3)->script(
     "if (ctx._source.tags.contains(params.tag)) { ctx.op = 'delete' } else { ctx.op = 'none' }",
     ["tag" => "mongodb"]
 );
 ```
    
-##### Delete a document
+### Delete a document
 ```php
 ES::type("my_type")->id(3)->delete();
-    
+
 # Document has _id = 3 will be deleted.
-    
 # [id is required]
 ```
 
 ```php
 # Bulk delete
-
 ES::type("my_type")->bulk(function ($bulk){
     $bulk->id(10)->delete();
     $bulk->id(11)->delete();
 });
 ```
 
-## Releases
+Releases
+--------
+See [Change Log](https://github.com/matchory/elasticsearch/blob/master/CHANGELOG.md).
 
-  See [Change Log](https://github.com/basemkhirat/elasticsearch/blob/master/CHANGELOG.md).
-
-## Author
+Authors
+-------
 [Basem Khirat](http://basemkhirat.com) - [basemkhirat@gmail.com](mailto:basemkhirat@gmail.com) - [@basemkhirat](https://twitter.com/basemkhirat)  
+[Moritz Friedrich](https://www.matchory.com) - [moritz@matchory.com](mailto:moritz@matchory.com)
 
+Bugs, Suggestions and Contributions
+-----------------------------------
+Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors) who has contributed to the original project and 
+[everyone else](https://github.com/matchory/elasticsearch/graphs/contributors) who has contributed to this fork!  
+Please use [Github](https://github.com/matchory/elasticsearch) for reporting bugs, and making comments or suggestions.
 
-## Bugs, Suggestions and Contributions
-
-Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors)
-who has contributed to this project!
-
-Please use [Github](https://github.com/basemkhirat/elasticsearch) for reporting bugs, 
-and making comments or suggestions.
-
-## License
-
+License
+-------
 MIT
 
 `Have a happy searching..`
