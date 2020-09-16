@@ -1613,12 +1613,10 @@ class Query
                 ? $body['sort']
                 : [];
 
-            if (isset($body['sort'])) {
-                $body['sort'] = array_unique(
-                    array_merge($sortFields, $this->sort),
-                    SORT_REGULAR
-                );
-            }
+            $body['sort'] = array_unique(
+                array_merge($sortFields, $this->sort),
+                SORT_REGULAR
+            );
         }
 
         $this->body = $body;
