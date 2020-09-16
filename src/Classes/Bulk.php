@@ -191,7 +191,7 @@ class Bulk
             $this->autocommitAfter > 0 &&
             $this->operationCount >= $this->autocommitAfter
         ) {
-            return $this->commit();
+            return (bool)$this->commit();
         }
 
         return true;
@@ -220,11 +220,13 @@ class Bulk
 
     /**
      * Commit all pending operations
+     *
+     * @return array|null
      */
-    public function commit(): bool
+    public function commit(): ?array
     {
         if (empty($this->body)) {
-            return false;
+            return null;
         }
 
         $result = $this->query->client->bulk($this->body);

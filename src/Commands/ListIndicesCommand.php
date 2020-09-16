@@ -64,11 +64,10 @@ class ListIndicesCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
-    public function handle()
+    public function handle(): void
     {
         $connectionName = $this->option("connection") ?: config('es.default');
         $connection = $this->es->connection($connectionName);

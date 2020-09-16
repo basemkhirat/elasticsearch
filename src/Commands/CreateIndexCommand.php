@@ -40,11 +40,10 @@ class CreateIndexCommand extends Command
     /**
      * Execute the console command.
      *
-     * @return mixed
      * @throws RuntimeException
      * @throws InvalidArgumentException
      */
-    public function handle()
+    public function handle(): void
     {
         $connectionName = $this->option("connection") ?: config('es.default');
         $connection = $this->es->connection($connectionName);

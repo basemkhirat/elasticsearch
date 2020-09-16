@@ -118,7 +118,7 @@ class WhereNotTest extends TestCase
             $must_not[] = ["range" => [$name => ["lt" => $value]]];
         }
 
-        if ($operator == "<=") {
+        if ($operator === "<=") {
             $must_not[] = ["range" => [$name => ["lte" => $value]]];
         }
 
