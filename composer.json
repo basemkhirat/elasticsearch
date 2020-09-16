@@ -19,7 +19,13 @@
     },
     "authors": [
         {
+            "name": "Basem Khirat",
+            "homepage": "http://basemkhirat.com",
+            "email": "basemkhirat@gmail.com"
+        },
+        {
             "name": "Moritz Friedrich",
+            "homepage": "https://www.moritzfriedrich.com",
             "email": "moritz@matchory.com"
         }
     ],
