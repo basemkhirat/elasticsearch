@@ -1200,7 +1200,7 @@ ES::type("my_type")->bulk(function ($bulk){
 
 Releases
 --------
-See [Change Log](https://github.com/matchory/elasticsearch/blob/master/CHANGELOG.md).
+See the [release page](https://github.com/matchory/elasticsearch/releases).
 
 Authors
 -------
