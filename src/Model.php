@@ -119,6 +119,8 @@ class Model
      * Get all model records
      *
      * @return mixed
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public static function all(): Collection
     {
@@ -130,9 +132,11 @@ class Model
     /**
      * Get model by key
      *
-     * @param $key
+     * @param string $key
      *
      * @return Model|null
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public static function find(string $key): ?Model
     {
@@ -159,7 +163,7 @@ class Model
      *
      * @return mixed
      */
-    public static function __callStatic($method, $parameters)
+    public static function __callStatic(string $method, array $parameters)
     {
         return (new static())->$method(...$parameters);
     }
@@ -189,9 +193,9 @@ class Model
     /**
      * Get index name
      *
-     * @return string
+     * @return string|null
      */
-    public function getIndex(): string
+    public function getIndex(): ?string
     {
         return $this->index;
     }
@@ -231,9 +235,9 @@ class Model
     /**
      * Get type name
      *
-     * @return string
+     * @return string|null
      */
-    public function getType(): string
+    public function getType(): ?string
     {
         return $this->type;
     }
