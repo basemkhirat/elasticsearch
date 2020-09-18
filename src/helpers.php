@@ -12,25 +12,7 @@ if ( ! function_exists('config_path')) {
      */
     function config_path(string $path = ''): string
     {
-        return app()->basePath() . '/config' . ($path ? '/' . $path : $path);
-    }
-}
-
-if ( ! function_exists('is_callback_function')) {
-    /**
-     * Check if a callback function.
-     *
-     * @param string|callable|Closure $callback
-     *
-     * @return bool
-     */
-    function is_callback_function($callback): bool
-    {
-        return (
-            is_callable($callback) &&
-            is_object($callback) &&
-            $callback instanceof Closure
-        );
+        return \app()->basePath() . '/config' . ($path ? '/' . $path : $path);
     }
 }
 
@@ -44,7 +26,7 @@ if ( ! function_exists('base_path')) {
      */
     function base_path(string $path = ''): string
     {
-        return app()->basePath() . ($path ? '/' . $path : $path);
+        return \app()->basePath() . ($path ? '/' . $path : $path);
     }
 }
 

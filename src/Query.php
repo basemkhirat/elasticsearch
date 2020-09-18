@@ -11,16 +11,19 @@ use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Classes\Search;
 use stdClass;
 
+use function app;
 use function array_filter;
 use function array_key_exists;
 use function array_merge;
 use function array_unique;
 use function array_values;
+use function config;
 use function count;
 use function func_get_args;
+use function get_class;
 use function in_array;
 use function is_array;
-use function is_callback_function;
+use function is_callable;
 use function is_null;
 use function json_encode;
 use function md5;
@@ -139,7 +142,7 @@ class Query
     /**
      * Elastic model instance
      *
-     * @var Model&string
+     * @var Model
      */
     public $model;
 
@@ -225,9 +228,9 @@ class Query
     /**
      * Query search type
      *
-     * @var int
+     * @var 'query_then_fetch'|'dfs_query_then_fetch'
      */
-    protected $search_type;
+    protected $searchType;
 
     /**
      * Query limit
@@ -366,7 +369,7 @@ class Query
      */
     public function searchType(string $type): self
     {
-        $this->search_type = $type;
+        $this->searchType = $type;
 
         return $this;
     }
@@ -374,11 +377,11 @@ class Query
     /**
      * get the query search type
      *
-     * @return int|null
+     * @return string|null
      */
-    public function getSearchType(): ?int
+    public function getSearchType(): ?string
     {
-        return $this->search_type;
+        return $this->searchType;
     }
 
     /**
@@ -565,18 +568,18 @@ class Query
     /**
      * Set the query where clause
      *
-     * @param string     $name
-     * @param string     $operator
-     * @param mixed|null $value
+     * @param string|callable $name
+     * @param string          $operator
+     * @param mixed|null      $value
      *
      * @return $this
      */
     public function where(
-        string $name,
+        $name,
         $operator = self::OPERATOR_EQUAL,
         $value = null
     ): self {
-        if (is_callback_function($name)) {
+        if (is_callable($name)) {
             $name($this);
 
             return $this;
@@ -626,9 +629,9 @@ class Query
     /**
      * Set the query inverse where clause
      *
-     * @param        $name
-     * @param string $operator
-     * @param null   $value
+     * @param string|callable $name
+     * @param string          $operator
+     * @param null            $value
      *
      * @return $this
      */
@@ -637,7 +640,7 @@ class Query
         $operator = self::OPERATOR_EQUAL,
         $value = null
     ): self {
-        if (is_callback_function($name)) {
+        if (is_callable($name)) {
             $name($this);
 
             return $this;
@@ -740,14 +743,14 @@ class Query
     /**
      * Set the query where in clause
      *
-     * @param       $name
-     * @param array $value
+     * @param string|callable $name
+     * @param array           $value
      *
      * @return $this
      */
     public function whereIn($name, $value = []): self
     {
-        if (is_callback_function($name)) {
+        if (is_callable($name)) {
             $name($this);
 
             return $this;
@@ -763,14 +766,14 @@ class Query
     /**
      * Set the query where not in clause
      *
-     * @param       $name
-     * @param array $value
+     * @param string|callable $name
+     * @param array           $value
      *
      * @return $this
      */
     public function whereNotIn($name, $value = []): self
     {
-        if (is_callback_function($name)) {
+        if (is_callable($name)) {
             $name($this);
 
             return $this;
@@ -812,19 +815,19 @@ class Query
      *
      * @see https://www.elastic.co/guide/en/elasticsearch/reference/2.4/query-dsl-geo-distance-query.html
      *
-     * @param string $name     A name of the field.
-     * @param mixed  $value    A starting geo point which can be represented by
-     *                         a string 'lat,lon', an object like
-     *                         `{'lat': lat, 'lon': lon}` or an array
-     *                         like `[lon,lat]`.
-     * @param string $distance A distance from the starting geo point. It can be
-     *                         for example '20km'.
+     * @param string|callable $name     A name of the field.
+     * @param mixed           $value    A starting geo point which can be
+     *                                  represented by a string 'lat,lon', an
+     *                                  object like `{'lat': lat, 'lon': lon}`
+     *                                  or an array like `[lon,lat]`.
+     * @param string          $distance A distance from the starting geo point.
+     *                                  It can be for example '20km'.
      *
      * @return $this
      */
-    public function distance(string $name, $value, string $distance): self
+    public function distance($name, $value, string $distance): self
     {
-        if (is_callback_function($name)) {
+        if (is_callable($name)) {
             $name($this);
 
             return $this;
@@ -857,7 +860,7 @@ class Query
                 $settings
             );
 
-            if ( ! is_callback_function($settings)) {
+            if ( ! is_callable($settings)) {
                 $search->boost($settings ?: 1);
             }
 
@@ -949,6 +952,8 @@ class Query
 
         // TODO: What should be happening here?
         if ($this->model && $this->useGlobalScopes) {
+            // False Positive by PhpStorm
+            /** @noinspection PhpUndefinedMethodInspection */
             $this->model->boot($this);
         }
 
@@ -960,10 +965,10 @@ class Query
             $query['client'] = ['ignore' => $this->ignores];
         }
 
-        $search_type = $this->getSearchType();
+        $searchType = $this->getSearchType();
 
-        if ($search_type) {
-            $query['search_type'] = $search_type;
+        if ($searchType) {
+            $query['search_type'] = $searchType;
         }
 
         $scroll = $this->getScroll();
@@ -1011,9 +1016,9 @@ class Query
      *
      * @param string|null $scroll_id
      *
-     * @return Model|object
+     * @return Model|null
      */
-    public function first(?string $scroll_id = null)
+    public function first(?string $scroll_id = null): ?Model
     {
         $this->take(1);
 
@@ -1190,7 +1195,7 @@ class Query
      */
     public function bulk($data): object
     {
-        if (is_callback_function($data)) {
+        if (is_callable($data)) {
             $bulk = new Bulk($this);
 
             $data($bulk);
@@ -1665,7 +1670,9 @@ class Query
 
         foreach ($result[self::FIELD_HITS][self::FIELD_NESTED_HITS] as $row) {
             // Fallback to default model class
-            $modelClass = $this->model ?? Model::class;
+            $modelClass = $this->model
+                ? get_class($this->model)
+                : Model::class;
             $model = new $modelClass($row[self::FIELD_SOURCE], true);
 
             $model->setConnection($model->getConnection());
@@ -1702,9 +1709,9 @@ class Query
         }
 
         $data = $result[self::FIELD_HITS][self::FIELD_NESTED_HITS];
-        $modelClass = $this->model ?? Model::class;
-
-        /** @var Model $model */
+        $modelClass = $this->model
+            ? get_class($this->model)
+            : Model::class;
         $model = new $modelClass($data[0][self::FIELD_SOURCE], true);
 
         $model->setConnection($model->getConnection());

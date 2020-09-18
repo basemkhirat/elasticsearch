@@ -8,6 +8,14 @@ use InvalidArgumentException;
 use Matchory\Elasticsearch\Connection;
 use RuntimeException;
 
+use function app;
+use function array_key_exists;
+use function config;
+use function count;
+use function explode;
+use function is_array;
+use function trim;
+
 /**
  * Class ListIndicesCommand
  *
@@ -71,11 +79,6 @@ class ListIndicesCommand extends Command
     {
         $connectionName = $this->option("connection") ?: config('es.default');
         $connection = $this->es->connection($connectionName);
-
-        if ( ! $connection) {
-            throw new RuntimeException('No connection');
-        }
-
         $indices = $connection->raw()->cat()->indices();
         $indices = is_array($indices)
             ? $this->getIndicesFromArrayResponse($indices)

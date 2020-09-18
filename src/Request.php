@@ -13,10 +13,13 @@ class Request
 {
     /**
      * Get the request url
+     * TODO: Replace this class by the Laravel-supplied helper functions.
+     *
+     * @param string|null $host
      *
      * @return string
      */
-    public static function url(): string
+    public static function url(?string $host = null): string
     {
         $server = $_SERVER;
         $ssl = ( ! empty($server['HTTPS']) && $server['HTTPS'] === 'on');

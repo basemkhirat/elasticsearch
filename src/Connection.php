@@ -11,6 +11,7 @@ use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
 use RuntimeException;
 
+use function app;
 use function array_key_exists;
 use function call_user_func_array;
 use function method_exists;

@@ -9,7 +9,6 @@ use function array_unique;
 use function count;
 use function func_get_args;
 use function is_array;
-use function is_callback_function;
 
 /**
  * Class Index
@@ -42,7 +41,7 @@ class Index
     /**
      * Index create callback
      *
-     * @var null
+     * @var callable|null
      */
     public $callback;
 
@@ -63,7 +62,7 @@ class Index
     /**
      * Index mapping
      *
-     * @var int
+     * @var array
      */
     public $mappings = [];
 
@@ -152,10 +151,7 @@ class Index
     public function create(): array
     {
         $callback = $this->callback;
-
-        if (is_callback_function($callback)) {
-            $callback($this);
-        }
+        $callback($this);
 
         $params = [
             'index' => $this->name,

@@ -23,7 +23,7 @@ class Collection extends BaseCollection
     protected $maxScore;
 
     /**
-     * @var int|null
+     * @var float|null
      */
     protected $duration;
 
@@ -98,7 +98,7 @@ class Collection extends BaseCollection
         return $this->maxScore;
     }
 
-    public function getDuration(): ?int
+    public function getDuration(): ?float
     {
         return $this->duration;
     }

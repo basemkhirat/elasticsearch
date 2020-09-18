@@ -50,7 +50,7 @@ class ScoutEngine extends Engine
     {
         $params['body'] = [];
 
-        $models->each(function ($model) use (&$params) {
+        $models->each(function (Model $model) use (&$params) {
             $params['body'][] = [
                 'delete' => [
                     '_id' => $model->getKey(),
@@ -124,7 +124,9 @@ class ScoutEngine extends Engine
 
         $collection = new Collection($results['hits']['hits']);
 
-        return $collection->map(function ($hit) use ($models) {
+        return $collection->map(static function (
+            array $hit
+        ) use ($models) {
             return $models[$hit['_id']];
         });
     }
@@ -185,9 +187,11 @@ class ScoutEngine extends Engine
      */
     public function update($models): void
     {
-        $params['body'] = [];
+        $params = [
+            'body' => [],
+        ];
 
-        $models->each(function ($model) use (&$params) {
+        $models->each(function (Model $model) use (&$params) {
             $params['body'][] = [
                 'update' => [
                     '_id' => $model->getKey(),
@@ -265,9 +269,16 @@ class ScoutEngine extends Engine
     protected function filters(Builder $builder): array
     {
         return collect($builder->wheres)
-            ->map(function ($value, $key) {
-                return ['match_phrase' => [$key => $value]];
-            })
+            ->map(
+            /**
+             * @param mixed      $value
+             * @param string|int $key
+             *
+             * @return array
+             */
+                static function ($value, $key): array {
+                    return ['match_phrase' => [$key => $value]];
+                })
             ->values()
             ->all();
     }

@@ -4,6 +4,8 @@ namespace Matchory\Elasticsearch\Classes;
 
 use Matchory\Elasticsearch\Query;
 
+use function is_callable;
+
 /**
  * Class Search
  *
@@ -60,7 +62,7 @@ class Search
         $this->query = $query;
         $this->queryString = $queryString;
 
-        if (is_callback_function($settings)) {
+        if (is_callable($settings)) {
             $settings($this);
         }
 

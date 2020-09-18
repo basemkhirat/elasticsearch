@@ -16,7 +16,9 @@ use Matchory\Elasticsearch\Commands\UpdateIndexCommand;
 use RuntimeException;
 
 use function class_exists;
+use function config;
 use function config_path;
+use function method_exists;
 use function str_starts_with;
 use function version_compare;
 
@@ -46,7 +48,10 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         // Auto configuration with lumen framework.
 
-        if (Str::contains($this->app->version(), 'Lumen')) {
+        if (
+            method_exists($this->app, 'configure') &&
+            Str::contains($this->app->version(), 'Lumen')
+        ) {
             $this->app->configure('es');
         }
 

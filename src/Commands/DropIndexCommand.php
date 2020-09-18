@@ -7,6 +7,11 @@ use InvalidArgumentException;
 use Matchory\Elasticsearch\Connection;
 use RuntimeException;
 
+use function app;
+use function array_keys;
+use function config;
+use function is_null;
+
 class DropIndexCommand extends Command
 {
     /**
@@ -48,11 +53,6 @@ class DropIndexCommand extends Command
     {
         $connectionName = $this->option("connection") ?: config('es.default');
         $connection = $this->es->connection($connectionName);
-
-        if ( ! $connection) {
-            throw new RuntimeException('No connection');
-        }
-
         $force = $this->option("force") ?: 0;
         $client = $connection->raw();
         $indices = ! is_null($this->argument('index'))

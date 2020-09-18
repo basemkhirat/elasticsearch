@@ -7,6 +7,13 @@ use InvalidArgumentException;
 use Matchory\Elasticsearch\Connection;
 use RuntimeException;
 
+use function app;
+use function array_key_exists;
+use function ceil;
+use function config;
+use function count;
+use function json_encode;
+
 /**
  * Class ReindexCommand
  *
@@ -83,7 +90,7 @@ class ReindexCommand extends Command
         $this->size = (int)$this->option("bulk-size");
         $this->scroll = $this->option("scroll");
 
-        if ($this->size <= 0 || ! is_numeric($this->size)) {
+        if ($this->size <= 0) {
             $this->warn("Invalid size value");
 
             return;
@@ -127,10 +134,6 @@ class ReindexCommand extends Command
         int $page = 1
     ): void {
         $connection = $this->es->connection($this->connection);
-
-        if ( ! $connection) {
-            throw new RuntimeException('No connection');
-        }
 
         if ($page === 1) {
             $pages = (int)ceil(

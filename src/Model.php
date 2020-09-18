@@ -1,13 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Matchory\Elasticsearch;
 
 use Illuminate\Support\Str;
 use InvalidArgumentException;
+use JsonException;
 use RuntimeException;
 
+use function app;
 use function array_diff;
 use function array_key_exists;
+use function config;
 use function in_array;
 use function json_encode;
 use function method_exists;
@@ -118,7 +123,7 @@ class Model
     /**
      * Get all model records
      *
-     * @return mixed
+     * @return Collection
      * @throws InvalidArgumentException
      * @throws RuntimeException
      */
@@ -363,16 +368,22 @@ class Model
      * @param int $options
      *
      * @return string
+     * @throws JsonException
      */
     public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), $options);
+        return json_encode(
+            $this->toArray(),
+            JSON_THROW_ON_ERROR | $options
+        );
     }
 
     /**
      * Delete model record
      *
      * @return $this
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function delete(): ?self
     {
@@ -393,9 +404,11 @@ class Model
     /**
      * Save data to model
      *
-     * @return string
+     * @return $this
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
-    public function save(): string
+    public function save(): self
     {
         $fields = array_diff($this->attributes, [
             '_index',
@@ -411,29 +424,30 @@ class Model
                 ->newQuery()
                 ->id($this->getID())
                 ->update($fields);
-        } else {
-            // Check if model key exists in items
 
-            if (array_key_exists('_id', $this->attributes)) {
-                $created = $this
-                    ->newQuery()
-                    ->id($this->attributes['_id'])
-                    ->insert($fields);
-                $this->_id = $this->attributes['_id'];
-            } else {
-                $created = $this->newQuery()->insert($fields);
-                $this->_id = $created->_id;
-            }
-
-            $this->setConnection($this->getConnection());
-            $this->setIndex($created->_index);
-
-            // Match earlier versions
-            $this->_index = $created->_index;
-            $this->_type = $this->type;
-
-            $this->exists = true;
+            return $this;
         }
+
+        // Check if model key exists in items
+        if (array_key_exists('_id', $this->attributes)) {
+            $created = $this
+                ->newQuery()
+                ->id($this->attributes['_id'])
+                ->insert($fields);
+            $this->_id = $this->attributes['_id'];
+        } else {
+            $created = $this->newQuery()->insert($fields);
+            $this->_id = $created->_id;
+        }
+
+        $this->setConnection($this->getConnection());
+        $this->setIndex($created->_index);
+
+        // Match earlier versions
+        $this->_index = $created->_index;
+        $this->_type = $this->type;
+
+        $this->exists = true;
 
         return $this;
     }
@@ -465,6 +479,8 @@ class Model
      * @param array  $parameters
      *
      * @return mixed
+     * @throws InvalidArgumentException
+     * @throws RuntimeException
      */
     public function __call(string $method, array $parameters)
     {
