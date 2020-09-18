@@ -111,7 +111,7 @@ class Model
      * @param array $attributes
      * @param bool  $exists
      */
-    public function __construct($attributes = [], $exists = false)
+    final public function __construct($attributes = [], $exists = false)
     {
         $this->attributes = $attributes;
 

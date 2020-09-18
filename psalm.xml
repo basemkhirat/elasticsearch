@@ -1,6 +1,6 @@
 <?xml version="1.0"?>
 <psalm
-    errorLevel="4"
+    errorLevel="3"
     resolveFromConfigFile="true"
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xmlns="https://getpsalm.org/schema/config"
@@ -15,11 +15,44 @@
     </projectFiles>
 
     <issueHandlers>
+
+        <!--
+         As these functions are included with Laravel and don't come bundled in a separate package, we have to ignore
+         them for now. They should ultimately be removed still, to allow using the package with other apps.
+         -->
         <UndefinedFunction>
             <errorLevel type="suppress">
                 <referencedFunction name="app"/>
                 <referencedFunction name="config"/>
             </errorLevel>
         </UndefinedFunction>
+
+        <!--
+         Due to the way Laravel handles console commands, psalm cannot be sure argument values are actually strings. We
+         know better, though.
+         -->
+        <PossiblyInvalidCast>
+            <errorLevel type="suppress">
+                <directory name="src/Commands"/>
+            </errorLevel>
+        </PossiblyInvalidCast>
+
+        <!--
+         This is caused by Laravel collections and scout having an unfortunate combination of type hints.
+         -->
+        <LessSpecificReturnStatement>
+            <errorLevel type="suppress">
+                <file name="src/ScoutEngine.php"/>
+            </errorLevel>
+        </LessSpecificReturnStatement>
+
+        <!--
+         This is caused by Laravel collections and scout having an unfortunate combination of type hints.
+         -->
+        <MoreSpecificReturnType>
+            <errorLevel type="suppress">
+                <file name="src/ScoutEngine.php"/>
+            </errorLevel>
+        </MoreSpecificReturnType>
     </issueHandlers>
 </psalm>

@@ -24,7 +24,7 @@ class Request
         $server = $_SERVER;
         $ssl = ( ! empty($server['HTTPS']) && $server['HTTPS'] === 'on');
         $sp = strtolower($server['SERVER_PROTOCOL']);
-        $protocol = substr($sp, 0, strpos($sp, '/')) . (($ssl) ? 's' : '');
+        $protocol = substr($sp, 0, strpos($sp, '/') ?: 0) . (($ssl) ? 's' : '');
         $port = (int)$server['SERVER_PORT'];
         $port = (( ! $ssl && $port === 80) || ($ssl && $port === 443))
             ? ''

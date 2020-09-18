@@ -48,7 +48,9 @@ class ScoutEngine extends Engine
      */
     public function delete($models): void
     {
-        $params['body'] = [];
+        $params = [
+            'body' => [],
+        ];
 
         $models->each(function (Model $model) use (&$params) {
             $params['body'][] = [
@@ -116,7 +118,6 @@ class ScoutEngine extends Engine
             ->values()
             ->all();
 
-        /** @noinspection PhpUndefinedMethodInspection */
         $models = $model
             ->whereIn($model->getKeyName(), $keys)
             ->get()

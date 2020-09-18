@@ -151,7 +151,10 @@ class Index
     public function create(): array
     {
         $callback = $this->callback;
-        $callback($this);
+
+        if ($callback) {
+            $callback($this);
+        }
 
         $params = [
             'index' => $this->name,

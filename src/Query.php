@@ -7,8 +7,10 @@ namespace Matchory\Elasticsearch;
 use DateTime;
 use Elasticsearch\Client;
 use Illuminate\Database\Query\Builder;
+use JsonException;
 use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Classes\Search;
+use RuntimeException;
 use stdClass;
 
 use function app;
@@ -142,7 +144,7 @@ class Query
     /**
      * Elastic model instance
      *
-     * @var Model
+     * @var Model|null
      */
     public $model;
 
@@ -249,16 +251,16 @@ class Query
     /**
      * The key that should be used when caching the query.
      *
-     * @var string
+     * @var string|null
      */
     protected $cacheKey;
 
     /**
-     * The number of minutes to cache the query.
+     * The number of seconds to cache the query.
      *
-     * @var int
+     * @var DateTime|int|null
      */
-    protected $cacheMinutes;
+    protected $cacheTtl;
 
     /**
      * The cache driver to be used.
@@ -281,7 +283,9 @@ class Query
      */
     public function __construct(?Client $client = null)
     {
-        $this->client = $client;
+        if ($client) {
+            $this->client = $client;
+        }
     }
 
     /**
@@ -364,6 +368,8 @@ class Query
      * Set the query search type
      *
      * @param string $type
+     *
+     * @psalm-param 'query_then_fetch'|'dfs_query_then_fetch' $type
      *
      * @return $this
      */
@@ -518,7 +524,7 @@ class Query
         }
 
         $this->source[self::SOURCE_EXCLUDE] = array_unique(array_merge(
-            $this->source[self::SOURCE_EXCLUDE],
+            $this->source[self::SOURCE_EXCLUDE] ?? [],
             $fields
         ));
 
@@ -526,7 +532,7 @@ class Query
             $this->source[self::SOURCE_INCLUDE], function ($field) {
             return ! in_array(
                 $field,
-                $this->source[self::SOURCE_EXCLUDE],
+                $this->source[self::SOURCE_EXCLUDE] ?? [],
                 false
             );
         }));
@@ -620,7 +626,7 @@ class Query
                 break;
 
             case self::OPERATOR_EXISTS:
-                $this->whereExists($name, $value);
+                $this->whereExists($name);
         }
 
         return $this;
@@ -686,23 +692,26 @@ class Query
     /**
      * Set the query where between clause
      *
-     * @param $name
-     * @param $first_value
-     * @param $last_value
+     * @param string $name
+     * @param mixed  $firstValue
+     * @param mixed  $lastValue
      *
      * @return $this
      */
-    public function whereBetween($name, $first_value, $last_value = null): self
-    {
-        if (is_array($first_value) && count($first_value) === 2) {
-            [$first_value, $last_value] = $first_value;
+    public function whereBetween(
+        string $name,
+        $firstValue,
+        $lastValue = null
+    ): self {
+        if (is_array($firstValue) && count($firstValue) === 2) {
+            [$firstValue, $lastValue] = $firstValue;
         }
 
         $this->filter[] = [
             'range' => [
                 $name => [
-                    'gte' => $first_value,
-                    'lte' => $last_value,
+                    'gte' => $firstValue,
+                    'lte' => $lastValue,
                 ],
             ],
         ];
@@ -713,26 +722,26 @@ class Query
     /**
      * Set the query where not between clause
      *
-     * @param $name
-     * @param $first_value
-     * @param $last_value
+     * @param string     $name
+     * @param mixed      $firstValue
+     * @param mixed|null $lastValue
      *
      * @return $this
      */
     public function whereNotBetween(
-        $name,
-        $first_value,
-        $last_value = null
+        string $name,
+        $firstValue,
+        $lastValue = null
     ): self {
-        if (is_array($first_value) && count($first_value) === 2) {
-            [$first_value, $last_value] = $first_value;
+        if (is_array($firstValue) && count($firstValue) === 2) {
+            [$firstValue, $lastValue] = $firstValue;
         }
 
         $this->must_not[] = [
             'range' => [
                 $name => [
-                    'gte' => $first_value,
-                    'lte' => $last_value,
+                    'gte' => $firstValue,
+                    'lte' => $lastValue,
                 ],
             ],
         ];
@@ -846,12 +855,13 @@ class Query
     /**
      * Search the entire document fields
      *
-     * @param string|null       $queryString
-     * @param callable|int|null $settings
+     * @param string|null   $queryString
+     * @param callable|null $settings
+     * @param int|null      $boost
      *
      * @return $this
      */
-    public function search(?string $queryString = null, $settings = null): self
+    public function search(?string $queryString = null, $settings = null, ?int $boost = null): self
     {
         if ($queryString) {
             $search = new Search(
@@ -860,10 +870,7 @@ class Query
                 $settings
             );
 
-            if ( ! is_callable($settings)) {
-                $search->boost($settings ?: 1);
-            }
-
+            $search->boost($boost ?? 1);
             $search->build();
         }
 
@@ -871,11 +878,11 @@ class Query
     }
 
     /**
-     * @param $path
+     * @param string $path
      *
      * @return Query
      */
-    public function nested($path): self
+    public function nested(string $path): self
     {
         $this->body = [
             'query' => [
@@ -1008,6 +1015,10 @@ class Query
     {
         $result = $this->getResult($scrollId);
 
+        if ( ! $result) {
+            return new Collection([]);
+        }
+
         return $this->getAll($result);
     }
 
@@ -1024,6 +1035,10 @@ class Query
 
         $result = $this->getResult($scroll_id);
 
+        if ( ! $result) {
+            return null;
+        }
+
         return $this->getFirst($result);
     }
 
@@ -1033,6 +1048,7 @@ class Query
      * @param string|null $scrollId
      *
      * @return array
+     * @throws JsonException
      */
     public function response(?string $scrollId = null): array
     {
@@ -1047,10 +1063,10 @@ class Query
             $result = $this->client->search($this->query());
         }
 
-        if ( ! is_null($this->cacheMinutes)) {
+        if ( ! is_null($this->cacheTtl)) {
             app('cache')
                 ->driver($this->cacheDriver)
-                ->put($this->getCacheKey(), $result, $this->cacheMinutes);
+                ->put($this->getCacheKey(), $result, $this->cacheTtl);
         }
 
         return $result;
@@ -1358,9 +1374,14 @@ class Query
      * Check existence of index
      *
      * @return bool
+     * @throws RuntimeException
      */
     public function exists(): bool
     {
+        if ( ! $this->index) {
+            throw new RuntimeException('No index configured');
+        }
+
         $index = new Index($this->index);
 
         $index->setClient($this->client);
@@ -1386,13 +1407,31 @@ class Query
     }
 
     /**
+     * Create the configured index
+     *
+     * @param callable|null $callback
+     *
+     * @return array
+     * @throws RuntimeException
+     * @see Query::createIndex()
+     */
+    public function create(?callable $callback = null): array
+    {
+        if ( ! $this->index) {
+            throw new RuntimeException('No index name configured');
+        }
+
+        return $this->createIndex($this->index, $callback);
+    }
+
+    /**
      * Drop index
      *
-     * @param $name
+     * @param string $name
      *
      * @return array
      */
-    public function dropIndex($name): array
+    public function dropIndex(string $name): array
     {
         $index = new Index($name);
 
@@ -1402,32 +1441,18 @@ class Query
     }
 
     /**
-     * create a new index [alias to createIndex method]
-     *
-     * @param callable|null $callback
+     * Drop the configured index
      *
      * @return array
-     */
-    public function create(?callable $callback = null): array
-    {
-        $index = new Index($this->index, $callback);
-        $index->client = $this->client;
-
-        return $index->create();
-    }
-
-    /**
-     * Drop index [alias to dropIndex method]
-     *
-     * @return array
+     * @throws RuntimeException
      */
     public function drop(): array
     {
-        $index = new Index($this->index);
+        if ( ! $this->index) {
+            throw new RuntimeException('No index name configured');
+        }
 
-        $index->client = $this->client;
-
-        return $index->drop();
+        return $this->dropIndex($this->index);
     }
 
     /* Caching Methods */
@@ -1464,6 +1489,7 @@ class Query
      * Get a unique cache key for the complete query.
      *
      * @return string
+     * @throws JsonException
      */
     public function getCacheKey(): string
     {
@@ -1476,23 +1502,29 @@ class Query
      * Generate the unique cache key for the query.
      *
      * @return string
+     * @throws JsonException
      */
     public function generateCacheKey(): string
     {
-        return md5(json_encode($this->query()));
+        return md5(json_encode(
+            $this->query(),
+            JSON_THROW_ON_ERROR
+        ));
     }
 
     /**
      * Indicate that the query results should be cached.
      *
-     * @param DateTime|int $minutes
-     * @param string|null  $key
+     * @param DateTime|int $ttl Cache TTL in seconds.
+     * @param string|null  $key Cache key to use. Will be generated
+     *                          automatically if omitted.
      *
      * @return $this
      */
-    public function remember($minutes, ?string $key = null): self
+    public function remember($ttl, ?string $key = null): self
     {
-        [$this->cacheMinutes, $this->cacheKey] = [$minutes, $key];
+        $this->cacheTtl = $ttl;
+        $this->cacheKey = $key;
 
         return $this;
     }
@@ -1520,7 +1552,7 @@ class Query
         // Check for model scopes
         $method = 'scope' . ucfirst($method);
 
-        if (method_exists($this->model, $method)) {
+        if ($this->model && method_exists($this->model, $method)) {
             $parameters = array_merge([$this], $parameters);
             $this->model->$method(...$parameters);
 
@@ -1638,7 +1670,7 @@ class Query
      */
     protected function getResult(?string $scrollId = null): ?array
     {
-        if (is_null($this->cacheMinutes)) {
+        if (is_null($this->cacheTtl)) {
             return $this->response($scrollId);
         }
 

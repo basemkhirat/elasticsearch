@@ -4,6 +4,7 @@ namespace Matchory\Elasticsearch\Commands;
 
 use Illuminate\Console\Command;
 use InvalidArgumentException;
+use JsonException;
 use Matchory\Elasticsearch\Connection;
 use RuntimeException;
 
@@ -83,12 +84,14 @@ class ReindexCommand extends Command
      * @return void
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     * @throws JsonException
+     * @psalm-suppress PossiblyInvalidArgument
      */
     public function handle(): void
     {
         $this->connection = $this->option("connection") ?: config('es.default');
         $this->size = (int)$this->option("bulk-size");
-        $this->scroll = $this->option("scroll");
+        $this->scroll = (string)$this->option("scroll");
 
         if ($this->size <= 0) {
             $this->warn("Invalid size value");
@@ -96,7 +99,7 @@ class ReindexCommand extends Command
             return;
         }
 
-        $originalIndex = $this->argument('index');
+        $originalIndex = (string)$this->argument('index');
         $newIndex = $this->argument('new_index');
 
         if ( ! array_key_exists($originalIndex, config('es.indices'))) {
@@ -119,17 +122,18 @@ class ReindexCommand extends Command
      *
      * @param string      $originalIndex
      * @param string      $newIndex
-     * @param string|null $scroll_id
+     * @param string|null $scrollId
      * @param int         $errors
      * @param int         $page
      *
      * @throws InvalidArgumentException
      * @throws RuntimeException
+     * @throws JsonException
      */
     public function migrate(
         string $originalIndex,
         string $newIndex,
-        ?string $scroll_id = null,
+        ?string $scrollId = null,
         int $errors = 0,
         int $page = 1
     ): void {
@@ -155,7 +159,7 @@ class ReindexCommand extends Command
                 ->index($originalIndex)
                 ->type('')
                 ->scroll($this->scroll)
-                ->scrollID($scroll_id)
+                ->scrollID($scrollId ?: '')
                 ->response();
         }
 
