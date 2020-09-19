@@ -71,5 +71,8 @@
     },
     "config": {
         "sort-packages": true
+    },
+    "replace": {
+        "basemkhirat/elasticsearch": "*"
     }
 }
