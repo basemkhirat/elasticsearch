@@ -626,7 +626,7 @@ class Query
                 break;
 
             case self::OPERATOR_EXISTS:
-                $this->whereExists($name);
+                $this->whereExists($name, $value);
         }
 
         return $this;
