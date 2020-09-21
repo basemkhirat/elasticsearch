@@ -81,14 +81,17 @@ class WhereTest extends TestCase
     /**
      * Get The expected results.
      *
-     * @param        $name
-     * @param string $operator
-     * @param null   $value
+     * @param string     $name
+     * @param string     $operator
+     * @param mixed|null $value
      *
      * @return array
      */
-    protected function getExpected(string $name, string $operator = "=", $value = null): array
-    {
+    protected function getExpected(
+        string $name,
+        string $operator = "=",
+        $value = null
+    ): array {
         $query = $this->getQueryArray();
 
         if ( ! in_array(
@@ -160,14 +163,20 @@ class WhereTest extends TestCase
     /**
      * Get The actual results.
      *
-     * @param        $name
-     * @param string $operator
-     * @param null   $value
+     * @param string     $name
+     * @param string     $operator
+     * @param mixed|null $value
      *
-     * @return mixed
+     * @return array
      */
-    protected function getActual($name, $operator = "=", $value = null)
-    {
-        return $this->getQueryObject()->where($name, $operator, $value)->query();
+    protected function getActual(
+        string $name,
+        string $operator = "=",
+        $value = null
+    ): array {
+        return $this
+            ->getQueryObject()
+            ->where($name, $operator, $value)
+            ->query();
     }
 }

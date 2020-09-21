@@ -1010,6 +1010,7 @@ class Query
      * @param string|null $scrollId
      *
      * @return Collection
+     * @throws JsonException
      */
     public function get(?string $scrollId = null): Collection
     {
@@ -1028,6 +1029,7 @@ class Query
      * @param string|null $scroll_id
      *
      * @return Model|null
+     * @throws JsonException
      */
     public function first(?string $scroll_id = null): ?Model
     {
@@ -1114,6 +1116,7 @@ class Query
      * @param int|null $page
      *
      * @return Pagination
+     * @throws JsonException
      */
     public function paginate(
         int $per_page = 10,
@@ -1667,6 +1670,7 @@ class Query
      * @param string|null $scrollId
      *
      * @return array|null
+     * @throws JsonException
      */
     protected function getResult(?string $scrollId = null): ?array
     {
