@@ -45,15 +45,15 @@
     "require": {
         "php": ">=7.3",
         "ext-json": "*",
-        "elasticsearch/elasticsearch": "^5.0|^6.0",
+        "elasticsearch/elasticsearch": "^7.9",
         "illuminate/pagination": "*",
         "illuminate/support": "*",
         "monolog/monolog": "*",
         "symfony/var-dumper": "*"
     },
     "require-dev": {
-        "illuminate/contracts": "^8.3",
-        "illuminate/database": "^8.3",
+        "illuminate/contracts": "^8.5",
+        "illuminate/database": "^8.5",
         "laravel/scout": "^8.3",
         "phpunit/phpunit": "^9.3",
         "vimeo/psalm": "^3.16"
