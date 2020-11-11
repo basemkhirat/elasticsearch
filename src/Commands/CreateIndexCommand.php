@@ -53,6 +53,8 @@ class CreateIndexCommand extends Command
         $connectionName = $this->option("connection") ?: config('es.default');
         $connection = $this->es->connection($connectionName);
         $client = $connection->raw();
+
+        /** @var string[] $indices */
         $indices = ! is_null($this->argument('index'))
             ? [$this->argument('index')]
             : array_keys(config('es.indices'));

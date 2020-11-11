@@ -5,6 +5,8 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch;
 
 use Illuminate\Support\Collection as BaseCollection;
+use JsonException;
+use stdClass;
 
 use function array_map;
 use function is_array;
@@ -42,16 +44,28 @@ class Collection extends BaseCollection
      */
     protected $shards;
 
+    /**
+     * Collection constructor.
+     *
+     * @param array         $items
+     * @param int|null      $total
+     * @param int|null      $maxScore
+     * @param float|null    $duration
+     * @param bool|null     $timedOut
+     * @param string|null   $scrollId
+     * @param stdClass|null $shards
+     */
     public function __construct(
-        $items = [],
+        array $items = [],
         ?int $total = null,
         ?int $maxScore = null,
         ?float $duration = null,
         ?bool $timedOut = null,
         ?string $scrollId = null,
-        $shards = null
+        ?stdClass $shards = null
     ) {
         parent::__construct($items);
+
         $this->items = $items;
         $this->total = $total;
         $this->maxScore = $maxScore;
@@ -77,7 +91,7 @@ class Collection extends BaseCollection
             : $response['hits']['total']
         );
 
-        return new static(
+        return new self(
             $items,
             $total,
             $maxScore,
@@ -113,7 +127,7 @@ class Collection extends BaseCollection
         return $this->scrollId;
     }
 
-    public function getShards()
+    public function getShards(): ?stdClass
     {
         return $this->shards;
     }
@@ -125,7 +139,7 @@ class Collection extends BaseCollection
      */
     public function toArray(): array
     {
-        return array_map(static function ($item) {
+        return array_map(static function ($item): array {
             return $item->toArray();
         }, $this->items);
     }
@@ -136,9 +150,13 @@ class Collection extends BaseCollection
      * @param int $options
      *
      * @return string
+     * @throws JsonException
      */
     public function toJson($options = 0): string
     {
-        return json_encode($this->toArray(), $options);
+        return json_encode(
+            $this->toArray(),
+            JSON_THROW_ON_ERROR | $options
+        );
     }
 }

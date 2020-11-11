@@ -36,9 +36,9 @@ class Search
     /**
      * The search query boost factor
      *
-     * @var integer
+     * @var int|null
      */
-    public $boost;
+    public $boost = null;
 
     /**
      * The search fields
@@ -47,6 +47,9 @@ class Search
      */
     public $fields = [];
 
+    /**
+     * @var array|callable|null
+     */
     protected $settings;
 
     /**
