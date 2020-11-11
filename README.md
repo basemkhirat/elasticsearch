@@ -1,11 +1,7 @@
-<p align="center">
-
 [![Latest Stable Version](https://poser.pugx.org/matchory/elasticsearch/v)](//packagist.org/packages/matchory/elasticsearch) [![Total Downloads](https://poser.pugx.org/matchory/elasticsearch/downloads)](//packagist.org/packages/matchory/elasticsearch) [![Latest Unstable Version](https://poser.pugx.org/matchory/elasticsearch/v/unstable)](//packagist.org/packages/matchory/elasticsearch) [![License](https://poser.pugx.org/matchory/elasticsearch/license)](//packagist.org/packages/matchory/elasticsearch)
 
-</p>
-
-Fork of [`basemkhirat/elasticsearch`](https://github.com/basemkhirat/elasticsearch)
-===================================================================================
+Laravel Elasticsearch integration
+=================================
 This is a fork of the excellent library by [@basemkhirat](https://github.com/basemkhirat), who sadly seems to have abandoned it by now.  
 As we rely on this library quite heavily, we will attempt to keep it up to date and compatible with newer Laravel and Elasticsearch versions.
 
