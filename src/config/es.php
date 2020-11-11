@@ -8,7 +8,7 @@ return [
     |--------------------------------------------------------------------------
     |
     | Here you may specify which of the Elasticsearch connections below you wish
-    | to use as your default connection for all work. Of course.
+    | to use as your default connection for all work.
     |
     */
     'default' => env('ELASTIC_CONNECTION', 'default'),

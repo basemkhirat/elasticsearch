@@ -67,7 +67,7 @@ class CreateIndexCommand extends Command
             }
 
             if ($client->indices()->exists(['index' => $index])) {
-                $this->warn("Index {$index} is already exists!");
+                $this->warn("Index {$index} already exists!");
 
                 continue;
             }
