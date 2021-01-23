@@ -1,36 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Matchory\Elasticsearch;
 
+use BadMethodCallException;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
-use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\App;
+use Illuminate\Support\Traits\ForwardsCalls;
 use InvalidArgumentException;
+use Matchory\Elasticsearch\Interfaces\ClientFactoryInterface;
+use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
+use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface as Resolver;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
-use RuntimeException;
-
-use function app;
-use function array_key_exists;
-use function call_user_func_array;
-use function method_exists;
 
 /**
  * Class Connection
  *
  * @package Matchory\Elasticsearch
  */
-class Connection
+class Connection implements ConnectionInterface
 {
+    use ForwardsCalls;
+
     private const DEFAULT_LOGGER_NAME = 'elasticsearch';
 
     /**
-     * Laravel app instance
-     *
-     * @var Application
+     * @var Resolver
+     * @todo remove in next major version
      */
-    protected $app;
+    private static $resolver;
 
     /**
      * Elastic config content
@@ -54,50 +57,64 @@ class Connection
     protected $clients = [];
 
     /**
-     * TODO: The hard dependency on the `app()` function should be replaced with
-     *       dependency injection
+     * @var string|null
      */
-    public function __construct()
+    protected $index;
+
+    /**
+     * Creates a new connection manager
+     *
+     * @param Client      $client
+     * @param string|null $index
+     */
+    public function __construct(Client $client, ?string $index = null)
     {
-        $this->app = app();
-        $this->config = $this->app['config']['es'] ?? [];
+        $this->client = $client;
+        $this->index = $index;
     }
 
     /**
-     * Create a native connection
-     * suitable for any non-laravel or non-lumen apps
+     * Set the connection resolver instance.
+     *
+     * @param Resolver $resolver
+     *
+     * @return void
+     * @internal
+     * @deprecated
+     * @todo remove in next major version
+     */
+    public static function setConnectionResolver(Resolver $resolver): void
+    {
+        static::$resolver = $resolver;
+    }
+
+    /**
+     * Create a native connection suitable for any non-laravel or non-lumen apps
      * any composer based frameworks
      *
      * @param $config
      *
      * @return Query
-     * @throws InvalidArgumentException
+     * @throws BindingResolutionException
+     * @deprecated Use the connection manager to create connections instead. It
+     *             provides a simpler way to manage connections. This method
+     *             will be removed in the next major version.
+     * @see        ConnectionManager
      */
     public static function create($config): Query
     {
-        $clientBuilder = ClientBuilder::create();
+        $app = App::getFacadeApplication();
+        $client = $app
+            ->make(ClientFactoryInterface::class)
+            ->createClient(
+                $config['servers'],
+                $config['handler'] ?? null
+            );
 
-        if ( ! empty($config['handler'])) {
-            $clientBuilder->setHandler($config['handler']);
-        }
-
-        $clientBuilder->setHosts($config['servers']);
-
-        $clientBuilder = self::configureLogging(
-            $clientBuilder,
-            $config
-        );
-
-        $query = new Query($clientBuilder->build());
-
-        if (
-            array_key_exists('index', $config) &&
-            $config['index'] !== ''
-        ) {
-            $query->index($config['index']);
-        }
-
-        return $query;
+        return (new static(
+            $client,
+            $config['index'] ?? null
+        ))->newQuery();
     }
 
     /**
@@ -106,6 +123,10 @@ class Connection
      *
      * @return ClientBuilder
      * @throws InvalidArgumentException
+     * @deprecated Use the connection manager to create connections instead. It
+     *             provides a simpler way to manage connections. This method
+     *             will be removed in the next major version.
+     * @see        ConnectionManager
      */
     public static function configureLogging(
         ClientBuilder $clientBuilder,
@@ -134,72 +155,40 @@ class Connection
     /**
      * Create a connection for laravel or lumen frameworks
      *
-     * @param $name
+     * @param string $name
      *
      * @return Query
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
+     * @deprecated Use the connection manager to create connections instead. It
+     *             provides a simpler way to manage connections. This method
+     *             will be removed in the next major version.
+     * @see        ConnectionManager
      */
     public function connection(string $name): Query
     {
-        // Check if connection is already loaded.
-        if ($this->isLoaded($name)) {
-            $this->client = $this->clients[$name];
-
-            return $this->newQuery($name);
-        }
-
-        // Create a new connection.
-        if (array_key_exists($name, $this->config['connections'])) {
-            $config = $this->config['connections'][$name];
-
-            // Instantiate a new ClientBuilder
-            $clientBuilder = ClientBuilder::create();
-
-            $clientBuilder->setHosts($config['servers']);
-
-            $clientBuilder = self::configureLogging(
-                $clientBuilder,
-                $config
-            );
-
-            if ( ! empty($config['handler'])) {
-                $clientBuilder->setHandler($config['handler']);
-            }
-
-            // Build the client object
-            $this->client = $clientBuilder->build();
-            $this->clients[$name] = $this->client;
-
-            return $this->newQuery($name);
-        }
-
-        throw new RuntimeException(
-            "Invalid elasticsearch connection driver '{$name}'"
-        );
+        return $this->newQuery($name);
     }
 
     /**
      * route the request to the query class
      *
-     * @param string $connection
+     * @param string|null $connection Deprecated parameter: Use the proper
+     *                                connection instance directly instead of
+     *                                passing the name. This parameter will be
+     *                                removed in the next major version.
      *
      * @return Query
      */
-    public function newQuery(string $connection): Query
+    public function newQuery(?string $connection = null): Query
     {
-        $config = $this->config['connections'][$connection];
-
-        $query = new Query($this->clients[$connection]);
-
-        if (
-            $config['index'] !== '' &&
-            array_key_exists('index', $config)
-        ) {
-            $query->index($config['index']);
+        // TODO: This is deprecated behaviour and should be removed in the next
+        //       major version.
+        if ($connection) {
+            return static::$resolver
+                ->connection($connection)
+                ->newQuery();
         }
 
-        return $query;
+        return Query::build($this->client, $this->index);
     }
 
     /**
@@ -208,42 +197,31 @@ class Connection
      * @param string $name
      *
      * @return bool
+     * @deprecated Use the connection manager to create connections instead. It
+     *             provides a simpler way to manage connections. This method
+     *             will be removed in the next major version.
+     * @see        ConnectionManager
      */
     public function isLoaded(string $name): bool
     {
-        if (array_key_exists($name, $this->clients)) {
-            return true;
-        }
-
-        return false;
+        return (bool)static::$resolver->connection($name);
     }
 
     /**
      * Proxy  calls to the default connection
      *
-     * @param $name
-     * @param $arguments
+     * @param string $name
+     * @param array  $arguments
      *
      * @return mixed
-     * @throws RuntimeException
-     * @throws InvalidArgumentException
+     * @throws BadMethodCallException
      */
-    public function __call($name, $arguments)
+    public function __call(string $name, array $arguments)
     {
-        if (method_exists($this, $name)) {
-            return call_user_func_array(
-                [$this, $name],
-                $arguments
-            );
-        }
-
-        // if no connection, use default.
-        $query = $this->connection($this->config['default']);
-
-        return call_user_func_array(
-            [$query, $name],
+        return $this->forwardCallTo(
+            $this->newQuery(),
+            $name,
             $arguments
         );
     }
-
 }

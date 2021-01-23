@@ -4,19 +4,24 @@ namespace Matchory\Elasticsearch;
 
 use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
+use Illuminate\Contracts\Events\Dispatcher;
+use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
-use InvalidArgumentException;
 use Laravel\Scout\EngineManager;
+use LogicException;
 use Matchory\Elasticsearch\Commands\CreateIndexCommand;
 use Matchory\Elasticsearch\Commands\DropIndexCommand;
 use Matchory\Elasticsearch\Commands\ListIndicesCommand;
 use Matchory\Elasticsearch\Commands\ReindexCommand;
 use Matchory\Elasticsearch\Commands\UpdateIndexCommand;
-use RuntimeException;
+use Matchory\Elasticsearch\Factories\ClientFactory;
+use Matchory\Elasticsearch\Interfaces\ClientFactoryInterface;
+use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
+use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
 
 use function class_exists;
-use function config;
 use function config_path;
 use function method_exists;
 use function str_starts_with;
@@ -33,51 +38,63 @@ class ElasticsearchServiceProvider extends ServiceProvider
      * Bootstrap any application services.
      *
      * @return void
-     * @throws InvalidArgumentException
-     * @throws RuntimeException
+     * @throws BindingResolutionException
      */
     public function boot(): void
     {
-        $this->mergeConfigFrom(
-            __DIR__ . '/config/es.php', 'es'
-        );
-
+        $this->mergeConfigFrom(__DIR__ . '/config/es.php', 'es');
         $this->publishes([
             __DIR__ . '/config/' => config_path(),
         ], 'es.config');
 
         // Auto configuration with lumen framework.
-
         if (
             method_exists($this->app, 'configure') &&
             Str::contains($this->app->version(), 'Lumen')
         ) {
-            $this->app->configure('es');
+            $this->app->configure(ConnectionResolverInterface::class);
         }
+
+        // Enable automatic connection resolution in all models
+        Model::setConnectionResolver($this->app->make(
+            ConnectionResolverInterface::class
+        ));
+
+        // Enable event dispatching in all models
+        Model::setEventDispatcher($this->app->make(
+            Dispatcher::class
+        ));
+
+        // TODO: Remove in next major version
+        Connection::setConnectionResolver($this->app->make(
+            ConnectionResolverInterface::class
+        ));
 
         // Resolve Laravel Scout engine.
         /** @noinspection ClassConstantCanBeUsedInspection */
-        if (class_exists('Laravel\\Scout\\EngineManager')) {
-            try {
-                $this->app
-                    ->make(EngineManager::class)
-                    ->extend('es', function () {
-                        $connectionName = config('scout.es.connection');
-                        $config = config("es.connections.{$connectionName}");
-                        $elastic = ElasticBuilder
-                            ::create()
-                            ->setHosts($config['servers'])
-                            ->build();
+        if ( ! class_exists('Laravel\\Scout\\EngineManager')) {
+            return;
+        }
 
-                        return new ScoutEngine(
-                            $elastic,
-                            $config['index']
-                        );
-                    });
-            } catch (BindingResolutionException $exception) {
-                // Class is not resolved.
-                // Laravel Scout service provider was not loaded yet.
-            }
+        try {
+            $this->app
+                ->make(EngineManager::class)
+                ->extend('es', function () {
+                    $connectionName = Config::get('scout.es.connection');
+                    $config = Config::get("es.connections.{$connectionName}");
+                    $elastic = ElasticBuilder
+                        ::create()
+                        ->setHosts($config['servers'])
+                        ->build();
+
+                    return new ScoutEngine(
+                        $elastic,
+                        $config['index']
+                    );
+                });
+        } catch (BindingResolutionException $exception) {
+            // Class is not resolved.
+            // Laravel Scout service provider was not loaded yet.
         }
     }
 
@@ -85,6 +102,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
      * Register any application services.
      *
      * @return void
+     * @throws LogicException
      */
     public function register(): void
     {
@@ -106,8 +124,41 @@ class ElasticsearchServiceProvider extends ServiceProvider
             ]);
         }
 
-        $this->app->singleton('es', function () {
-            return new Connection();
-        });
+        // Bind our default client factory on the container, so users may
+        // override it if they need to build their client in a specific way
+        $this->app->singleton(
+            ClientFactoryInterface::class,
+            ClientFactory::class
+        );
+
+        // Bind the connection manager for the resolver interface as a singleton
+        // on the container, so we have a single instance at all times
+        $this->app->singleton(
+            ConnectionResolverInterface::class,
+            function (Application $app) {
+                $factory = $app->make(ClientFactoryInterface::class);
+
+                return new ConnectionManager(
+                    Config::get('es', []),
+                    $factory
+                );
+            }
+        );
+
+        // Bind the default connection separately
+        $this->app->singleton(
+            ConnectionInterface::class,
+            function (Application $app) {
+                return $app
+                    ->make(ConnectionResolverInterface::class)
+                    ->connection();
+            }
+        );
+
+        // Add aliases for convenience and backwards compatibility
+        $this->app->alias(ClientFactoryInterface::class, 'es.factory');
+        $this->app->alias(ConnectionResolverInterface::class, 'es.resolver');
+        $this->app->alias(ConnectionInterface::class, 'es.connection');
+        $this->app->alias(ConnectionResolverInterface::class, 'es');
     }
 }
