@@ -6,20 +6,23 @@ namespace Matchory\Elasticsearch;
 
 use DateTime;
 use Elasticsearch\Client;
+use Illuminate\Cache\CacheManager;
+use Illuminate\Contracts\Cache\Repository as Cache;
+use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Database\Query\Builder;
+use Illuminate\Support\Facades\App;
 use JsonException;
 use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Classes\Search;
 use RuntimeException;
 use stdClass;
 
-use function app;
+use function array_diff;
 use function array_filter;
 use function array_key_exists;
 use function array_merge;
 use function array_unique;
 use function array_values;
-use function config;
 use function count;
 use function func_get_args;
 use function get_class;
@@ -288,14 +291,23 @@ class Query
         }
     }
 
+    public static function build(
+        ?Client $client = null,
+        ?string $index = null
+    ): self {
+        $query = new static($client);
+
+        return $query->index($index);
+    }
+
     /**
      * Set the index name
      *
-     * @param string $index
+     * @param string|null $index
      *
      * @return $this
      */
-    public function index(string $index): self
+    public function index(?string $index = null): self
     {
         $this->index = $index;
 
@@ -957,13 +969,6 @@ class Query
             $query['type'] = $this->getType();
         }
 
-        // TODO: What should be happening here?
-        if ($this->model && $this->useGlobalScopes) {
-            // False Positive by PhpStorm
-            /** @noinspection PhpUndefinedMethodInspection */
-            $this->model->boot($this);
-        }
-
         $query['body'] = $this->getBody();
         $query['from'] = $this->getSkip();
         $query['size'] = $this->getTake();
@@ -1010,6 +1015,7 @@ class Query
      * @param string|null $scrollId
      *
      * @return Collection
+     * @throws BindingResolutionException
      * @throws JsonException
      */
     public function get(?string $scrollId = null): Collection
@@ -1029,6 +1035,7 @@ class Query
      * @param string|null $scroll_id
      *
      * @return Model|null
+     * @throws BindingResolutionException
      * @throws JsonException
      */
     public function first(?string $scroll_id = null): ?Model
@@ -1051,6 +1058,7 @@ class Query
      *
      * @return array
      * @throws JsonException
+     * @throws BindingResolutionException
      */
     public function response(?string $scrollId = null): array
     {
@@ -1066,9 +1074,11 @@ class Query
         }
 
         if ( ! is_null($this->cacheTtl)) {
-            app('cache')
-                ->driver($this->cacheDriver)
-                ->put($this->getCacheKey(), $result, $this->cacheTtl);
+            $this->getCache()->put(
+                $this->getCacheKey(),
+                $result,
+                $this->cacheTtl
+            );
         }
 
         return $result;
@@ -1116,6 +1126,7 @@ class Query
      * @param int|null $page
      *
      * @return Pagination
+     * @throws BindingResolutionException
      * @throws JsonException
      */
     public function paginate(
@@ -1257,7 +1268,14 @@ class Query
 
         $parameters = [
             'id' => $this->_id,
-            'body' => ['doc' => $data],
+            'body' => [
+                'doc' => array_diff($data, [
+                    '_index',
+                    '_type',
+                    '_id',
+                    '_score',
+                ]),
+            ],
             'client' => ['ignore' => $this->ignores],
         ];
 
@@ -1458,8 +1476,6 @@ class Query
         return $this->dropIndex($this->index);
     }
 
-    /* Caching Methods */
-
     /**
      * Indicate that the results, if cached, should use the given cache driver.
      *
@@ -1473,6 +1489,8 @@ class Query
 
         return $this;
     }
+
+    /* Caching Methods */
 
     /**
      * Set the cache prefix.
@@ -1576,6 +1594,18 @@ class Query
     }
 
     /**
+     * @return Cache
+     * @throws BindingResolutionException
+     * @todo Make caching use dependency injection
+     */
+    protected function getCache(): Cache
+    {
+        return App::getFacadeApplication()
+                  ->make(CacheManager::class)
+                  ->driver($this->cacheDriver);
+    }
+
+    /**
      * Get the query limit
      *
      * @return int
@@ -1670,7 +1700,10 @@ class Query
      * @param string|null $scrollId
      *
      * @return array|null
+     * @throws BindingResolutionException
      * @throws JsonException
+     * @noinspection PhpUnhandledExceptionInspection
+     * @noinspection PhpDocMissingThrowsInspection
      */
     protected function getResult(?string $scrollId = null): ?array
     {
@@ -1678,9 +1711,7 @@ class Query
             return $this->response($scrollId);
         }
 
-        $result = app('cache')
-            ->driver($this->cacheDriver)
-            ->get($this->getCacheKey());
+        $result = $this->getCache()->get($this->getCacheKey());
 
         if (is_null($result)) {
             return $this->response($scrollId);
@@ -1711,7 +1742,12 @@ class Query
                 : Model::class;
             $model = new $modelClass($row[self::FIELD_SOURCE], true);
 
-            $model->setConnection($model->getConnection());
+            if ($this->model) {
+                $model->setConnectionName(
+                    $this->model->getConnectionName()
+                );
+            }
+
             $model->setIndex($row[self::FIELD_INDEX]);
             $model->setType($row[self::FIELD_TYPE]);
 
@@ -1748,9 +1784,16 @@ class Query
         $modelClass = $this->model
             ? get_class($this->model)
             : Model::class;
+
+        /** @var Model $model */
         $model = new $modelClass($data[0][self::FIELD_SOURCE], true);
 
-        $model->setConnection($model->getConnection());
+        if ($this->model) {
+            $model->setConnectionName(
+                $this->model->getConnectionName()
+            );
+        }
+
         $model->setIndex($data[0][self::FIELD_INDEX]);
         $model->setType($data[0][self::FIELD_TYPE]);
 
