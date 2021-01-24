@@ -24,7 +24,6 @@ use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
 use function class_exists;
 use function config_path;
 use function method_exists;
-use function str_starts_with;
 use function version_compare;
 
 /**
@@ -111,7 +110,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         if (
             version_compare($version, '5.1', '>=') &&
-            str_starts_with($version, 'Lumen') &&
+            Str::startsWith($version, 'Lumen') &&
             $this->app->runningInConsole()
         ) {
             // Registering commands
