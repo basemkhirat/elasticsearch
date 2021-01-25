@@ -29,13 +29,6 @@ class ConnectionManager implements ConnectionResolverInterface
     protected $connections = [];
 
     /**
-     * The default connection name.
-     *
-     * @var string
-     */
-    protected $default;
-
-    /**
      * @var array
      */
     protected $configuration;
@@ -87,7 +80,7 @@ class ConnectionManager implements ConnectionResolverInterface
      */
     public function getDefaultConnection(): string
     {
-        return $this->default;
+        return $this->configuration['default'];
     }
 
     /**
@@ -99,7 +92,7 @@ class ConnectionManager implements ConnectionResolverInterface
      */
     public function setDefaultConnection(string $name): void
     {
-        $this->default = $name;
+        $this->configuration['default'] = $name;
     }
 
     /**
