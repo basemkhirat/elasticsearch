@@ -19,6 +19,7 @@ use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Support\Traits\ForwardsCalls;
 use JsonException;
 use JsonSerializable;
+use Matchory\Elasticsearch\Concerns\HasGlobalScopes;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface as Connection;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface as Resolver;
 
@@ -35,6 +36,7 @@ use function json_encode;
 use function method_exists;
 use function settype;
 use function sprintf;
+use function ucfirst;
 
 use const DATE_ATOM;
 
@@ -58,6 +60,7 @@ class Model implements Arrayable,
     use ForwardsCalls;
     use HasAttributes;
     use HasEvents;
+    use HasGlobalScopes;
     use GuardsAttributes;
 
     protected const FIELD_ID = '_id';
@@ -270,6 +273,17 @@ class Model implements Arrayable,
     public static function unsetConnectionResolver(): void
     {
         static::$resolver = null;
+    }
+
+    /**
+     * Clear the list of booted models so they will be re-booted.
+     *
+     * @return void
+     */
+    public static function clearBootedModels(): void
+    {
+        static::$booted = [];
+        static::$globalScopes = [];
     }
 
     /**
@@ -884,7 +898,7 @@ class Model implements Arrayable,
      */
     public function newQuery(): Query
     {
-        $query = $this->newQueryBuilder();
+        $query = $this->registerGlobalScopes($this->newQueryBuilder());
 
         $query->setModel($this);
 
@@ -905,6 +919,50 @@ class Model implements Arrayable,
         }
 
         return $query;
+    }
+
+    /**
+     * Register the global scopes for this builder instance.
+     *
+     * @param Query $query
+     *
+     * @return Query
+     */
+    public function registerGlobalScopes(Query $query): Query
+    {
+        foreach ($this->getGlobalScopes() as $identifier => $scope) {
+            $query->withGlobalScope($identifier, $scope);
+        }
+
+        return $query;
+    }
+
+    /**
+     * Determine if the model has a given scope.
+     *
+     * @param string $scope
+     *
+     * @return bool
+     */
+    public function hasNamedScope(string $scope): bool
+    {
+        return method_exists(
+            $this,
+            'scope' . ucfirst($scope)
+        );
+    }
+
+    /**
+     * Apply the given named scope if possible.
+     *
+     * @param string $scope
+     * @param array  $parameters
+     *
+     * @return mixed
+     */
+    public function callNamedScope(string $scope, array $parameters = [])
+    {
+        return $this->{'scope' . ucfirst($scope)}(...$parameters);
     }
 
     /**
