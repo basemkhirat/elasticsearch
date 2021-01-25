@@ -14,6 +14,7 @@ use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 use Illuminate\Database\Eloquent\Concerns\HasEvents;
+use Illuminate\Database\Eloquent\Concerns\HidesAttributes;
 use Illuminate\Database\Eloquent\InvalidCastException;
 use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Support\Traits\ForwardsCalls;
@@ -60,6 +61,7 @@ class Model implements Arrayable,
 {
     use ForwardsCalls;
     use HasAttributes;
+    use HidesAttributes;
     use HasEvents;
     use HasGlobalScopes;
     use GuardsAttributes;
@@ -135,13 +137,6 @@ class Model implements Arrayable,
      * @var array
      */
     protected $unselectable = [];
-
-    /**
-     * Model hidden fields
-     *
-     * @var array
-     */
-    protected $hidden = [];
 
     /**
      * Indicates whether the model exists in the Elasticsearch index.
