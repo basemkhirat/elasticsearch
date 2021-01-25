@@ -41,18 +41,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        $this->mergeConfigFrom(__DIR__ . '/config/es.php', 'es');
-        $this->publishes([
-            __DIR__ . '/config/' => config_path(),
-        ], 'es.config');
-
-        // Auto configuration with lumen framework.
-        if (
-            method_exists($this->app, 'configure') &&
-            Str::contains($this->app->version(), 'Lumen')
-        ) {
-            $this->app->configure(ConnectionResolverInterface::class);
-        }
+        $this->configure();
 
         // Enable automatic connection resolution in all models
         Model::setConnectionResolver($this->app->make(
@@ -69,9 +58,46 @@ class ElasticsearchServiceProvider extends ServiceProvider
             ConnectionResolverInterface::class
         ));
 
+        // Register the Laravel Scout Engine
+        $this->registerScoutEngine();
+    }
+
+    /**
+     * Register any application services.
+     *
+     * @return void
+     * @throws LogicException
+     */
+    public function register(): void
+    {
+        Model::clearBootedModels();
+
+        $this->registerCommands();
+        $this->registerClientFactory();
+        $this->registerConnectionResolver();
+        $this->registerDefaultConnection();
+    }
+
+    protected function configure(): void
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../config/es.php', 'es');
+        $this->publishes([
+            __DIR__ . '/../config/' => config_path(),
+        ], 'es.config');
+
+        // Auto configuration with lumen framework.
+        if (
+            method_exists($this->app, 'configure') &&
+            Str::contains($this->app->version(), 'Lumen')
+        ) {
+            $this->app->configure(ConnectionResolverInterface::class);
+        }
+    }
+
+    protected function registerScoutEngine(): void
+    {
         // Resolve Laravel Scout engine.
-        /** @noinspection ClassConstantCanBeUsedInspection */
-        if ( ! class_exists('Laravel\\Scout\\EngineManager')) {
+        if ( ! class_exists(EngineManager::class)) {
             return;
         }
 
@@ -97,13 +123,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
         }
     }
 
-    /**
-     * Register any application services.
-     *
-     * @return void
-     * @throws LogicException
-     */
-    public function register(): void
+    protected function registerCommands(): void
     {
         // Package commands available for laravel or lumen higher than 5.1
         $version = $this->app->version();
@@ -122,7 +142,13 @@ class ElasticsearchServiceProvider extends ServiceProvider
                 ReindexCommand::class,
             ]);
         }
+    }
 
+    /**
+     * @throws LogicException
+     */
+    protected function registerClientFactory(): void
+    {
         // Bind our default client factory on the container, so users may
         // override it if they need to build their client in a specific way
         $this->app->singleton(
@@ -130,6 +156,17 @@ class ElasticsearchServiceProvider extends ServiceProvider
             ClientFactory::class
         );
 
+        $this->app->alias(
+            ClientFactoryInterface::class,
+            'es.factory'
+        );
+    }
+
+    /**
+     * @throws LogicException
+     */
+    protected function registerConnectionResolver(): void
+    {
         // Bind the connection manager for the resolver interface as a singleton
         // on the container, so we have a single instance at all times
         $this->app->singleton(
@@ -144,6 +181,22 @@ class ElasticsearchServiceProvider extends ServiceProvider
             }
         );
 
+        $this->app->alias(
+            ConnectionResolverInterface::class,
+            'es.resolver'
+        );
+
+        $this->app->alias(
+            ConnectionResolverInterface::class,
+            'es'
+        );
+    }
+
+    /**
+     * @throws LogicException
+     */
+    protected function registerDefaultConnection(): void
+    {
         // Bind the default connection separately
         $this->app->singleton(
             ConnectionInterface::class,
@@ -154,10 +207,9 @@ class ElasticsearchServiceProvider extends ServiceProvider
             }
         );
 
-        // Add aliases for convenience and backwards compatibility
-        $this->app->alias(ClientFactoryInterface::class, 'es.factory');
-        $this->app->alias(ConnectionResolverInterface::class, 'es.resolver');
-        $this->app->alias(ConnectionInterface::class, 'es.connection');
-        $this->app->alias(ConnectionResolverInterface::class, 'es');
+        $this->app->alias(
+            ConnectionInterface::class,
+            'es.connection'
+        );
     }
 }
