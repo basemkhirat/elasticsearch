@@ -43,11 +43,12 @@ use const DATE_ATOM;
 /**
  * Elasticsearch data model
  *
- * @property string|null _id
- * @property string|null _index
- * @property string|null _type
- * @property string|null _score
- * @property string|null _highlight
+ * @property-read string|null _id
+ * @property-read string|null _index
+ * @property-read string|null _type
+ * @property-read float|null  _score
+ * @property-read array|null  _highlight
+ *
  * @package Matchory\Elasticsearch
  */
 class Model implements Arrayable,
