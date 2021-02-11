@@ -919,12 +919,12 @@ class Model implements Arrayable,
     /**
      * Save the model to the index without raising any events.
      *
-     * @return bool
+     * @return Model
      * @throws InvalidCastException
      */
-    public function saveQuietly(): bool
+    public function saveQuietly(): self
     {
-        return static::withoutEvents(function (): self {
+        return static::withoutEvents(function () {
             return $this->save();
         });
     }
