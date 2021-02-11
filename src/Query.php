@@ -5,12 +5,14 @@ declare(strict_types=1);
 
 namespace Matchory\Elasticsearch;
 
+use ArrayIterator;
 use BadMethodCallException;
 use Closure;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Traits\ForwardsCalls;
+use IteratorAggregate;
 use JsonException;
 use JsonSerializable;
 use Matchory\Elasticsearch\Classes\Search;
@@ -45,7 +47,7 @@ use const SORT_REGULAR;
  *
  * @package Matchory\Elasticsearch\Query
  */
-class Query implements Arrayable, JsonSerializable, Jsonable
+class Query implements Arrayable, JsonSerializable, Jsonable, IteratorAggregate
 {
     use ForwardsCalls;
     use ExecutesQueries;
@@ -690,6 +692,26 @@ class Query implements Arrayable, JsonSerializable, Jsonable
     }
 
     /**
+     * Set the query where clause and retrieve the first matching document.
+     *
+     * @param string|callable $name
+     * @param string          $operator
+     * @param mixed|null      $value
+     *
+     * @return Model|null
+     * @throws JsonException
+     */
+    public function firstWhere(
+        $name,
+        $operator = self::OPERATOR_EQUAL,
+        $value = null
+    ): ?Model {
+        return $this
+            ->where($name, $operator, $value)
+            ->first();
+    }
+
+    /**
      * Set the query inverse where clause
      *
      * @param string|callable $name
@@ -1029,16 +1051,6 @@ class Query implements Arrayable, JsonSerializable, Jsonable
     }
 
     /**
-     * Retrieves the name of the index used for the query.
-     *
-     * @return string|null
-     */
-    public function getIndex(): ?string
-    {
-        return $this->index;
-    }
-
-    /**
      * Retrieves the ID the query is restricted to.
      *
      * @return string|null
@@ -1056,6 +1068,16 @@ class Query implements Arrayable, JsonSerializable, Jsonable
     public function getIgnores(): array
     {
         return $this->ignores;
+    }
+
+    /**
+     * Retrieves the name of the index used for the query.
+     *
+     * @return string|null
+     */
+    public function getIndex(): ?string
+    {
+        return $this->index;
     }
 
     public function getModel(): Model
@@ -1153,26 +1175,6 @@ class Query implements Arrayable, JsonSerializable, Jsonable
     }
 
     /**
-     * @param string $method
-     * @param array  $parameters
-     *
-     * @return $this
-     * @throws BadMethodCallException
-     */
-    public function __call(string $method, array $parameters): self
-    {
-        if ($this->hasNamedScope($method)) {
-            return $this->callNamedScope($method, $parameters);
-        }
-
-        return $this->forwardCallTo(
-            $this->model,
-            $method,
-            $parameters
-        );
-    }
-
-    /**
      * @inheritDoc
      */
     public function toArray(): array
@@ -1217,6 +1219,26 @@ class Query implements Arrayable, JsonSerializable, Jsonable
         return json_encode(
             $this->jsonSerialize(),
             JSON_THROW_ON_ERROR | $options
+        );
+    }
+
+    /**
+     * @param string $method
+     * @param array  $parameters
+     *
+     * @return $this
+     * @throws BadMethodCallException
+     */
+    public function __call(string $method, array $parameters): self
+    {
+        if ($this->hasNamedScope($method)) {
+            return $this->callNamedScope($method, $parameters);
+        }
+
+        return $this->forwardCallTo(
+            $this->model,
+            $method,
+            $parameters
         );
     }
 
@@ -1378,6 +1400,16 @@ class Query implements Arrayable, JsonSerializable, Jsonable
         }
 
         return $query;
+    }
+
+    /**
+     * Proxies to the collection iterator
+     *
+     * @inheritDoc
+     */
+    public function getIterator(): ArrayIterator
+    {
+        return $this->get()->getIterator();
     }
 
     /**

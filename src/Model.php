@@ -17,26 +17,33 @@ use Illuminate\Database\Eloquent\Concerns\HasEvents;
 use Illuminate\Database\Eloquent\Concerns\HidesAttributes;
 use Illuminate\Database\Eloquent\InvalidCastException;
 use Illuminate\Database\Eloquent\MassAssignmentException;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Traits\ForwardsCalls;
 use JsonException;
 use JsonSerializable;
 use Matchory\Elasticsearch\Concerns\HasGlobalScopes;
+use Matchory\Elasticsearch\Exceptions\DocumentNotFoundException;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface as Connection;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface as Resolver;
 
 use function array_key_exists;
+use function array_merge;
 use function array_unique;
 use function class_basename;
 use function class_uses_recursive;
 use function count;
 use function forward_static_call;
+use function func_get_args;
 use function get_class;
 use function in_array;
+use function is_array;
 use function is_null;
 use function json_encode;
 use function method_exists;
 use function settype;
 use function sprintf;
+use function tap;
 use function ucfirst;
 
 use const DATE_ATOM;
@@ -188,7 +195,7 @@ class Model implements Arrayable,
     }
 
     /**
-     * Get all model records
+     * Retrieves all model documents.
      *
      * @param string|null $scrollId
      *
@@ -201,7 +208,7 @@ class Model implements Arrayable,
     }
 
     /**
-     * Get model by key
+     * Retrieves a model by key.
      *
      * @param string $key
      *
@@ -214,6 +221,85 @@ class Model implements Arrayable,
                      ->id($key)
                      ->take(1)
                      ->first();
+    }
+
+    /**
+     * Retrieves a model by key or fails.
+     *
+     * @param string $key
+     *
+     * @return Model
+     * @throws DocumentNotFoundException
+     * @throws JsonException
+     */
+    public static function findOrFail(string $key): Model
+    {
+        $result = static::find($key);
+
+        if (is_null($result)) {
+            throw (new DocumentNotFoundException())->setModel(
+                static::class,
+                $key
+            );
+        }
+
+        return $result;
+    }
+
+    /**
+     * Save a new model and return the instance.
+     *
+     * @param array $attributes
+     *
+     * @return $this
+     */
+    public static function create(array $attributes): self
+    {
+        return tap(
+            (new static())->newInstance($attributes),
+            static function ($instance) {
+                $instance->save();
+            }
+        );
+    }
+
+    /**
+     * Destroy the models for the given IDs.
+     *
+     * @param BaseCollection|array|int|string $ids
+     *
+     * @return int
+     * @throws JsonException
+     */
+    public static function destroy($ids): int
+    {
+        if ($ids instanceof BaseCollection) {
+            $ids = $ids->all();
+        }
+
+        $ids = is_array($ids) ? $ids : func_get_args();
+
+        if (count($ids) === 0) {
+            return 0;
+        }
+
+        // We will actually pull the models from the index and call delete on
+        // each of them individually so that their events get fired properly
+        // with a correct set of attributes in case the developers wants to
+        // check these.
+        $count = 0;
+        $query = (new static())
+            ->newQuery()
+            ->whereIn(self::FIELD_ID, $ids)
+            ->get();
+
+        foreach ($query as $model) {
+            if ($model->delete()) {
+                $count++;
+            }
+        }
+
+        return $count;
     }
 
     /**
@@ -1058,6 +1144,62 @@ class Model implements Arrayable,
     public function callNamedScope(string $scope, array $parameters = [])
     {
         return $this->{'scope' . ucfirst($scope)}(...$parameters);
+    }
+
+    /**
+     * Clone the model into a new, non-existing instance.
+     *
+     * @param array|null $except
+     *
+     * @return static
+     */
+    public function replicate(array $except = null): Model
+    {
+        $defaults = [
+            self::FIELD_ID,
+        ];
+
+        $attributes = Arr::except($this->getAttributes(), $except
+            ? array_unique(array_merge($except, $defaults))
+            : $defaults
+        );
+
+        return tap(new static(), static function (
+            Model $instance
+        ) use ($attributes) {
+            $instance->setRawAttributes($attributes);
+            $instance->fireModelEvent('replicating', false);
+        });
+    }
+
+    /**
+     * Determine if two models have the same ID and belong to the same table.
+     *
+     * @param Model|null $model
+     *
+     * @return bool
+     * @throws InvalidCastException
+     */
+    public function is(?Model $model): bool
+    {
+        return ! is_null($model) &&
+               $this->getId() === $model->getId() &&
+               $this->getType() === $model->getType() &&
+               $this->getIndex() === $model->getIndex() &&
+               $this->getConnectionName() === $model->getConnectionName();
+    }
+
+    /**
+     * Determine if two models are not the same.
+     *
+     * @param Model|null $model
+     *
+     * @return bool
+     * @throws InvalidCastException
+     */
+    public function isNot(?Model $model): bool
+    {
+        return ! $this->is($model);
     }
 
     /**

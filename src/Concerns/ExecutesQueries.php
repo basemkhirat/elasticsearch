@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\App;
 use JsonException;
 use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Collection;
+use Matchory\Elasticsearch\Exceptions\DocumentNotFoundException;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Pagination;
@@ -20,6 +21,7 @@ use Matchory\Elasticsearch\Request;
 use function array_diff_key;
 use function array_flip;
 use function array_map;
+use function get_class;
 use function is_callable;
 use function is_null;
 use function md5;
@@ -269,24 +271,70 @@ trait ExecutesQueries
     }
 
     /**
-     * Get the first object of results
+     * Get the first result
      *
-     * @param string|null $scroll_id
+     * @param string|null $scrollId
      *
      * @return Model|null
      * @throws JsonException
      */
-    public function first(?string $scroll_id = null): ?Model
+    public function first(?string $scrollId = null): ?Model
     {
         $this->take(1);
 
-        $result = $this->getResult($scroll_id);
+        $result = $this->getResult($scrollId);
 
         if ( ! $result) {
             return null;
         }
 
         return $this->transformIntoModel($result);
+    }
+
+    /**
+     * Get the first result or call a callback.
+     *
+     * @param null          $scrollId
+     * @param callable|null $callback
+     *
+     * @return Model|null
+     * @throws JsonException
+     */
+    public function firstOr(
+        $scrollId = null,
+        ?callable $callback = null
+    ): ?Model {
+        if (is_callable($scrollId)) {
+            $callback = $scrollId;
+            $scrollId = null;
+        }
+
+        if ( ! is_null($model = $this->first($scrollId))) {
+            return $model;
+        }
+
+        return $callback();
+    }
+
+    /**
+     * Get the first result or fail.
+     *
+     * @param string|null $scrollId
+     *
+     * @return Model
+     * @throws DocumentNotFoundException
+     * @throws JsonException
+     */
+    public function firstOrFail(?string $scrollId = null): Model
+    {
+        if ( ! is_null($model = $this->first($scrollId))) {
+            return $model;
+        }
+
+        throw (new DocumentNotFoundException())->setModel(
+            get_class($this->model),
+            $this->id
+        );
     }
 
     /**
