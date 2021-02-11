@@ -8,58 +8,50 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch\Tests;
 
 use ArrayAccess;
-use Elasticsearch\Client;
 use Illuminate\Contracts\Queue\QueueableEntity;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
 use Matchory\Elasticsearch\Connection;
-use Matchory\Elasticsearch\ConnectionResolver;
 use Matchory\Elasticsearch\ElasticsearchServiceProvider;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
 use Matchory\Elasticsearch\Model;
-use Matchory\Elasticsearch\Query;
+use Matchory\Elasticsearch\Tests\Traits\ResolvesConnections;
 use Orchestra\Testbench\TestCase;
 use PHPUnit\Framework\MockObject\MockObject;
 
 class ModelTest extends TestCase
 {
+    use ResolvesConnections;
+
     public function testResolveRouteBinding(): void
     {
-        /** @var MockObject<Connection> $connection */
-        $connection = $this->app
-            ->get(ConnectionResolverInterface::class)
-            ->connection();
-
-        $connection
+        $this
+            ->mockClient()
             ->expects(self::any())
-            ->method('__call')
-            ->with('search', [
-                [
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'filter' => [
-                                    [
-                                        'term' => [
-                                            '_id' => 42,
-                                        ],
+            ->method('search')
+            ->with([
+                'from' => 0,
+                'size' => 1,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'filter' => [
+                                [
+                                    'term' => [
+                                        '_id' => 42,
                                     ],
                                 ],
                             ],
                         ],
                     ],
-                    'from' => 0,
-                    'size' => 1,
                 ],
             ])
             ->willReturn([
                 'hits' => [
                     'hits' => [
-                        [
-                            '_id' => '42',
-                        ],
+                        ['_id' => '42'],
                     ],
                 ],
             ]);
@@ -71,39 +63,31 @@ class ModelTest extends TestCase
 
     public function testResolveRouteBindingFromField(): void
     {
-        /** @var MockObject<Connection> $connection */
-        $connection = $this->app
-            ->get(ConnectionResolverInterface::class)
-            ->connection();
-
-        $connection
+        $this
+            ->mockClient()
             ->expects(self::any())
-            ->method('__call')
-            ->with('search', [
-                [
-                    'body' => [
-                        'query' => [
-                            'bool' => [
-                                'filter' => [
-                                    [
-                                        'term' => [
-                                            'foo' => 42,
-                                        ],
+            ->method('search')
+            ->with([
+                'from' => 0,
+                'size' => 1,
+                'body' => [
+                    'query' => [
+                        'bool' => [
+                            'filter' => [
+                                [
+                                    'term' => [
+                                        'foo' => 42,
                                     ],
                                 ],
                             ],
                         ],
                     ],
-                    'from' => 0,
-                    'size' => 1,
                 ],
             ])
             ->willReturn([
                 'hits' => [
                     'hits' => [
-                        [
-                            '_id' => '42',
-                        ],
+                        ['_id' => '42'],
                     ],
                 ],
             ]);
@@ -392,8 +376,18 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testGetID(): void
+    public function testGetId(): void
     {
+        $model = (new Model())->newInstance([], ['_id' => '42'], true);
+
+        self::assertSame('42', $model->getId());
+    }
+
+    public function testGetIdReturnsNullIfModelDoesNotExist(): void
+    {
+        $model = (new Model())->newInstance([], [], false);
+
+        self::assertNull($model->getId());
     }
 
     public function testGetSelectable(): void
@@ -402,10 +396,24 @@ class ModelTest extends TestCase
 
     public function testIsDirty(): void
     {
+        $model = (new Model())->newInstance([
+            'foo' => 'bar',
+        ], ['_id' => '42'], true);
+
+        self::assertFalse($model->isDirty());
+        self::assertFalse($model->isDirty('foo'));
+
+        $model->foo = 'quz';
+
+        self::assertTrue($model->isDirty());
+        self::assertTrue($model->isDirty('foo'));
     }
 
     public function testGetRouteKeyName(): void
     {
+        $model = new Model();
+
+        self::assertSame('_id', $model->getRouteKeyName());
     }
 
     public function testGetKey(): void
@@ -452,8 +460,28 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testGetRouteKey(): void
+    public function testGetRouteKeyReturnsId(): void
     {
+        $model = new Model(['_id' => '42']);
+
+        self::assertSame('42', $model->getRouteKey());
+    }
+
+    public function testGetRouteKeyReturnsValueFromConfiguredField(): void
+    {
+        $model = new class() extends Model {
+            public function getRouteKeyName(): string
+            {
+                return 'foo';
+            }
+        };
+
+        $instance = $model->newInstance(
+            ['foo' => '42'],
+            ['_id' => '24']
+        );
+
+        self::assertSame('42', $instance->getRouteKey());
     }
 
     public function testSetType(): void
@@ -474,14 +502,10 @@ class ModelTest extends TestCase
 
     public function testSaveCreatesNewModel(): void
     {
-        /** @var MockObject<Connection> $connection */
-        $connection = $this->app
-            ->get(ConnectionResolverInterface::class)
-            ->connection();
-
-        $connection
+        $this
+            ->mockClient()
             ->expects(self::any())
-            ->method('insert')
+            ->method('index')
             ->willReturn((object)[
                 '_id' => '42',
             ]);
@@ -523,8 +547,14 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testGetQueueableConnection(): void
+    public function testGetQueueableConnectionReturnsConnectionName(): void
     {
+        $model = new Model();
+
+        self::assertSame(
+            $model->getConnectionName(),
+            $model->getQueueableConnection()
+        );
     }
 
     public function testSetAppends(): void
@@ -533,6 +563,18 @@ class ModelTest extends TestCase
 
     public function testGetOriginal(): void
     {
+        $model = (new Model())->newInstance(
+            ['foo' => 'bar'],
+            ['_id' => '42'],
+            true
+        );
+
+        self::assertSame('bar', $model->foo);
+
+        $model->foo = 'quz';
+
+        self::assertNotSame('bar', $model->foo);
+        self::assertSame('bar', $model->getOriginal('foo'));
     }
 
     public function testToArray(): void
@@ -541,6 +583,13 @@ class ModelTest extends TestCase
 
     public function testGetType(): void
     {
+        $model = new Model();
+
+        self::assertNull($model->getType());
+
+        $model->setType('foo');
+
+        self::assertSame('foo', $model->getType());
     }
 
     public function testGetDirty(): void
@@ -623,27 +672,5 @@ class ModelTest extends TestCase
         return [
             ElasticsearchServiceProvider::class,
         ];
-    }
-
-    private function createConnectionResolver(): ConnectionResolver
-    {
-        $mock = $this->getMockBuilder(Connection::class)
-                     ->setConstructorArgs([
-                         $this->createMock(Client::class),
-                     ])
-                     ->getMock();
-
-        $mock->expects(self::any())
-             ->method('newQuery')
-             ->willReturnCallback(function () use ($mock): Query {
-                 return new Query($mock);
-             });
-
-        $resolver = new ConnectionResolver([
-            'default' => $mock,
-        ]);
-        $resolver->setDefaultConnection('default');
-
-        return $resolver;
     }
 }
