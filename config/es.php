@@ -32,19 +32,12 @@ return [
                     'pass' => env('ELASTIC_PASS', ''),
                     'scheme' => env('ELASTIC_SCHEME', 'http'),
                 ],
-
             ],
 
             'index' => env('ELASTIC_INDEX', 'my_index'),
 
             // Elasticsearch handlers
             // 'handler' => new MyCustomHandler(),
-
-            'logging' => [
-                'enabled' => env('ELASTIC_LOGGING_ENABLED', false),
-                'level' => env('ELASTIC_LOGGING_LEVEL', 'all'),
-                'location' => env('ELASTIC_LOGGING_LOCATION', base_path('storage/logs/elasticsearch.log')),
-            ],
         ],
     ],
 
