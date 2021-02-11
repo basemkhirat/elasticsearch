@@ -27,20 +27,90 @@ class ModelTest extends TestCase
 {
     public function testResolveRouteBinding(): void
     {
-        // TODO: Create mock connection
+        /** @var MockObject<Connection> $connection */
+        $connection = $this->app
+            ->get(ConnectionResolverInterface::class)
+            ->connection();
+
+        $connection
+            ->expects(self::any())
+            ->method('__call')
+            ->with('search', [
+                [
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'filter' => [
+                                    [
+                                        'term' => [
+                                            '_id' => 42,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'from' => 0,
+                    'size' => 1,
+                ],
+            ])
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_id' => '42',
+                        ],
+                    ],
+                ],
+            ]);
 
         $model = (new Model())->resolveRouteBinding(42);
 
-        self::assertSame($model->_id, 42);
+        self::assertSame($model->_id, '42');
     }
 
     public function testResolveRouteBindingFromField(): void
     {
-        // TODO: Create mock connection
+        /** @var MockObject<Connection> $connection */
+        $connection = $this->app
+            ->get(ConnectionResolverInterface::class)
+            ->connection();
+
+        $connection
+            ->expects(self::any())
+            ->method('__call')
+            ->with('search', [
+                [
+                    'body' => [
+                        'query' => [
+                            'bool' => [
+                                'filter' => [
+                                    [
+                                        'term' => [
+                                            'foo' => 42,
+                                        ],
+                                    ],
+                                ],
+                            ],
+                        ],
+                    ],
+                    'from' => 0,
+                    'size' => 1,
+                ],
+            ])
+            ->willReturn([
+                'hits' => [
+                    'hits' => [
+                        [
+                            '_id' => '42',
+                        ],
+                    ],
+                ],
+            ]);
 
         $model = (new Model())->resolveRouteBinding(42, 'foo');
 
-        self::assertSame($model->_id, 42);
+        self::assertSame($model->_id, '42');
     }
 
     public function testMergeCasts(): void

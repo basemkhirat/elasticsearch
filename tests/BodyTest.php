@@ -47,12 +47,6 @@ class BodyTest extends TestCase
     {
         $query = $this->getQueryArray();
 
-        if ( ! isset($body['_source'])) {
-            $body['_source'] = [
-                'include' => [],
-                'exclude' => [],
-            ];
-        }
 
         $query['body'] = $body;
 
