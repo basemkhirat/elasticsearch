@@ -699,7 +699,6 @@ class Query implements Arrayable, JsonSerializable, Jsonable, IteratorAggregate
      * @param mixed|null      $value
      *
      * @return Model|null
-     * @throws JsonException
      */
     public function firstWhere(
         $name,
