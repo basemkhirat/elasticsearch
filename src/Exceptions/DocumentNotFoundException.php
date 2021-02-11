@@ -4,13 +4,14 @@ declare(strict_types=1);
 
 namespace Matchory\Elasticsearch\Exceptions;
 
-use Illuminate\Database\RecordsNotFoundException;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
+use Matchory\Elasticsearch\Model;
 
 use function count;
 use function implode;
 
-class DocumentNotFoundException extends RecordsNotFoundException
+class DocumentNotFoundException extends ModelNotFoundException
 {
     /**
      * Name of the affected Elasticsearch model.
@@ -27,24 +28,14 @@ class DocumentNotFoundException extends RecordsNotFoundException
     protected $ids;
 
     /**
-     * Get the affected Eloquent model.
-     *
-     * @return string
-     */
-    public function getModel(): string
-    {
-        return $this->model;
-    }
-
-    /**
      * Set the affected Eloquent model and instance ids.
      *
-     * @param string       $model
-     * @param string|array $ids
+     * @param class-string<Model> $model
+     * @param string|array        $ids
      *
      * @return $this
      */
-    public function setModel(string $model, $ids = []): self
+    public function setModel($model, $ids = []): self
     {
         $this->model = $model;
         $this->ids = Arr::wrap($ids);
@@ -56,15 +47,5 @@ class DocumentNotFoundException extends RecordsNotFoundException
             : $this->message . '.';
 
         return $this;
-    }
-
-    /**
-     * Get the affected Eloquent model IDs.
-     *
-     * @return string|array
-     */
-    public function getIds()
-    {
-        return $this->ids;
     }
 }
