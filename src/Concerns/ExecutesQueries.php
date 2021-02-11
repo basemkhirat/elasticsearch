@@ -17,6 +17,7 @@ use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Pagination;
 use Matchory\Elasticsearch\Query;
 use Matchory\Elasticsearch\Request;
+use Psr\SimpleCache\InvalidArgumentException;
 
 use function array_diff_key;
 use function array_flip;
@@ -25,6 +26,7 @@ use function get_class;
 use function is_callable;
 use function is_null;
 use function md5;
+use function serialize;
 
 use const PHP_SAPI;
 
@@ -132,7 +134,6 @@ trait ExecutesQueries
      * Get a unique cache key for the complete query.
      *
      * @return string
-     * @throws JsonException
      */
     public function getCacheKey(): string
     {
@@ -145,11 +146,14 @@ trait ExecutesQueries
      * Generate the unique cache key for the query.
      *
      * @return string
-     * @throws JsonException
      */
     public function generateCacheKey(): string
     {
-        return md5($this->toJson());
+        try {
+            return md5($this->toJson());
+        } catch (JsonException $e) {
+            return md5(serialize($this));
+        }
     }
 
     /**
@@ -187,7 +191,6 @@ trait ExecutesQueries
      * @param string|null $scrollId
      *
      * @return Collection
-     * @throws JsonException
      */
     public function get(?string $scrollId = null): Collection
     {
@@ -208,7 +211,6 @@ trait ExecutesQueries
      * @param int|null $page
      *
      * @return Pagination
-     * @throws JsonException
      */
     public function paginate(
         int $per_page = 10,
@@ -276,7 +278,6 @@ trait ExecutesQueries
      * @param string|null $scrollId
      *
      * @return Model|null
-     * @throws JsonException
      */
     public function first(?string $scrollId = null): ?Model
     {
@@ -298,7 +299,6 @@ trait ExecutesQueries
      * @param callable|null $callback
      *
      * @return Model|null
-     * @throws JsonException
      */
     public function firstOr(
         $scrollId = null,
@@ -323,7 +323,6 @@ trait ExecutesQueries
      *
      * @return Model
      * @throws DocumentNotFoundException
-     * @throws JsonException
      */
     public function firstOrFail(?string $scrollId = null): Model
     {
@@ -544,7 +543,6 @@ trait ExecutesQueries
      * @param string|null $scrollId
      *
      * @return array
-     * @throws JsonException
      */
     public function performSearch(?string $scrollId = null): ?array
     {
@@ -585,9 +583,6 @@ trait ExecutesQueries
      * @param string|null $scrollId
      *
      * @return array|null
-     * @throws JsonException
-     * @noinspection PhpUnhandledExceptionInspection
-     * @noinspection PhpDocMissingThrowsInspection
      */
     protected function getResult(?string $scrollId = null): ?array
     {
@@ -595,7 +590,11 @@ trait ExecutesQueries
             return $this->performSearch($scrollId);
         }
 
-        $result = $this->getCache()->get($this->getCacheKey());
+        try {
+            $result = $this->getCache()->get($this->getCacheKey());
+        } catch (InvalidArgumentException $e) {
+            $result = null;
+        }
 
         if (is_null($result)) {
             return $this->performSearch($scrollId);
