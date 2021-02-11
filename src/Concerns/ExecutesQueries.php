@@ -546,7 +546,7 @@ trait ExecutesQueries
      * @return array
      * @throws JsonException
      */
-    public function performSearch(?string $scrollId = null): array
+    public function performSearch(?string $scrollId = null): ?array
     {
         $scrollId = $scrollId ?? $this->getScrollId();
         $result = $scrollId
