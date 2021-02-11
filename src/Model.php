@@ -938,12 +938,14 @@ class Model implements Arrayable,
     /**
      * Retrieves the model key
      *
-     * @return string
+     * @return string|null
      * @throws InvalidCastException
      */
-    public function getId(): string
+    public function getId(): ?string
     {
-        return (string)$this->getAttribute(self::FIELD_ID);
+        $id = $this->getAttribute(self::FIELD_ID);
+
+        return $id ? (string)$id : null;
     }
 
     /**
