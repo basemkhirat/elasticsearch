@@ -1,23 +1,25 @@
 <?php
+/** @noinspection PhpUnused, UnknownInspectionInspection */
 
 declare(strict_types=1);
 
 namespace Matchory\Elasticsearch;
 
-use DateTime;
-use Elasticsearch\Client;
-use Illuminate\Cache\CacheManager;
-use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Contracts\Container\BindingResolutionException;
-use Illuminate\Database\Query\Builder;
-use Illuminate\Support\Facades\App;
+use BadMethodCallException;
+use Closure;
+use Illuminate\Contracts\Support\Arrayable;
+use Illuminate\Contracts\Support\Jsonable;
+use Illuminate\Support\Arr;
+use Illuminate\Support\Traits\ForwardsCalls;
 use JsonException;
-use Matchory\Elasticsearch\Classes\Bulk;
+use JsonSerializable;
 use Matchory\Elasticsearch\Classes\Search;
-use RuntimeException;
+use Matchory\Elasticsearch\Concerns\ExecutesQueries;
+use Matchory\Elasticsearch\Concerns\ManagesIndices;
+use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
+use Matchory\Elasticsearch\Interfaces\ScopeInterface;
 use stdClass;
 
-use function array_diff;
 use function array_filter;
 use function array_key_exists;
 use function array_keys;
@@ -26,7 +28,6 @@ use function array_unique;
 use function array_unshift;
 use function array_values;
 use function count;
-use function func_get_args;
 use function get_class;
 use function in_array;
 use function is_array;
@@ -34,11 +35,9 @@ use function is_callable;
 use function is_int;
 use function is_string;
 use function json_encode;
-use function md5;
 use function method_exists;
-use function ucfirst;
 
-use const PHP_SAPI;
+use const JSON_THROW_ON_ERROR;
 use const SORT_REGULAR;
 
 /**
@@ -46,8 +45,11 @@ use const SORT_REGULAR;
  *
  * @package Matchory\Elasticsearch\Query
  */
-class Query
+class Query implements Arrayable, JsonSerializable, Jsonable
 {
+    use ForwardsCalls;
+    use ExecutesQueries;
+    use ManagesIndices;
 
     public const DEFAULT_CACHE_PREFIX = 'es';
 
@@ -103,6 +105,24 @@ class Query
 
     public const OPERATOR_NOT_EQUAL = '!=';
 
+    public const PARAM_BODY = 'body';
+
+    public const PARAM_CLIENT = 'client';
+
+    public const PARAM_FROM = 'from';
+
+    public const PARAM_INDEX = 'index';
+
+    public const PARAM_SCROLL = 'scroll';
+
+    public const PARAM_SCROLL_ID = 'scroll_id';
+
+    public const PARAM_SEARCH_TYPE = 'search_type';
+
+    public const PARAM_SIZE = 'size';
+
+    public const PARAM_TYPE = 'type';
+
     public const SOURCE_EXCLUDE = 'exclude';
 
     public const SOURCE_INCLUDE = 'include';
@@ -111,13 +131,6 @@ class Query
         'include' => [],
         'exclude' => [],
     ];
-
-    /**
-     * Native elasticsearch connection instance
-     *
-     * @var Client
-     */
-    public $client;
 
     /**
      * Ignored HTTP errors
@@ -150,16 +163,28 @@ class Query
     /**
      * Elastic model instance
      *
-     * @var Model|null
+     * @var Model
      */
     public $model;
 
     /**
-     * Use model global scopes
-     *
-     * @var bool
+     * @var null
+     * @deprecated Use getConnection()->getClient() to access the client instead
+     * @see        ConnectionInterface::getClient()
+     * @see        Query::getConnection()
      */
-    public $useGlobalScopes = true;
+    public $client = null;
+
+    /**
+     * Elasticsearch connection instance
+     * =================================
+     * This connection instance will receive any unresolved method calls from
+     * the query, effectively acting as a proxy: The connection itself proxies
+     * to the Elasticsearch client instance.
+     *
+     * @var ConnectionInterface
+     */
+    protected $connection;
 
     /**
      * Filter operators
@@ -178,25 +203,68 @@ class Query
     ];
 
     /**
-     * Query index name
+     * Index name
+     * ==========
+     * Name of the index to query. To search all data streams and indices in a
+     * cluster, omit this parameter or use _all or *.
+     * An index can be thought of as an optimized collection of documents and
+     * each document is a collection of fields, which are the key-value pairs
+     * that contain your data. By default, Elasticsearch indexes all data in
+     * every field and each indexed field has a dedicated, optimized data
+     * structure. For example, text fields are stored in inverted indices, and
+     * numeric and geo fields are stored in BKD trees. The ability to use the
+     * per-field data structures to assemble and return search results is what
+     * makes Elasticsearch so fast.
      *
      * @var string|null
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/search-search.html
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/documents-indices.html
      */
     protected $index;
 
     /**
-     * Query type name
+     * Mapping type
+     * ============
+     * Each document indexed is associated with a `_type` and an `_id`.
+     * The `_type` field is indexed in order to make searching by type name fast
+     * The value of the `_type` field is accessible in queries, aggregations,
+     * scripts, and when sorting.
+     * Note that mapping types are deprecated as of 6.0.0:
+     * Indices created in Elasticsearch 7.0.0 or later no longer accept a
+     * `_default_` mapping. Indices created in 6.x will continue to function as
+     * before in Elasticsearch 6.x. Types are deprecated in APIs in 7.0, with
+     * breaking changes to the index creation, put mapping, get mapping, put
+     * template, get template and get field mappings APIs.
      *
      * @var string|null
+     * @deprecated Mapping types are deprecated as of Elasticsearch 7.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/mapping-type-field.html
      */
     protected $type;
 
     /**
-     * Query type key
+     * Unique document ID
+     * ==================
+     * Each document has an `_id` that uniquely identifies it, which is indexed
+     * so that documents can be looked up either with the GET API or the
+     * `ids` query.
+     * The `_id` can either be assigned at indexing time, or a unique `_id` can
+     * be generated by Elasticsearch. This field is not configurable in
+     * the mappings.
+     *
+     * The value of the `_id` field is accessible in queries such as `term`,
+     * `terms`, `match`, and `query_string`.
+     *
+     * The `_id` field is restricted from use in aggregations, sorting, and
+     * scripting. In case sorting or aggregating on the `_id` field is required,
+     * it is advised to duplicate the content of the `_id` field into another
+     * field that has `doc_values` enabled.
      *
      * @var string|null
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/mapping-id-field.html
      */
-    protected $_id;
+    protected $id;
 
     /**
      * Query bool filter
@@ -220,37 +288,131 @@ class Query
     protected $sort = [];
 
     /**
-     * Query scroll time
+     * Scroll
+     * ======
+     * While a search request returns a single “page” of results, the scroll API
+     * can be used to retrieve large numbers of results (or even all results)
+     * from a single search request, in much the same way as you would use a
+     * cursor on a traditional database.
+     *
+     * Scrolling is not intended for real time user requests, but rather for
+     * processing large amounts of data, e.g. in order to reindex the contents
+     * of one index into a new index with a different configuration.
+     *
+     * The results that are returned from a scroll request reflect the state of
+     * the index at the time that the initial search request was made, like a
+     * snapshot in time. Subsequent changes to documents (index, update or
+     * delete) will only affect later search requests.
+     *
+     * In order to use scrolling, the initial search request should specify the
+     * scroll parameter in the query string, which tells Elasticsearch how long
+     * it should keep the “search context” alive (see Keeping the search context
+     * alive), eg ?scroll=1m.
      *
      * @var string
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/paginate-search-results.html#scroll-search-results
      */
     protected $scroll;
 
     /**
-     * Query scroll id
+     * Scroll ID
+     * =========
+     * Identifier for the search and its search context.
+     * You can use this scroll ID with the scroll API to retrieve the next batch
+     * of search results for the request. See Scroll search results.
+     * This parameter is only returned if the scroll query parameter is
+     * specified in the request.
      *
-     * @var string
+     * @var string|null
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/paginate-search-results.html#scroll-search-results
      */
-    protected $scrollId;
+    protected $scrollId = null;
 
     /**
-     * Query search type
+     * Search Type
+     * ===========
+     * There are different execution paths that can be done when executing a
+     * distributed search. The distributed search operation needs to be
+     * scattered to all the relevant shards and then all the results are
+     * gathered back. When doing scatter/gather type execution, there are
+     * several ways to do that, specifically with search engines.
      *
-     * @var 'query_then_fetch'|'dfs_query_then_fetch'
+     * One of the questions when executing a distributed search is how much
+     * results to retrieve from each shard. For example, if we have 10 shards,
+     * the 1st shard might hold the most relevant results from 0 till 10, with
+     * other shards results ranking below it. For this reason, when executing a
+     * request, we will need to get results from 0 till 10 from all shards, sort
+     * them, and then return the results if we want to ensure correct results.
+     *
+     * Another question, which relates to the search engine, is the fact that
+     * each shard stands on its own. When a query is executed on a specific
+     * shard, it does not take into account term frequencies and other search
+     * engine information from the other shards. If we want to support accurate
+     * ranking, we would need to first gather the term frequencies from all
+     * shards to calculate global term frequencies, then execute the query on
+     * each shard using these global frequencies.
+     *
+     * Also, because of the need to sort the results, getting back a large
+     * document set, or even scrolling it, while maintaining the correct sorting
+     * behavior can be a very expensive operation. For large result set
+     * scrolling, it is best to sort by _doc if the order in which documents are
+     * returned is not important.
+     *
+     * Elasticsearch is very flexible and allows to control the type of search
+     * to execute on a per search request basis. The type can be configured by
+     * setting the search_type parameter in the query string. The types are:
+     *
+     * Query Then Fetch
+     * ----------------
+     * Parameter value: `query_then_fetch`.
+     *
+     * Distributed term frequencies are calculated locally for each shard
+     * running the search. We recommend this option for faster searches with
+     * potentially less accurate scoring.
+     *
+     * This is the default setting, if you do not specify a `search_type` in
+     * your request.
+     *
+     * Dfs, Query Then Fetch
+     * ---------------------
+     * Parameter value: `dfs_query_then_fetch`.
+     *
+     * Distributed term frequencies are calculated globally, using information
+     * gathered from all shards running the search. While this option increases
+     * the accuracy of scoring, it adds a round-trip to each shard, which can
+     * result in slower searches.
+     *
+     * @var string
+     * @psalm-var 'query_then_fetch'|'dfs_query_then_fetch'
+     * @see       https://www.elastic.co/guide/en/elasticsearch/reference/7.10/search-search.html#search-type
      */
     protected $searchType;
 
     /**
-     * Query limit
+     * Number of hits to return
+     * ========================
+     * Defines the number of hits to return. Defaults to `10`.
+     *
+     * By default, you cannot page through more than 10,000 hits using the
+     * `from` and `size` parameters. To page through more hits, use the
+     * `search_after` parameter.
      *
      * @var int
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/search-search.html#search-type
      */
-    protected $take = self::DEFAULT_LIMIT;
+    protected $size = self::DEFAULT_LIMIT;
 
     /**
-     * Query offset
+     * Starting document offset
+     * ========================
+     * Starting document offset. Defaults to `0`.
+     *
+     * By default, you cannot page through more than 10,000 hits using the
+     * `from` and `size` parameters. To page through more hits, use the
+     * `search_after` parameter.
      *
      * @var int
+     * @see https://www.elastic.co/guide/en/elasticsearch/reference/7.10/search-search.html#search-type
      */
     protected $from = self::DEFAULT_OFFSET;
 
@@ -265,56 +427,20 @@ class Query
     protected $removedScopes;
 
     /**
-     * The key that should be used when caching the query.
-     *
-     * @var string|null
+     * @param ConnectionInterface|null $connection Elasticsearch connection the
+     *                                             query builds on
      */
-    protected $cacheKey;
-
-    /**
-     * The number of seconds to cache the query.
-     *
-     * @var DateTime|int|null
-     */
-    protected $cacheTtl;
-
-    /**
-     * The cache driver to be used.
-     *
-     * @var string
-     */
-    protected $cacheDriver;
-
-    /**
-     * A cache prefix.
-     *
-     * @var string
-     */
-    protected $cachePrefix = self::DEFAULT_CACHE_PREFIX;
-
-    /**
-     * Query constructor.
-     *
-     * @param Client|null $client
-     */
-    public function __construct(?Client $client = null)
+    public function __construct(?ConnectionInterface $connection = null)
     {
-        if ($client) {
-            $this->client = $client;
+        $this->model = new Model();
+
+        if ($connection) {
+            $this->connection = $connection;
         }
     }
 
-    public static function build(
-        ?Client $client = null,
-        ?string $index = null
-    ): self {
-        $query = new static($client);
-
-        return $query->index($index);
-    }
-
     /**
-     * Set the index name
+     * Sets the name of the index to use for the query.
      *
      * @param string|null $index
      *
@@ -328,37 +454,19 @@ class Query
     }
 
     /**
-     * Get the index name
+     * Sets the document mapping type to restrict the query to.
      *
-     * @return string|null
-     */
-    public function getIndex(): ?string
-    {
-        return $this->index;
-    }
-
-    /**
-     * Set the type name
-     *
-     * @param string $type
+     * @param string $type Name of the document mapping type
      *
      * @return $this
+     * @deprecated Mapping types are deprecated as of Elasticsearch 6.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
      */
     public function type(string $type): self
     {
         $this->type = $type;
 
         return $this;
-    }
-
-    /**
-     * Get the type name
-     *
-     * @return string|null
-     */
-    public function getType(): ?string
-    {
-        return $this->type;
     }
 
     /**
@@ -376,13 +484,13 @@ class Query
     }
 
     /**
-     * Set the query scroll ID
+     * Sets the query scroll ID.
      *
-     * @param string $scroll
+     * @param string|null $scroll
      *
      * @return $this
      */
-    public function scrollID(string $scroll): self
+    public function scrollId(?string $scroll): self
     {
         $this->scrollId = $scroll;
 
@@ -397,6 +505,7 @@ class Query
      * @psalm-param 'query_then_fetch'|'dfs_query_then_fetch' $type
      *
      * @return $this
+     * @see         https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-request-search-type.html
      */
     public function searchType(string $type): self
     {
@@ -406,9 +515,11 @@ class Query
     }
 
     /**
-     * get the query search type
+     * Retrieves the query search type
      *
      * @return string|null
+     * @psalm-return 'query_then_fetch'|'dfs_query_then_fetch'
+     * @see          https://www.elastic.co/guide/en/elasticsearch/reference/6.8/search-request-search-type.html
      */
     public function getSearchType(): ?string
     {
@@ -416,62 +527,20 @@ class Query
     }
 
     /**
-     * Get the query scroll
-     *
-     * @return string|null
-     */
-    public function getScroll(): ?string
-    {
-        return $this->scroll;
-    }
-
-    /**
-     * Set the query limit
-     *
-     * @param int $take
-     *
-     * @return $this
-     */
-    public function take(int $take = 10): self
-    {
-        $this->take = $take;
-
-        return $this;
-    }
-
-    /**
      * Ignore bad HTTP response
      *
+     * @param mixed ...$args
+     *
      * @return $this
      */
-    public function ignore(): self
+    public function ignore(...$args): self
     {
-        $args = func_get_args();
-
-        foreach ($args as $arg) {
-            if (is_array($arg)) {
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $this->ignores = array_merge($this->ignores, $arg);
-            } else {
-                $this->ignores[] = $arg;
-            }
-        }
+        $this->ignores = array_merge(
+            $this->ignores,
+            $this->flattenArgs($args)
+        );
 
         $this->ignores = array_unique($this->ignores);
-
-        return $this;
-    }
-
-    /**
-     * Set the query offset
-     *
-     * @param int $skip
-     *
-     * @return $this
-     */
-    public function skip(int $skip = 0): self
-    {
-        $this->skip = $skip;
 
         return $this;
     }
@@ -494,22 +563,13 @@ class Query
     /**
      * Set the query fields to return
      *
+     * @param mixed ...$args
+     *
      * @return $this
      */
-    public function select(): self
+    public function select(...$args): self
     {
-        $args = func_get_args();
-
-        $fields = [];
-
-        foreach ($args as $arg) {
-            if (is_array($arg)) {
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $fields = array_merge($fields, $arg);
-            } else {
-                $fields[] = $arg;
-            }
-        }
+        $fields = $this->flattenArgs($args);
 
         $this->source['include'] = array_unique(array_merge(
             $this->source['include'] ?? [],
@@ -531,22 +591,13 @@ class Query
     /**
      * Set the ignored fields to not be returned
      *
+     * @param mixed ...$args
+     *
      * @return $this
      */
-    public function unselect(): self
+    public function unselect(...$args): self
     {
-        $args = func_get_args();
-
-        $fields = [];
-
-        foreach ($args as $arg) {
-            if (is_array($arg)) {
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $fields = array_merge($fields, $arg);
-            } else {
-                $fields[] = $arg;
-            }
-        }
+        $fields = $this->flattenArgs($args);
 
         $this->source[self::SOURCE_EXCLUDE] = array_unique(array_merge(
             $this->source[self::SOURCE_EXCLUDE] ?? [],
@@ -566,34 +617,15 @@ class Query
     }
 
     /**
-     * Filter by _id
-     *
-     * @param string|null $_id
+     * @param string|null $id ID to filter by
      *
      * @return $this
+     * @deprecated Use id() instead
+     * @see        Query::id()
      */
-    public function _id(?string $_id = null): Query
+    public function _id(?string $id = null): Query
     {
-        $this->_id = $_id;
-        $this->filter[] = [
-            'term' => [
-                '_id' => $_id,
-            ],
-        ];
-
-        return $this;
-    }
-
-    /**
-     * Just an alias for _id() method
-     *
-     * @param string|null $_id
-     *
-     * @return $this
-     */
-    public function id(?string $_id = null): self
-    {
-        return $this->_id($_id);
+        return $this->id($id);
     }
 
     /**
@@ -623,8 +655,8 @@ class Query
 
         switch ((string)$operator) {
             case self::OPERATOR_EQUAL:
-                if ($name === '_id') {
-                    return $this->_id($value);
+                if ($name === self::FIELD_ID) {
+                    return $this->id($value);
                 }
 
                 $this->filter[] = ['term' => [$name => $value]];
@@ -886,8 +918,11 @@ class Query
      *
      * @return $this
      */
-    public function search(?string $queryString = null, $settings = null, ?int $boost = null): self
-    {
+    public function search(
+        ?string $queryString = null,
+        $settings = null,
+        ?int $boost = null
+    ): self {
         if ($queryString) {
             $search = new Search(
                 $this,
@@ -923,23 +958,13 @@ class Query
     /**
      * Get highlight result
      *
+     * @param mixed ...$args
+     *
      * @return $this
      */
-    public function highlight(): self
+    public function highlight(...$args): self
     {
-        $args = func_get_args();
-
-        $fields = [];
-
-        foreach ($args as $arg) {
-            if (is_array($arg)) {
-                /** @noinspection SlowArrayOperationsInLoopInspection */
-                $fields = array_merge($fields, $arg);
-            } else {
-                $fields[] = $arg;
-            }
-        }
-
+        $fields = $this->flattenArgs($args);
         $new_fields = [];
 
         foreach ($fields as $field) {
@@ -954,7 +979,7 @@ class Query
     }
 
     /**
-     * set the query body array
+     * Sets the query body
      *
      * @param array $body
      *
@@ -968,157 +993,79 @@ class Query
     }
 
     /**
-     * Generate the query to be executed
+     * Set the collapse field
+     *
+     * @param string $field
+     *
+     * @return $this
+     */
+    public function groupBy(string $field): self
+    {
+        $this->body['collapse'] = [
+            'field' => $field,
+        ];
+
+        return $this;
+    }
+
+    /**
+     * Return the native client to execute native queries
+     *
+     * @return ConnectionInterface
+     */
+    public function raw(): ConnectionInterface
+    {
+        return $this->getConnection();
+    }
+
+    /**
+     * Retrieves the underlying Elasticsearch client
+     *
+     * @return ConnectionInterface
+     */
+    public function getConnection(): ConnectionInterface
+    {
+        return $this->connection;
+    }
+
+    /**
+     * Retrieves the name of the index used for the query.
+     *
+     * @return string|null
+     */
+    public function getIndex(): ?string
+    {
+        return $this->index;
+    }
+
+    /**
+     * Retrieves the ID the query is restricted to.
+     *
+     * @return string|null
+     */
+    public function getId(): ?string
+    {
+        return $this->id;
+    }
+
+    /**
+     * Retrieves all ignored fields
      *
      * @return array
      */
-    public function query(): array
+    public function getIgnores(): array
     {
-        $query = [];
+        return $this->ignores;
+    }
 
-        $query['index'] = $this->getIndex();
-
-        if ($this->getType()) {
-            $query['type'] = $this->getType();
-        }
-
-        $query['body'] = $this->getBody();
-        $query['from'] = $this->getSkip();
-        $query['size'] = $this->getTake();
-
-        if (count($this->ignores)) {
-            $query['client'] = ['ignore' => $this->ignores];
-        }
-
-        $searchType = $this->getSearchType();
-
-        if ($searchType) {
-            $query['search_type'] = $searchType;
-        }
-
-        $scroll = $this->getScroll();
-
-        if ($scroll) {
-            $query['scroll'] = $scroll;
-        }
-
-        return $query;
+    public function getModel(): Model
+    {
+        return $this->model;
     }
 
     /**
-     * Clear scroll query id
-     *
-     * @param string|null $scrollId
-     *
-     * @return Collection
-     */
-    public function clear(?string $scrollId = null): Collection
-    {
-        $scrollId = $scrollId ?? $this->scrollId;
-
-        return new Collection($this->client->clearScroll([
-            'scroll_id' => $scrollId,
-            'client' => ['ignore' => $this->ignores],
-        ]));
-    }
-
-    /**
-     * Get the collection of results
-     *
-     * @param string|null $scrollId
-     *
-     * @return Collection
-     * @throws BindingResolutionException
-     * @throws JsonException
-     */
-    public function get(?string $scrollId = null): Collection
-    {
-        $result = $this->getResult($scrollId);
-
-        if ( ! $result) {
-            return new Collection([]);
-        }
-
-        return $this->getAll($result);
-    }
-
-    /**
-     * Get the first object of results
-     *
-     * @param string|null $scroll_id
-     *
-     * @return Model|null
-     * @throws BindingResolutionException
-     * @throws JsonException
-     */
-    public function first(?string $scroll_id = null): ?Model
-    {
-        $this->take(1);
-
-        $result = $this->getResult($scroll_id);
-
-        if ( ! $result) {
-            return null;
-        }
-
-        return $this->getFirst($result);
-    }
-
-    /**
-     * Get non-cached results
-     *
-     * @param string|null $scrollId
-     *
-     * @return array
-     * @throws JsonException
-     * @throws BindingResolutionException
-     */
-    public function response(?string $scrollId = null): array
-    {
-        $scrollId = $scrollId ?? $this->scrollId;
-
-        if ($scrollId) {
-            $result = $this->client->scroll([
-                'scroll' => $this->scroll,
-                'scroll_id' => $scrollId,
-            ]);
-        } else {
-            $result = $this->client->search($this->query());
-        }
-
-        if ( ! is_null($this->cacheTtl)) {
-            $this->getCache()->put(
-                $this->getCacheKey(),
-                $result,
-                $this->cacheTtl
-            );
-        }
-
-        return $result;
-    }
-
-    /**
-     * Get the count of result
-     *
-     * @return int
-     */
-    public function count(): int
-    {
-        $query = $this->query();
-
-        // Remove unsupported count query keys
-        unset(
-            $query['size'],
-            $query['from'],
-            $query['body']['_source'],
-            $query['body']['sort']
-        );
-
-        return (int)$this->client->count($query)['count'];
-    }
-
-    /**
-     * Set the query model
+     * Sets the model the query is based on. Any results will be casted to this
+     * model. If no model is set, a plain model instance will be used.
      *
      * @param Model $model
      *
@@ -1132,447 +1079,77 @@ class Query
     }
 
     /**
-     * Paginate collection of results
+     * Get the query scroll
      *
-     * @param int      $per_page
-     * @param string   $page_name
-     * @param int|null $page
-     *
-     * @return Pagination
-     * @throws BindingResolutionException
-     * @throws JsonException
+     * @return string|null
      */
-    public function paginate(
-        int $per_page = 10,
-        string $page_name = 'page',
-        ?int $page = null
-    ): Pagination {
-        // Check if the request from PHP CLI
-        if (PHP_SAPI === 'cli') {
-            $this->take($per_page);
-            $page = $page ?: 1;
-            $this->skip(($page * $per_page) - $per_page);
-            $collection = $this->get();
+    public function getScroll(): ?string
+    {
+        return $this->scroll;
+    }
 
-            return new Pagination(
-                $collection,
-                $collection->getTotal() ?? 0,
-                $per_page,
-                $page
-            );
-        }
-
-        $this->take($per_page);
-
-        $page = $page ?: Request::get($page_name, 1);
-
-        $this->skip(($page * $per_page) - $per_page);
-
-        $collection = $this->get();
-
-        return new Pagination(
-            $collection,
-            $collection->getTotal() ?? 0,
-            $per_page,
-            $page,
-            ['path' => Request::url(), 'query' => Request::query()]
-        );
+    public function getScrollId(): ?string
+    {
+        return $this->scrollId;
     }
 
     /**
-     * Set the collapse field
+     * Retrieves the document mapping type the query is restricted to.
      *
-     * @param string $field
+     * @return string|null
+     * @deprecated Mapping types are deprecated as of Elasticsearch 6.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
+     */
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    /**
+     * Adds a term filter for the `_id` field.
+     *
+     * @param string|null $id
      *
      * @return $this
      */
-    public function groupBy(string $field): self
+    public function id(?string $id = null): self
     {
-        $this->body["collapse"] = [
-            "field" => $field,
-        ];
-
-        return $this;
-    }
-
-    /**
-     * Insert a document
-     *
-     * @param mixed       $data
-     * @param string|null $_id
-     *
-     * @return object
-     */
-    public function insert($data, ?string $_id = null): object
-    {
-        if ($_id) {
-            $this->_id = $_id;
-        }
-
-        $parameters = [
-            'body' => $data,
-            'client' => ['ignore' => $this->ignores],
-        ];
-
-        if ($index = $this->getIndex()) {
-            $parameters['index'] = $index;
-        }
-
-        if ($type = $this->getType()) {
-            $parameters['type'] = $type;
-        }
-
-        if ($this->_id) {
-            $parameters['id'] = $this->_id;
-        }
-
-        return (object)$this->client->index($parameters);
-    }
-
-    /**
-     * Insert a bulk of documents
-     *
-     * @param array|callable $data multidimensional array of [id => data] pairs
-     *
-     * @return object
-     */
-    public function bulk($data): object
-    {
-        if (is_callable($data)) {
-            $bulk = new Bulk($this);
-
-            $data($bulk);
-
-            $params = $bulk->body();
-        } else {
-            $params = [];
-
-            foreach ($data as $key => $value) {
-                $params['body'][] = [
-
-                    'index' => [
-                        '_index' => $this->getIndex(),
-                        '_type' => $this->getType(),
-                        '_id' => $key,
-                    ],
-
-                ];
-
-                $params['body'][] = $value;
-            }
-        }
-
-        return (object)$this->client->bulk($params);
-    }
-
-    /**
-     * Update a document
-     *
-     * @param mixed       $data
-     * @param string|null $_id
-     *
-     * @return object
-     */
-    public function update($data, $_id = null): object
-    {
-        if ($_id) {
-            $this->_id = $_id;
-        }
-
-        $parameters = [
-            'id' => $this->_id,
-            'body' => [
-                'doc' => array_diff($data, [
-                    '_index',
-                    '_type',
-                    '_id',
-                    '_score',
-                ]),
+        $this->id = $id;
+        $this->filter[] = [
+            'term' => [
+                self::FIELD_ID => $id,
             ],
-            'client' => ['ignore' => $this->ignores],
         ];
-
-        if ($index = $this->getIndex()) {
-            $parameters['index'] = $index;
-        }
-
-        if ($type = $this->getType()) {
-            $parameters['type'] = $type;
-        }
-
-        return (object)$this->client->update($parameters);
-    }
-
-    /**
-     * Increment a document field
-     *
-     * @param mixed $field
-     * @param int   $count
-     *
-     * @return object
-     */
-    public function increment($field, int $count = 1): object
-    {
-        return $this->script("ctx._source.{$field} += params.count", [
-            'count' => $count,
-        ]);
-    }
-
-    /**
-     * Increment a document field
-     *
-     * @param mixed $field
-     * @param int   $count
-     *
-     * @return object
-     */
-    public function decrement($field, int $count = 1): object
-    {
-        return $this->script("ctx._source.{$field} -= params.count", [
-            'count' => $count,
-        ]);
-    }
-
-    /**
-     * Update by script
-     *
-     * @param mixed $script
-     * @param array $params
-     *
-     * @return object
-     */
-    public function script($script, array $params = []): object
-    {
-        $parameters = [
-            'id' => $this->_id,
-            'body' => [
-                'script' => [
-                    'inline' => $script,
-                    'params' => $params,
-                ],
-            ],
-            'client' => ['ignore' => $this->ignores],
-        ];
-
-        if ($index = $this->getIndex()) {
-            $parameters['index'] = $index;
-        }
-
-        if ($type = $this->getType()) {
-            $parameters['type'] = $type;
-        }
-
-        return (object)$this->client->update($parameters);
-    }
-
-    /**
-     * Delete a document
-     *
-     * @param string|null $_id
-     *
-     * @return object
-     */
-    public function delete(?string $_id = null): object
-    {
-        if ($_id) {
-            $this->_id = $_id;
-        }
-
-        $parameters = [
-            'id' => $this->_id,
-            'client' => ['ignore' => $this->ignores],
-        ];
-
-        if ($index = $this->getIndex()) {
-            $parameters['index'] = $index;
-        }
-
-        if ($type = $this->getType()) {
-            $parameters['type'] = $type;
-        }
-
-        return (object)$this->client->delete($parameters);
-    }
-
-    /**
-     * Return the native client to execute native queries
-     *
-     * @return Client
-     */
-    public function raw(): Client
-    {
-        return $this->client;
-    }
-
-    /**
-     * Check existence of index
-     *
-     * @return bool
-     * @throws RuntimeException
-     */
-    public function exists(): bool
-    {
-        if ( ! $this->index) {
-            throw new RuntimeException('No index configured');
-        }
-
-        $index = new Index($this->index);
-
-        $index->setClient($this->client);
-
-        return $index->exists();
-    }
-
-    /**
-     * Create a new index
-     *
-     * @param string        $name
-     * @param callable|null $callback
-     *
-     * @return array
-     */
-    public function createIndex(string $name, ?callable $callback = null): array
-    {
-        $index = new Index($name, $callback);
-
-        $index->client = $this->client;
-
-        return $index->create();
-    }
-
-    /**
-     * Create the configured index
-     *
-     * @param callable|null $callback
-     *
-     * @return array
-     * @throws RuntimeException
-     * @see Query::createIndex()
-     */
-    public function create(?callable $callback = null): array
-    {
-        if ( ! $this->index) {
-            throw new RuntimeException('No index name configured');
-        }
-
-        return $this->createIndex($this->index, $callback);
-    }
-
-    /**
-     * Drop index
-     *
-     * @param string $name
-     *
-     * @return array
-     */
-    public function dropIndex(string $name): array
-    {
-        $index = new Index($name);
-
-        $index->client = $this->client;
-
-        return $index->drop();
-    }
-
-    /**
-     * Drop the configured index
-     *
-     * @return array
-     * @throws RuntimeException
-     */
-    public function drop(): array
-    {
-        if ( ! $this->index) {
-            throw new RuntimeException('No index name configured');
-        }
-
-        return $this->dropIndex($this->index);
-    }
-
-    /**
-     * Indicate that the results, if cached, should use the given cache driver.
-     *
-     * @param string $cacheDriver
-     *
-     * @return $this
-     */
-    public function cacheDriver(string $cacheDriver): self
-    {
-        $this->cacheDriver = $cacheDriver;
-
-        return $this;
-    }
-
-    /* Caching Methods */
-
-    /**
-     * Set the cache prefix.
-     *
-     * @param string $prefix
-     *
-     * @return $this
-     */
-    public function cachePrefix(string $prefix): self
-    {
-        $this->cachePrefix = $prefix;
 
         return $this;
     }
 
     /**
-     * Get a unique cache key for the complete query.
+     * Set the query offset
      *
-     * @return string
-     * @throws JsonException
-     */
-    public function getCacheKey(): string
-    {
-        $cacheKey = $this->cacheKey ?: $this->generateCacheKey();
-
-        return "{$this->cachePrefix}:{$cacheKey}";
-    }
-
-    /**
-     * Generate the unique cache key for the query.
-     *
-     * @return string
-     * @throws JsonException
-     */
-    public function generateCacheKey(): string
-    {
-        return md5(json_encode(
-            $this->query(),
-            JSON_THROW_ON_ERROR
-        ));
-    }
-
-    /**
-     * Indicate that the query results should be cached.
-     *
-     * @param DateTime|int $ttl Cache TTL in seconds.
-     * @param string|null  $key Cache key to use. Will be generated
-     *                          automatically if omitted.
+     * @param int $from
      *
      * @return $this
      */
-    public function remember($ttl, ?string $key = null): self
+    public function skip(int $from = 0): self
     {
-        $this->cacheTtl = $ttl;
-        $this->cacheKey = $key;
+        $this->from = $from;
 
         return $this;
     }
 
     /**
-     * Indicate that the query results should be cached forever.
+     * Sets the number of hits to return from the result.
      *
-     * @param string|null $key
+     * @param int $size
      *
-     * @return Builder|static
+     * @return $this
      */
-    public function rememberForever(?string $key = null)
+    public function take(int $size = 10): self
     {
-        return $this->remember(-1, $key);
+        $this->size = $size;
+
+        return $this;
     }
 
     /**
@@ -1580,30 +1157,55 @@ class Query
      * @param array  $parameters
      *
      * @return $this
+     * @throws BadMethodCallException
      */
     public function __call(string $method, array $parameters): self
     {
-        // Check for model scopes
-        $method = 'scope' . ucfirst($method);
-
-        if ($this->model && method_exists($this->model, $method)) {
-            $parameters = array_merge([$this], $parameters);
-            $this->model->$method(...$parameters);
-
-            return $this;
+        if ($this->hasNamedScope($method)) {
+            return $this->callNamedScope($method, $parameters);
         }
 
-        return $this;
+        return $this->forwardCallTo(
+            $this->model,
+            $method,
+            $parameters
+        );
     }
 
     /**
-     * @return $this
+     * @inheritDoc
      */
-    public function withoutGlobalScopes(): self
+    public function toArray(): array
     {
-        $this->useGlobalScopes = false;
+        $params = [
+            self::PARAM_BODY => $this->getBody(),
+            self::PARAM_FROM => $this->getSkip(),
+            self::PARAM_SIZE => $this->getSize(),
+        ];
 
-        return $this;
+        if (count($this->ignores)) {
+            $params[self::PARAM_CLIENT] = [
+                'ignore' => $this->ignores,
+            ];
+        }
+
+        if ($searchType = $this->getSearchType()) {
+            $params[self::PARAM_SEARCH_TYPE] = $searchType;
+        }
+
+        if ($scroll = $this->getScroll()) {
+            $params[self::PARAM_SCROLL] = $scroll;
+        }
+
+        if ($index = $this->getIndex()) {
+            $params[self::PARAM_INDEX] = $index;
+        }
+
+        if ($type = $this->getType()) {
+            $params[self::PARAM_TYPE] = $type;
+        }
+
+        return $params;
     }
 
     /**
@@ -1819,10 +1421,21 @@ class Query
      * Get the query limit
      *
      * @return int
+     * @deprecated Use getSize() instead
      */
     protected function getTake(): int
     {
-        return $this->take;
+        return $this->getSize();
+    }
+
+    /**
+     * Retrieves the number of hits to limit the query to.
+     *
+     * @return int
+     */
+    protected function getSize(): int
+    {
+        return $this->size;
     }
 
     /**
@@ -1832,7 +1445,7 @@ class Query
      */
     protected function getSkip(): int
     {
-        return $this->skip;
+        return $this->from;
     }
 
     /**
@@ -1904,116 +1517,19 @@ class Query
         return $body;
     }
 
-    /**
-     * Get query result
-     *
-     * @param string|null $scrollId
-     *
-     * @return array|null
-     * @throws BindingResolutionException
-     * @throws JsonException
-     * @noinspection PhpUnhandledExceptionInspection
-     * @noinspection PhpDocMissingThrowsInspection
-     */
-    protected function getResult(?string $scrollId = null): ?array
+    private function flattenArgs(array $args): array
     {
-        if (is_null($this->cacheTtl)) {
-            return $this->response($scrollId);
-        }
+        $flattened = [];
 
-        $result = $this->getCache()->get($this->getCacheKey());
-
-        if (is_null($result)) {
-            return $this->response($scrollId);
-        }
-
-        return $result;
-    }
-
-    /**
-     * Retrieve all records
-     *
-     * @param array $result
-     *
-     * @return Collection
-     */
-    protected function getAll(array $result = []): Collection
-    {
-        if ( ! array_key_exists(self::FIELD_HITS, $result)) {
-            return new Collection([]);
-        }
-
-        $items = [];
-
-        foreach ($result[self::FIELD_HITS][self::FIELD_NESTED_HITS] as $row) {
-            // Fallback to default model class
-            $modelClass = $this->model
-                ? get_class($this->model)
-                : Model::class;
-            $model = new $modelClass($row[self::FIELD_SOURCE], true);
-
-            if ($this->model) {
-                $model->setConnectionName(
-                    $this->model->getConnectionName()
-                );
+        foreach ($args as $arg) {
+            if (is_array($arg)) {
+                /** @noinspection SlowArrayOperationsInLoopInspection */
+                $flattened = array_merge($flattened, $arg);
+            } else {
+                $flattened[] = $arg;
             }
-
-            $model->setIndex($row[self::FIELD_INDEX]);
-            $model->setType($row[self::FIELD_TYPE]);
-
-            // match earlier version
-            $model->_index = $row[self::FIELD_INDEX];
-            $model->_type = $row[self::FIELD_TYPE];
-            $model->_id = $row[self::FIELD_ID];
-            $model->_score = $row[self::FIELD_SCORE];
-            $model->_highlight = $row[self::FIELD_HIGHLIGHT] ?? [];
-
-            $items[] = $model;
         }
 
-        return Collection::fromResponse($result, $items);
-    }
-
-    /**
-     * Retrieve only first record
-     *
-     * @param array $result
-     *
-     * @return Model|null
-     */
-    protected function getFirst(array $result = []): ?Model
-    {
-        if (
-            ! array_key_exists(self::FIELD_HITS, $result) ||
-            ! count($result[self::FIELD_HITS][self::FIELD_NESTED_HITS])
-        ) {
-            return null;
-        }
-
-        $data = $result[self::FIELD_HITS][self::FIELD_NESTED_HITS];
-        $modelClass = $this->model
-            ? get_class($this->model)
-            : Model::class;
-
-        /** @var Model $model */
-        $model = new $modelClass($data[0][self::FIELD_SOURCE], true);
-
-        if ($this->model) {
-            $model->setConnectionName(
-                $this->model->getConnectionName()
-            );
-        }
-
-        $model->setIndex($data[0][self::FIELD_INDEX]);
-        $model->setType($data[0][self::FIELD_TYPE]);
-
-        // match earlier version
-        $model->_index = $data[0][self::FIELD_INDEX];
-        $model->_type = $data[0][self::FIELD_TYPE];
-        $model->_id = $data[0][self::FIELD_ID];
-        $model->_score = $data[0][self::FIELD_SCORE];
-        $model->_highlight = $data[0][self::FIELD_HIGHLIGHT] ?? [];
-
-        return $model;
+        return $flattened;
     }
 }

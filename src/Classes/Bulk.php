@@ -214,8 +214,8 @@ class Bulk
      */
     public function reset(): void
     {
-        $this->index(null);
-        $this->type(null);
+        $this->index();
+        $this->type();
     }
 
     /**
@@ -229,7 +229,7 @@ class Bulk
             return null;
         }
 
-        $result = $this->query->client->bulk($this->body);
+        $result = $this->query->getConnection()->bulk($this->body);
         $this->operationCount = 0;
         $this->body = [];
 
@@ -250,6 +250,8 @@ class Bulk
      * Get the type name
      *
      * @return string|null
+     * @deprecated Mapping types are deprecated as of Elasticsearch 6.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
      */
     protected function getType(): ?string
     {

@@ -8,27 +8,70 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch\Tests;
 
 use ArrayAccess;
+use Elasticsearch\Client;
 use Illuminate\Contracts\Queue\QueueableEntity;
 use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
+use Matchory\Elasticsearch\Connection;
+use Matchory\Elasticsearch\ConnectionResolver;
 use Matchory\Elasticsearch\ElasticsearchServiceProvider;
+use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
 use Matchory\Elasticsearch\Model;
+use Matchory\Elasticsearch\Query;
 use Orchestra\Testbench\TestCase;
+use PHPUnit\Framework\MockObject\MockObject;
 
 class ModelTest extends TestCase
 {
     public function testResolveRouteBinding(): void
     {
+        // TODO: Create mock connection
+
+        $model = (new Model())->resolveRouteBinding(42);
+
+        self::assertSame($model->_id, 42);
+    }
+
+    public function testResolveRouteBindingFromField(): void
+    {
+        // TODO: Create mock connection
+
+        $model = (new Model())->resolveRouteBinding(42, 'foo');
+
+        self::assertSame($model->_id, 42);
     }
 
     public function testMergeCasts(): void
     {
+        $model = new class extends Model {
+            protected $casts = [
+                'foo' => 'int',
+            ];
+        };
+
+        self::assertTrue($model->hasCast('foo'));
+        self::assertFalse($model->hasCast('bar'));
+
+        $model->mergeCasts([
+            'bar' => 'int',
+        ]);
+
+        self::assertTrue($model->hasCast('foo'));
+        self::assertTrue($model->hasCast('bar'));
     }
 
     public function testHasCast(): void
     {
+        $model = new class extends Model {
+            protected $casts = [
+                'foo' => 'int',
+            ];
+        };
+
+        self::assertTrue($model->hasCast('foo'));
+        self::assertFalse($model->hasCast('bar'));
     }
 
     public function testEncryptUsing(): void
@@ -49,17 +92,27 @@ class ModelTest extends TestCase
 
     public function testOffsetExists(): void
     {
+        $model = new Model([
+            'foo' => 'bar',
+        ]);
+
+        self::assertTrue(isset($model->foo));
+        self::assertFalse(isset($model->bar));
     }
 
     public function testAttributesToArray(): void
     {
+        $model = new Model([
+            'foo' => 'bar',
+        ]);
+
+        self::assertSame(
+            $model->toArray(),
+            $model->attributesToArray()
+        );
     }
 
-    public function testFromFloat(): void
-    {
-    }
-
-    public function test__construct(): void
+    public function testImplementsAllRequiredInterfaces(): void
     {
         $model = new Model();
 
@@ -135,14 +188,60 @@ class ModelTest extends TestCase
 
     public function testGetQueueableId(): void
     {
+        $model = new Model([
+            '_id' => 'foo',
+        ]);
     }
 
-    public function testSetIndex(): void
+    public function testModelIndex(): void
     {
+        $model = new Model();
+        $model->setIndex('foo');
+
+        self::assertSame('foo', $model->getIndex());
+    }
+
+    public function testModelIndexDefaultsToNull(): void
+    {
+        $model = new Model();
+
+        self::assertNull($model->getIndex());
+    }
+
+    public function testModelIndexFromUserlandProp(): void
+    {
+        $model = new class extends Model {
+            protected $index = 'bar';
+        };
+
+        self::assertSame('bar', $model->getIndex());
+
+        $model->setIndex('foo');
+
+        self::assertSame('foo', $model->getIndex());
+    }
+
+    public function testIndexIsSetOnQuery(): void
+    {
+        $model = new Model();
+        $model->setIndex('foo');
+        $query = $model->newQuery();
+
+        self::assertSame('foo', $model->getIndex());
+        self::assertSame('foo', $query->getIndex());
     }
 
     public function testOffsetUnset(): void
     {
+        $instance = (new Model())->newInstance([
+            'foo' => 'bar',
+        ]);
+
+        self::assertEquals('bar', $instance->foo);
+
+        unset($instance->foo);
+
+        self::assertNull($instance->foo);
     }
 
     public function testGetRawOriginal(): void
@@ -249,10 +348,6 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testGetIndex(): void
-    {
-    }
-
     public function testGetRelationValue(): void
     {
     }
@@ -305,12 +400,51 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testSave(): void
+    public function testSaveCreatesNewModel(): void
     {
+        /** @var MockObject<Connection> $connection */
+        $connection = $this->app
+            ->get(ConnectionResolverInterface::class)
+            ->connection();
+
+        $connection
+            ->expects(self::any())
+            ->method('insert')
+            ->willReturn((object)[
+                '_id' => '42',
+            ]);
+
+        $model = new Model();
+        $model->save();
+
+        self::assertSame('42', $model->getId());
     }
 
-    public function testGetConnection(): void
+    public function testSaveUpdatesExistingModel(): void
     {
+        /** @var MockObject<Connection> $connection */
+        $connection = $this->app
+            ->get(ConnectionResolverInterface::class)
+            ->connection();
+
+        $model = (new Model())->newInstance(
+            ['foo' => 'bar'],
+            ['_id' => '42'],
+            true
+        );
+
+        $connection
+            ->expects(self::any())
+            ->method('__call')
+            ->with('update', $model)
+            ->willReturn((object)[
+                '_id' => '42',
+                'foo' => 'bar',
+            ]);
+
+        $model->save();
+
+        self::assertSame('42', $model->getId());
     }
 
     public function testWasChanged(): void
@@ -349,12 +483,17 @@ class ModelTest extends TestCase
     {
     }
 
-    public function testFromJson(): void
-    {
-    }
-
     public function testResolveChildRouteBinding(): void
     {
+        $model = (new Model())->newInstance([
+            'foo' => 42,
+            'bar' => 'baz',
+        ]);
+
+        self::assertSame(
+            $model->resolveRouteBinding(42),
+            $model->resolveChildRouteBinding('', 42, '')
+        );
     }
 
     public function testRelationsToArray(): void
@@ -367,14 +506,48 @@ class ModelTest extends TestCase
 
     public function testIsClean(): void
     {
+        $model = (new Model())->newInstance([
+            'foo' => 42,
+            'bar' => 'baz',
+        ]);
+
+        self::assertTrue($model->isClean());
+        self::assertTrue($model->isClean(['foo']));
+        self::assertTrue($model->isClean(['bar']));
+        self::assertTrue($model->isClean(['foo', 'bar']));
+
+        $model->foo = 43;
+
+        self::assertFalse($model->isClean());
+        self::assertFalse($model->isClean(['foo']));
+        self::assertTrue($model->isClean(['bar']));
+        self::assertFalse($model->isClean(['foo', 'bar']));
     }
 
     public function testSyncChanges(): void
     {
+        $model = (new Model())->newInstance([
+            'foo' => 42,
+            'bar' => 'baz',
+        ]);
+
+        $model->syncChanges();
+        self::assertEmpty($model->getChanges());
+
+        $model->foo = 43;
+        self::assertEmpty($model->getChanges());
+        $model->syncChanges();
+        self::assertNotEmpty($model->getChanges());
     }
 
     public function test__set(): void
     {
+    }
+
+    protected function getEnvironmentSetUp($app): void
+    {
+        $resolver = $this->createConnectionResolver();
+        $app->instance(ConnectionResolverInterface::class, $resolver);
     }
 
     protected function getPackageProviders($app): array
@@ -382,5 +555,27 @@ class ModelTest extends TestCase
         return [
             ElasticsearchServiceProvider::class,
         ];
+    }
+
+    private function createConnectionResolver(): ConnectionResolver
+    {
+        $mock = $this->getMockBuilder(Connection::class)
+                     ->setConstructorArgs([
+                         $this->createMock(Client::class),
+                     ])
+                     ->getMock();
+
+        $mock->expects(self::any())
+             ->method('newQuery')
+             ->willReturnCallback(function () use ($mock): Query {
+                 return new Query($mock);
+             });
+
+        $resolver = new ConnectionResolver([
+            'default' => $mock,
+        ]);
+        $resolver->setDefaultConnection('default');
+
+        return $resolver;
     }
 }

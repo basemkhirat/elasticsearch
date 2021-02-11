@@ -104,37 +104,44 @@ class Model implements Arrayable,
     public $wasRecentlyCreated = false;
 
     /**
-     * Model connection name
+     * Metadata received from Elasticsearch as part of the response
+     *
+     * @var array<string, mixed>
+     */
+    protected $resultMetadata = [];
+
+    /**
+     * Model connection name. If `null` it will use the default connection.
      *
      * @var string|null
      */
-    protected $connectionName;
+    protected $connectionName = null;
 
     /**
-     * Model index name
+     * Index name
      *
-     * @var string
+     * @var string|null
      */
-    protected $index;
+    protected $index = null;
 
     /**
-     * Model type name
+     * Document mapping type
      *
-     * @var string
+     * @var string|null
      */
-    protected $type;
+    protected $type = null;
 
     /**
      * Model selectable fields
      *
-     * @var array
+     * @var string[]
      */
     protected $selectable = [];
 
     /**
      * Model unselectable fields
      *
-     * @var array
+     * @var string[]
      */
     protected $unselectable = [];
 
@@ -147,11 +154,18 @@ class Model implements Arrayable,
 
     /**
      * Create a new Elasticsearch model instance.
+     * Note the two inspection overrides in the docblock: In most cases, the
+     * mass assignment exception will _not_ be thrown, just as with Eloquent
+     * models; additionally, it should actually rather be an assertion, as this
+     * specific error should pop up in development.
+     * Therefore, we've decided to inherit this from Eloquent, which simply does
+     * not add the throws annotation to their constructor.
      *
-     * @param array $attributes
-     * @param bool  $exists
+     * @param array<string, mixed> $attributes
+     * @param bool                 $exists
      *
-     * @throws MassAssignmentException
+     * @noinspection PhpUnhandledExceptionInspection
+     * @noinspection PhpDocMissingThrowsInspection
      */
     final public function __construct(
         array $attributes = [],
@@ -539,8 +553,9 @@ class Model implements Arrayable,
      * Get current connection name
      *
      * @return string
-     * @deprecated Use getConnectionName instead. This method will be removed in
-     *             the next major version.
+     * @deprecated Use getConnectionName instead. This method will be changed in
+     *             the next major version to return the connection instance
+     *             instead.
      * @see        Model::getConnectionName()
      */
     public function getConnection(): ?string
@@ -598,11 +613,11 @@ class Model implements Arrayable,
     /**
      * Set index name
      *
-     * @param string $index
+     * @param string|null $index
      *
      * @return void
      */
-    public function setIndex(string $index): void
+    public function setIndex(?string $index): void
     {
         $this->index = $index;
     }
@@ -628,9 +643,11 @@ class Model implements Arrayable,
     }
 
     /**
-     * Get the model type
+     * Retrieves the document mapping type.
      *
      * @return string|null
+     * @deprecated Mapping types are deprecated as of Elasticsearch 6.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
      */
     public function getType(): ?string
     {
@@ -638,15 +655,86 @@ class Model implements Arrayable,
     }
 
     /**
-     * Set the model type.
+     * Sets the document mapping type.
      *
-     * @param string $type
+     * @param string|null $type
      *
      * @return void
+     * @deprecated Mapping types are deprecated as of Elasticsearch 6.0.0
+     * @see        https://www.elastic.co/guide/en/elasticsearch/reference/7.10/removal-of-types.html
      */
-    public function setType(string $type): void
+    public function setType(?string $type): void
     {
         $this->type = $type;
+    }
+
+    /**
+     * Create a new instance of the given model.
+     * This method just provides a convenient way for us to generate fresh
+     * model instances of this current model. It is particularly useful during
+     * the hydration of new objects via the Query instance.
+     *
+     * @param array       $attributes Model attributes
+     * @param array       $metadata   Query result metadata
+     * @param bool        $exists     Whether the document exists
+     * @param string|null $index      Name of the index the document lives in
+     * @param string|null $type       (Deprecated) Mapping type of the document
+     *
+     * @return $this
+     */
+    public function newInstance(
+        array $attributes = [],
+        array $metadata = [],
+        bool $exists = false,
+        ?string $index = null,
+        ?string $type = null
+    ): Model {
+        $model = new static([], $exists);
+
+        $model->setRawAttributes($attributes, true);
+        $model->setConnectionName($this->getConnectionName());
+        $model->setResultMetadata($metadata);
+        $model->setIndex($index ?? $this->getIndex());
+        $model->setType($type ?? $this->getType());
+        $model->mergeCasts($this->casts);
+
+        $model->fireModelEvent('retrieved', false);
+
+        return $model;
+    }
+
+    /**
+     * Creates a new collection instance.
+     *
+     * @param static[] $models
+     *
+     * @return Collection
+     */
+    public function newCollection(array $models = []): Collection
+    {
+        return new Collection($models);
+    }
+
+    /**
+     * Retrieves the result score.
+     *
+     * @return float|null
+     * @internal
+     */
+    public function getScore(): ?float
+    {
+        return $this->getResultMetadataValue('_score');
+    }
+
+    /**
+     * Retrieves the result highlights.
+     *
+     * @return array<string, mixed>|null
+     * @internal
+     */
+    public function getHighlight(): ?array
+    {
+        return $this->getResultMetadataValue('_highlight');
     }
 
     /**
@@ -698,7 +786,7 @@ class Model implements Arrayable,
     }
 
     /**
-     * Save data to model
+     * Save the model to the index.
      *
      * @return $this
      * @throws InvalidCastException
@@ -744,6 +832,19 @@ class Model implements Arrayable,
     }
 
     /**
+     * Save the model to the index without raising any events.
+     *
+     * @return bool
+     * @throws InvalidCastException
+     */
+    public function saveQuietly(): bool
+    {
+        return static::withoutEvents(function (): self {
+            return $this->save();
+        });
+    }
+
+    /**
      * Check model is exists
      *
      * @return bool
@@ -761,7 +862,7 @@ class Model implements Arrayable,
      */
     public function getId(): string
     {
-        return $this->getAttribute(self::FIELD_ID);
+        return (string)$this->getAttribute(self::FIELD_ID);
     }
 
     /**
@@ -847,12 +948,11 @@ class Model implements Arrayable,
      *
      * @return Model|null
      * @throws JsonException
-     * @noinspection PhpMissingParamTypeInspection
      */
     final public function resolveChildRouteBinding(
         $childType,
         $value,
-        $field
+        $field = null
     ): ?Model {
         return $this->resolveRouteBinding($value, $field);
     }
@@ -975,6 +1075,24 @@ class Model implements Arrayable,
             return null;
         }
 
+        // If the attribute exists in the metadata array, we will get the value
+        // from there.
+        if (array_key_exists($key, $this->resultMetadata)) {
+            return $this->getResultMetadataValue($key);
+        }
+
+        if ($key === '_index') {
+            return $this->getIndex();
+        }
+
+        if ($key === '_type') {
+            return $this->getType();
+        }
+
+        if ($key === '_score') {
+            return $this->getScore();
+        }
+
         // If the attribute exists in the attribute array or has a "get" mutator
         // we will get the attribute's value.
         if (
@@ -1058,6 +1176,43 @@ class Model implements Arrayable,
         }
 
         return $value;
+    }
+
+    /**
+     * Retrieves result metadata retrieved from the query
+     *
+     * @return array
+     */
+    public function getResultMetadata(): array
+    {
+        return $this->resultMetadata;
+    }
+
+    /**
+     * Sets the result metadata retrieved from the query. This is mainly useful
+     * during model hydration.
+     *
+     * @param array $resultMetadata
+     *
+     * @internal
+     */
+    public function setResultMetadata(array $resultMetadata): void
+    {
+        $this->resultMetadata = $resultMetadata;
+    }
+
+    /**
+     * Retrieves result metadata retrieved from the query
+     *
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function getResultMetadataValue(string $key)
+    {
+        return array_key_exists($key, $this->resultMetadata)
+            ? $this->transformModelValue($key, $this->resultMetadata[$key])
+            : null;
     }
 
     /**
@@ -1252,38 +1407,6 @@ class Model implements Arrayable,
         return static
             ::resolveConnection($this->getConnectionName())
             ->newQuery();
-    }
-
-    /**
-     * Get original model attribute
-     *
-     * @param string $name
-     *
-     * @return mixed
-     * @throws InvalidCastException
-     * @deprecated Use getAttribute instead. This method will be removed in the
-     *             next major version.
-     * @see        Model::getAttribute()
-     */
-    protected function getOriginalAttribute(string $name)
-    {
-        return $this->getAttribute($name);
-    }
-
-    /**
-     * Get Appends model attribute
-     *
-     * @param string $name
-     *
-     * @return mixed
-     * @throws InvalidCastException
-     * @deprecated Use getAttribute instead. This method will be removed in the
-     *             next major version.
-     * @see        Model::getAttribute()
-     */
-    protected function getAppendsAttribute(string $name)
-    {
-        return $this->getAttribute($name);
     }
 
     /**

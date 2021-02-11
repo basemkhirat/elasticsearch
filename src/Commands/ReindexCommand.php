@@ -153,14 +153,14 @@ class ReindexCommand extends Command
                 ->type('')
                 ->scroll($this->scroll)
                 ->take($this->size)
-                ->response();
+                ->performSearch();
         } else {
             $documents = $connection
                 ->index($originalIndex)
                 ->type('')
                 ->scroll($this->scroll)
                 ->scrollID($scrollId ?: '')
-                ->response();
+                ->performSearch();
         }
 
         if (

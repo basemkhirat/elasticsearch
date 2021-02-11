@@ -4,8 +4,14 @@ declare(strict_types=1);
 
 namespace Matchory\Elasticsearch\Interfaces;
 
+use Elasticsearch\Client;
 use Matchory\Elasticsearch\Query;
 
+/**
+ * Interface ConnectionInterface
+ *
+ * @package Matchory\Elasticsearch\Interfaces
+ */
 interface ConnectionInterface
 {
     /**
@@ -14,4 +20,30 @@ interface ConnectionInterface
      * @return Query
      */
     public function newQuery(): Query;
+
+    /**
+     * Adds a document to the index using the specified parameters.
+     *
+     * @param array       $parameters Parameters to index the document with
+     * @param string|null $index      Index to insert the document into.
+     *                                Defaults to the default index of the
+     *                                connection.
+     * @param string|null $type       Document type to create. Defaults to the
+     *                                type of the connection. Usage of this
+     *                                parameter is deprecated.
+     *
+     * @return object
+     */
+    public function insert(
+        array $parameters,
+        ?string $index = null,
+        ?string $type = null
+    ): object;
+
+    /**
+     * Retrieves the Elasticsearch client
+     *
+     * @return Client
+     */
+    public function getClient(): Client;
 }
