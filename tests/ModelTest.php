@@ -13,13 +13,11 @@ use Illuminate\Contracts\Routing\UrlRoutable;
 use Illuminate\Contracts\Support\Arrayable;
 use Illuminate\Contracts\Support\Jsonable;
 use JsonSerializable;
-use Matchory\Elasticsearch\Connection;
 use Matchory\Elasticsearch\ElasticsearchServiceProvider;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
 use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Tests\Traits\ResolvesConnections;
 use Orchestra\Testbench\TestCase;
-use PHPUnit\Framework\MockObject\MockObject;
 
 class ModelTest extends TestCase
 {
@@ -518,26 +516,20 @@ class ModelTest extends TestCase
 
     public function testSaveUpdatesExistingModel(): void
     {
-        /** @var MockObject<Connection> $connection */
-        $connection = $this->app
-            ->get(ConnectionResolverInterface::class)
-            ->connection();
+        $this
+            ->mockClient()
+            ->expects(self::any())
+            ->method('update')
+            ->willReturn((object)[
+                '_id' => '42',
+                'foo' => 'bar',
+            ]);
 
         $model = (new Model())->newInstance(
             ['foo' => 'bar'],
             ['_id' => '42'],
             true
         );
-
-        $connection
-            ->expects(self::any())
-            ->method('__call')
-            ->with('update', $model)
-            ->willReturn((object)[
-                '_id' => '42',
-                'foo' => 'bar',
-            ]);
-
         $model->save();
 
         self::assertSame('42', $model->getId());
