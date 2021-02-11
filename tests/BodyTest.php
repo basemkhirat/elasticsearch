@@ -9,7 +9,6 @@ use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
 class BodyTest extends TestCase
 {
-
     use ESQueryTrait;
 
     /**
@@ -48,14 +47,14 @@ class BodyTest extends TestCase
     {
         $query = $this->getQueryArray();
 
-        $query["body"] = $body;
-
         if ( ! isset($body['_source'])) {
             $body['_source'] = [
                 'include' => [],
                 'exclude' => [],
             ];
         }
+
+        $query['body'] = $body;
 
         return $query;
     }
@@ -72,6 +71,6 @@ class BodyTest extends TestCase
         return $this
             ->getQueryObject()
             ->body($body)
-            ->query();
+            ->toArray();
     }
 }
