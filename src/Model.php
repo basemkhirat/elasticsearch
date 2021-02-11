@@ -1058,8 +1058,7 @@ class Model implements Arrayable,
     {
         return $this
             ->newQuery()
-            ->where($field ?? $this->getRouteKeyName(), $value)
-            ->first();
+            ->firstWhere($field ?? $this->getRouteKeyName(), $value);
     }
 
     /**
