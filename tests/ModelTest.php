@@ -261,6 +261,8 @@ class ModelTest extends TestCase
         $model = new Model([
             '_id' => 'foo',
         ]);
+
+        self::assertSame('foo', $model->getQueueableId());
     }
 
     public function testModelIndex(): void
@@ -567,10 +569,6 @@ class ModelTest extends TestCase
     }
 
     public function testRelationsToArray(): void
-    {
-    }
-
-    public function testHasAppended(): void
     {
     }
 
