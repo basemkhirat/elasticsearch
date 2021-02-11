@@ -200,7 +200,6 @@ class Model implements Arrayable,
      * @param string|null $scrollId
      *
      * @return Collection
-     * @throws JsonException
      */
     public static function all(?string $scrollId = null): Collection
     {
@@ -212,10 +211,9 @@ class Model implements Arrayable,
      *
      * @param string $key
      *
-     * @return Model|null
-     * @throws JsonException
+     * @return static|null
      */
-    public static function find(string $key): ?Model
+    public static function find(string $key): ?self
     {
         return static::query()
                      ->id($key)
@@ -228,11 +226,10 @@ class Model implements Arrayable,
      *
      * @param string $key
      *
-     * @return Model
+     * @return static
      * @throws DocumentNotFoundException
-     * @throws JsonException
      */
-    public static function findOrFail(string $key): Model
+    public static function findOrFail(string $key): self
     {
         $result = static::find($key);
 
@@ -251,7 +248,7 @@ class Model implements Arrayable,
      *
      * @param array $attributes
      *
-     * @return $this
+     * @return static
      */
     public static function create(array $attributes): self
     {
@@ -269,7 +266,6 @@ class Model implements Arrayable,
      * @param BaseCollection|array|int|string $ids
      *
      * @return int
-     * @throws JsonException
      */
     public static function destroy($ids): int
     {
@@ -454,7 +450,7 @@ class Model implements Arrayable,
      *
      * @param array<string, mixed> $attributes
      *
-     * @return $this
+     * @return static
      *
      * @throws MassAssignmentException
      */
@@ -484,10 +480,10 @@ class Model implements Arrayable,
      *
      * @param array $attributes
      *
-     * @return $this
+     * @return static
      * @throws MassAssignmentException
      */
-    public function forceFill(array $attributes): Model
+    public function forceFill(array $attributes): self
     {
         return static::unguarded(function () use ($attributes) {
             return $this->fill($attributes);
@@ -765,7 +761,7 @@ class Model implements Arrayable,
      * @param string|null $index      Name of the index the document lives in
      * @param string|null $type       (Deprecated) Mapping type of the document
      *
-     * @return $this
+     * @return static
      */
     public function newInstance(
         array $attributes = [],
@@ -773,7 +769,7 @@ class Model implements Arrayable,
         bool $exists = false,
         ?string $index = null,
         ?string $type = null
-    ): Model {
+    ): self {
         $model = new static([], $exists);
 
         $model->setRawAttributes($attributes, true);
@@ -873,7 +869,7 @@ class Model implements Arrayable,
     /**
      * Save the model to the index.
      *
-     * @return $this
+     * @return static
      * @throws InvalidCastException
      */
     public function save(): self
@@ -919,7 +915,7 @@ class Model implements Arrayable,
     /**
      * Save the model to the index without raising any events.
      *
-     * @return Model
+     * @return static
      * @throws InvalidCastException
      */
     public function saveQuietly(): self
@@ -1031,14 +1027,14 @@ class Model implements Arrayable,
      * @param mixed       $value
      * @param string|null $field
      *
-     * @return Model|null
+     * @return static|null
      * @throws JsonException
      */
     final public function resolveChildRouteBinding(
         $childType,
         $value,
         $field = null
-    ): ?Model {
+    ): ?self {
         return $this->resolveRouteBinding($value, $field);
     }
 
@@ -1051,10 +1047,10 @@ class Model implements Arrayable,
      * @param mixed       $value
      * @param string|null $field
      *
-     * @return Model|null
+     * @return static|null
      * @throws JsonException
      */
-    public function resolveRouteBinding($value, $field = null): ?Model
+    public function resolveRouteBinding($value, $field = null): ?self
     {
         return $this
             ->newQuery()
@@ -1152,7 +1148,7 @@ class Model implements Arrayable,
      *
      * @return static
      */
-    public function replicate(array $except = null): Model
+    public function replicate(array $except = null): self
     {
         $defaults = [
             self::FIELD_ID,
@@ -1164,7 +1160,7 @@ class Model implements Arrayable,
         );
 
         return tap(new static(), static function (
-            Model $instance
+            self $instance
         ) use ($attributes) {
             $instance->setRawAttributes($attributes);
             $instance->fireModelEvent('replicating', false);
@@ -1174,12 +1170,12 @@ class Model implements Arrayable,
     /**
      * Determine if two models have the same ID and belong to the same table.
      *
-     * @param Model|null $model
+     * @param static|null $model
      *
      * @return bool
      * @throws InvalidCastException
      */
-    public function is(?Model $model): bool
+    public function is(?self $model): bool
     {
         return ! is_null($model) &&
                $this->getId() === $model->getId() &&
@@ -1191,12 +1187,12 @@ class Model implements Arrayable,
     /**
      * Determine if two models are not the same.
      *
-     * @param Model|null $model
+     * @param static|null $model
      *
      * @return bool
      * @throws InvalidCastException
      */
-    public function isNot(?Model $model): bool
+    public function isNot(?self $model): bool
     {
         return ! $this->is($model);
     }
@@ -1282,7 +1278,7 @@ class Model implements Arrayable,
      *
      * @param string $format
      *
-     * @return $this
+     * @return static
      */
     public function setDateFormat(string $format): self
     {
