@@ -45,7 +45,7 @@
     "require": {
         "php": ">=7.3|^8.0",
         "ext-json": "*",
-        "elasticsearch/elasticsearch": "^7.9",
+        "elasticsearch/elasticsearch": "^7.10",
         "illuminate/pagination": "*",
         "illuminate/support": "*",
         "monolog/monolog": "*",
