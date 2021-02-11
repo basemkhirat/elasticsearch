@@ -293,7 +293,7 @@ class Connection implements ConnectionInterface
     public function __call(string $name, array $arguments)
     {
         return $this->forwardCallTo(
-            $this->newQuery(),
+            $this->getClient(),
             $name,
             $arguments
         );
