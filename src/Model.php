@@ -197,8 +197,7 @@ class Model implements Arrayable,
      */
     public static function all(?string $scrollId = null): Collection
     {
-        return static::query()
-                     ->get($scrollId);
+        return static::query()->get($scrollId);
     }
 
     /**

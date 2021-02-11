@@ -4,6 +4,11 @@ namespace Matchory\Elasticsearch\Facades;
 
 use Illuminate\Support\Facades\Facade;
 
+/**
+ * Class ES
+ *
+ * @package Matchory\Elasticsearch\Facades
+ */
 class ES extends Facade
 {
     /**

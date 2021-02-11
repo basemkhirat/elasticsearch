@@ -12,6 +12,11 @@ use function array_map;
 use function is_array;
 use function json_encode;
 
+/**
+ * Collection
+ *
+ * @package Matchory\Elasticsearch
+ */
 class Collection extends BaseCollection
 {
     /**

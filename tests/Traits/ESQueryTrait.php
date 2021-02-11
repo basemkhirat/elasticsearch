@@ -9,7 +9,6 @@ use Matchory\Elasticsearch\Query;
  */
 trait ESQueryTrait
 {
-
     /**
      * Test index name
      *
