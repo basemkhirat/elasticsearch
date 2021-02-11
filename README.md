@@ -1,4 +1,4 @@
-[![Latest Stable Version](https://poser.pugx.org/matchory/elasticsearch/v)](//packagist.org/packages/matchory/elasticsearch) [![Total Downloads](https://poser.pugx.org/matchory/elasticsearch/downloads)](//packagist.org/packages/matchory/elasticsearch) [![Latest Unstable Version](https://poser.pugx.org/matchory/elasticsearch/v/unstable)](//packagist.org/packages/matchory/elasticsearch) [![License](https://poser.pugx.org/matchory/elasticsearch/license)](//packagist.org/packages/matchory/elasticsearch)
+[![Latest Stable Version](https://poser.pugx.org/matchory/elasticsearch/v)](https://packagist.org/packages/matchory/elasticsearch) [![Total Downloads](https://poser.pugx.org/matchory/elasticsearch/downloads)](https://packagist.org/packages/matchory/elasticsearch) [![Latest Unstable Version](https://poser.pugx.org/matchory/elasticsearch/v/unstable)](https://packagist.org/packages/matchory/elasticsearch) [![License](https://poser.pugx.org/matchory/elasticsearch/license)](https://packagist.org/packages/matchory/elasticsearch)
 
 Laravel Elasticsearch integration
 =================================
@@ -6,34 +6,87 @@ This is a fork of the excellent library by [@basemkhirat](https://github.com/bas
 As we rely on this library quite heavily, we will attempt to keep it up to date and compatible with newer Laravel and Elasticsearch versions.
 
 **Goals of this fork:**
- - Support for newer versions of Elasticsearch, Laravel and PHP
- - Limited backwards compatibility: PHP version requirement of `>= 7.3`
- - Strong typing and accurate documentation comments
- - New features and convenience methods
+- Support for newer versions of Elasticsearch, Laravel and PHP
+- Limited backwards compatibility: PHP version requirement of `>= 7.3`
+- Strong typing and accurate documentation comments
+- New features and convenience methods
+
+**Changes in this fork:**
+- [x] Support for Elasticsearch 7.10 and newer
+- [x] Broadened support for Laravel libraries, allowing you to use it with almost all versions of Laravel
+- [x] Type hints in all supported places, giving confidence in all parameters
+- [x] Clean separation of connection management into a [`ConnectionManager` class](./src/ConnectionManager.php), while preserving backwards compatibility
+- [x] Support for _most_ Eloquent model behaviour ([see below](#elasticsearch-models))
+- [x] Removed dependencies on Laravel internals
+- [x] Docblock annotations for advanced autocompletion
 
 If you're interested in contributing to this fork, please submit a PR or open an issue.
 
-Laravel, Lumen and Native php elasticseach query builder to build complex queries using an elegant syntax
----------------------------------------------------------------------------------------------------------
- - Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
- - Elasticsearch data model for types and indices inspired from laravel eloquent.
- - Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
- - Lumen framework support.
- - Native php and composer based applications support.
- - Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
- - Dealing with multiple elasticsearch connections at the same time.
- - Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
- - Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
+**Features:**  
+- Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
+- Elasticsearch data model for types and indices inspired from laravel eloquent.
+- Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
+- Lumen framework support.
+- Native php and composer based applications support.
+- Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
+- Dealing with multiple elasticsearch connections at the same time.
+- Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
+- Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
+
+**Table of Contents**  
+- [Requirements](#requirements)
+- [Installation](#installation)
+    * [Install package using composer](#install-package-using-composer)
+        + [Laravel Installation](#laravel-installation)
+        + [Lumen Installation](#lumen-installation)
+    * [Generic app installation](#generic-app-installation)
+- [Configuration (Laravel & Lumen)](#configuration--laravel---lumen-)
+- [Artisan commands (Laravel & Lumen)](#artisan-commands--laravel---lumen-)
+    * [`es:indices:list`: List all indices on server](#-es-indices-list---list-all-indices-on-server)
+    * [`es:indices:create`: Create indices defined in `config/es.php`](#-es-indices-create---create-indices-defined-in--config-esphp-)
+    * [`es:indices:update`: Update indices defined in `config/es.php`](#-es-indices-update---update-indices-defined-in--config-esphp-)
+    * [`es:indices:drop`: Drop index](#-es-indices-drop---drop-index)
+    * [Reindexing data (with zero downtime)](#reindexing-data--with-zero-downtime-)
+- [Usage as a Laravel Scout driver](#usage-as-a-laravel-scout-driver)
+- [Elasticsearch models](#elasticsearch-models)
+    * [Index Names](#index-names)
+    * [Connection Names](#connection-names)
+    * [Mapping type](#mapping-type)
+    * [Default Attribute Values](#default-attribute-values)
+    * [Retrieving Models](#retrieving-models)
+    * [Adding additional constraints](#adding-additional-constraints)
+    * [Collections](#collections)
+    * [Chunking Results](#chunking-results)
+    * [Retrieving individual Models](#retrieving-individual-models)
+    * [Not Found Exceptions](#not-found-exceptions)
+    * [Inserting and Updating Models](#inserting-and-updating-models)
+        + [Inserts](#inserts)
+        + [Updates](#updates)
+        + [Examining Attribute Changes](#examining-attribute-changes)
+        + [Mass Assignment](#mass-assignment)
+        + [Allowing Mass Assignment](#allowing-mass-assignment)
+        + [Upserts](#upserts)
+        + [Deleting An Existing Model By Its ID](#deleting-an-existing-model-by-its-id)
+    * [Query Scopes](#query-scopes)
+        + [Global Scopes](#global-scopes)
+        + [Local Scopes](#local-scopes)
+        + [Dynamic Scopes](#dynamic-scopes)
+    * [Comparing Models](#comparing-models)
+    * [Events](#events)
+    * [Replicating Models](#replicating-models)
+    * [Mutators and Casting](#mutators-and-casting)
+- [Usage as a query builder](#usage-as-a-query-builder)
+- [Releases](#releases)
+- [Authors](#authors)
+- [Bugs, Suggestions and Contributions](#bugs--suggestions-and-contributions)
+- [License](#license)
+
 
 Requirements
 ------------
 - PHP >= `7.3`  
   See [Travis CI Builds](https://travis-ci.org/matchory/elasticsearch).
 - `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or any other application using composer
-
-Documentation
--------------
-See [Full Documentation](https://github.com/matchory/elasticsearch/wiki/1.-Installation).
 
 Installation
 ------------
@@ -46,7 +99,7 @@ composer require matchory/elasticsearch
 ```
 
 #### Laravel Installation
-**If you're using an older release of Laravel than `5.5`**, add the service provider and facade to your `config/app.php`:
+If you have package autodiscovery disabled, add the service provider and facade to your `config/app.php`:
 ```php
     'providers' => [
         // ...
@@ -95,17 +148,18 @@ app("es")->index("my_index")->type("my_type")->get();
 # This is similar to:
 ES::index("my_index")->type("my_type")->get();
 ```   
-   
+
 ### Generic app installation
 You can install package with any composer-based application. While we can't provide general instructions, the following example should give you an idea of how
 it works:
 ```php
 require "vendor/autoload.php";
 
-use Matchory\Elasticsearch\Connection;
+use Matchory\Elasticsearch\ConnectionManager;
+use Matchory\Elasticsearch\Factories\ClientFactory;
 
-$connection = Connection::create([
-    'servers' => [
+$connectionManager = new ConnectionManager([
+ 'servers' => [
         [
             "host" => '127.0.0.1',
             "port" => 9200,
@@ -114,21 +168,16 @@ $connection = Connection::create([
             'scheme' => 'http',
         ],
     ],
-    
+
 	// Custom handlers
 	// 'handler' => new MyCustomHandler(),
 
     'index' => 'my_index',
-    
-    'logging' => [
-        'enabled'   => env('ELASTIC_LOGGING_ENABLED',false),
-        'level'     => env('ELASTIC_LOGGING_LEVEL','all'),
-        'location'  => env('ELASTIC_LOGGING_LOCATION',base_path('storage/logs/elasticsearch.log'))
-    ],  
-]);
+], new ClientFactory());
 
+$connection = $connectionManager->connection();
 
-# access the query builder using created connection
+// Access the query builder using created connection
 $documents = $connection->search("hello")->get();
 ```
 
@@ -182,7 +231,7 @@ multiple servers each. Take a look at the following example:
 ]
 ```
 
-If you'd like to use Elasticsearch with [Laravel Scout](https://laravel.com/docs/8.x/scout#introduction), you can find the scout specific settings in 
+If you'd like to use Elasticsearch with [Laravel Scout](https://laravel.com/docs/8.x/scout#introduction), you can find the scout specific settings in
 `config/scout.php`.
 
 Artisan commands (Laravel & Lumen)
@@ -193,7 +242,7 @@ by default. You can change this by passing the `--connection <your_connection_na
 The following commands are available:
 
 ### `es:indices:list`: List all indices on server
-```bash
+```bash-
 $ php artisan es:indices:list
 +----------------------+--------+--------+----------+------------------------+-----+-----+------------+--------------+------------+----------------+
 | configured (es.php)  | health | status | index    | uuid                   | pri | rep | docs.count | docs.deleted | store.size | pri.store.size |
@@ -240,46 +289,45 @@ Changing index mapping doesn't reflect without data reindexing, otherwise your s
 To avoid down time, your application should work with index `alias` not index `name`.  
 The index `alias` is a constant name that application should work with to avoid change index names.
 
-**Assume that we want to change mapping for `my_index`, this is how to do that:**  
- 1. Add `alias` as example `my_index_alias` to `my_index` configuration and make sure your application is working with it.
-    ```php
-    "aliases" => [
-        "my_index_alias"
-    ]       
-    ```
+**Assume that we want to change mapping for `my_index`, this is how to do that:**
+1. Add `alias` as example `my_index_alias` to `my_index` configuration and make sure your application is working with it.
+   ```php
+   "aliases" => [
+       "my_index_alias"
+   ]       
+   ```
 
- 2. Update index with command:
-    ```bash
-    php artisan es:indices:update my_index
-    ```
+2. Update index with command:
+   ```bash
+   php artisan es:indices:update my_index
+   ```
 
- 3. Create a new index as example `my_new_index` with your new mapping in configuration file.
-    ```bash
-    $ php artisan es:indices:create my_new_index
-    ```
+3. Create a new index as example `my_new_index` with your new mapping in configuration file.
+   ```bash
+   $ php artisan es:indices:create my_new_index
+   ```
 
- 4. Reindex data from `my_index` into `my_new_index` with command:
-    ```bash
-    php artisan es:indices:reindex my_index my_new_index
-    
-    # Control bulk size. Adjust it with your server.
-    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
-    
-    # Control query scroll value.
-    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
-    
-    # Skip reindexing errors such as mapper parsing exceptions.
-    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
-    
-    # Hide all reindexing errors and show the progres bar only.
-    php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
-    ```
-    
- 5. Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
-    ```bash
-    php artisan es:indices:update
-    ```
+4. Reindex data from `my_index` into `my_new_index` with command:
+   ```bash
+   php artisan es:indices:reindex my_index my_new_index
+   
+   # Control bulk size. Adjust it with your server.
+   php artisan es:indices:reindex my_index my_new_index --bulk-size=2000
+   
+   # Control query scroll value.
+   php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --scroll=2m
+   
+   # Skip reindexing errors such as mapper parsing exceptions.
+   php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors 
+   
+   # Hide all reindexing errors and show the progres bar only.
+   php artisan es:indices:reindex my_index my_new_index --bulk-size=2000 --skip-errors --hide-errors
+   ```
 
+5. Remove `my_index_alias` alias from `my_index` and add it to `my_new_index` in configuration file and update with command:
+   ```bash
+   php artisan es:indices:update
+   ```
 
 Usage as a Laravel Scout driver
 -------------------------------
@@ -297,12 +345,68 @@ All you have to do is updating the following lines in `config/scout.php`:
 
 Have a look at [Laravel Scout documentation](https://laravel.com/docs/8.0/scout#configuration), too!
 
-Elasticsearch data model
-------------------------
-Each index type has a corresponding _"Model"_ which is used to interact with that type. Models allow you to query for data in your types or indices, as well as 
-insert new documents into the type. The work pretty much like Eloquent models you might know from Laravel already.
+Elasticsearch models
+--------------------
+Each index type has a corresponding _"Model"_ which is used to interact with that type. Models allow you to query for data in your types or indices, as well as
+insert new documents into the type. Elasticsearch Models mimic Eloquent models as closely as possible: You can use model events, route bindings, advanced
+attribute methods and more. **If there is any Eloquent functionality you're missing, open an issue, and we'll be happy to add it!**.
 
-### Basic usage
+> **Supported features:**
+>  - Attributes
+>  - Events
+>  - Route bindings
+>  - Global and Local Query Scopes
+>  - Replicating models
+
+A minimal model might look like this:
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    // ...
+}
+```
+
+### Index Names
+This model is not specifically bound to any index and will simply use the index configured for the given Elasticsearch connection. To specifically target an
+index, you may define an `index` property on the model:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    protected $index = 'posts';
+}
+```
+
+### Connection Names
+By default, all Elasticsearch models will use the default connection that's configured for your application. If you would like to specify a different connection
+that should be used when interacting with a particular model, you should define a $connection property on the model:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    protected $connection = 'blag';
+}
+```
+
+### Mapping type
+If you're still using mapping types, you may add a `type` property to your model to indicate the mapping `_type` to be used for queries.
+
+> **Mapping Types are deprecated:**  
+> Please note that Elastic has [deprecated mapping types](https://www.elastic.co/guide/en/elasticsearch/reference/current/removal-of-types.html) and will remove
+> them in the next major release. You should not rely on them to continue working.
+
 ```php
 namespace App;
 
@@ -314,66 +418,160 @@ class Post extends Model
 }
 ```
 
-The above example will use the default connection and default index in `config/es.php`. You can override both in the next example.
+### Default Attribute Values
+By default, a newly instantiated model instance will not contain any attribute values. If you would like to define the default values for some of your model's
+attributes, you may define an `attributes` property on your model:
+
 ```php
-namespace App;
+namespace App\Models;
 
 use Matchory\Elasticsearch\Model;
 
 class Post extends Model
 {
-    # [optional] Default: default elasticsearch driver
-    # To override default connection name of es.php file.
-    # Assumed that there is a connection with name 'my_connection'
-    protected $connection = 'my_connection';
-    
-    # [optional] Default: default connection index
-    # To override default index name of es.php file.
-    protected $index = 'my_index';
-    
-    protected $type = 'posts';
+    protected $attributes = [
+        'published' => false,
+    ];
 }
 ```
 
 ### Retrieving Models
-Once you have created a model and its associated index type, you are ready to start retrieving data from your index. For example:
+Once you have created a model and its associated index type, you are ready to start retrieving data from your index. You can think of your Elasticsearch model
+as a powerful query builder allowing you to fluently query the index associated with the model. The model's `all` method will retrieve all the documents from
+the model's associated Elasticsearch index:
 
 ```php
-use App\Post;
+use App\Models\Post;
 
-$posts = App\Post::all();
-
-foreach ($posts as $post) {
+foreach (Post::all() as $post) {
     echo $post->title;
 }
-
 ```
 
 ### Adding additional constraints
-The `all` method will return all the results in the model's type. Each elasticsearch model serves as a query builder, you may also add constraints to
-queries, and then use the `get()` method to retrieve the results:
+The `all` method will return all the results in the model's index. However, since each Elasticsearch model serves as a query builder, you may add additional
+constraints to queries, and then invoke the `get()` method to retrieve the results:
 
 ```php
-$posts = App\Post::where('status', 1)
-               ->orderBy('created_at', 'desc')
-               ->take(10)
-               ->get();
+use App\Models\Post;
+
+$posts = Post::where('status', 1)
+             ->orderBy('created_at', 'desc')
+             ->take(10)
+             ->get();
 ```
 
-### Retrieving Single Models
+### Collections
+As we have seen, Elasticsearch methods like `all` and `get` retrieve multiple documents from the index. However, these methods don't return a plain PHP array.
+Instead, an instance of [`Matchory\Elasticsearch\Collection`](./src/Collection.php) is returned.
+
+The Elasticsearch `Collection` class extends Laravel's base `Illuminate\Support\Collection` class, which provides a
+[variety of helpful methods](https://laravel.com/docs/master/collections#available-methods) for interacting with data collections. For example, the `reject`
+method may be used to remove models from a collection based on the results of an invoked closure:
+
 ```php
-// Retrieve a model by document key...
-$posts = App\Post::find("AVp_tCaAoV7YQD3Esfmp");
+use App\Models\Post;
+
+$posts = Post::where('sponsored', true)->get();
+$posts = $posts->reject($post => $post->in_review);
 ```
 
+In addition to the methods provided by Laravel's base collection class, the Elasticsearch collection class provides a few extra methods that are specifically
+intended for interacting with collections of Elasticsearch models:
 
-### Inserting Models
-To create a new document, simply create a new model instance, set attributes on the model, then call the `save()` method:
+#### Result Meta data
+Elasticsearch provides a few additional fields in addition to the hits of a query, like the total result amount, or the query execution time. The Elasticsearch
+collection provides getters for these properties:
+```php
+use App\Models\Post;
+
+$posts = Post::all();
+$total = $posts->getTotal();
+$maxScore = $posts->getMaxScore();
+$duration = $posts->getDuration();
+$isTimedOut = $posts->isTimedOut();
+$scrollId = $posts->getScrollId();
+$shards = $posts->getShards();
+```
+
+#### Iterating
+Since all of Laravel's collections implement PHP's `iterable` interfaces, you may loop over collections as if they were an array:
+
+```php
+foreach ($title as $title) {
+    echo $post->title;
+}
+```
+
+### Chunking Results
+Elasticsearch indices can grow quite huge. Your application may run out of memory if you would attempt to load tens of thousands of Elasticsearch documents via
+the `all` or `get` methods without an upper bound. Therefore, the default amount of documents fetched is set to `10`. To change this, use the `take` method:
+
+```php
+use App\Models\Post;
+
+$posts = Post::take(500)->get();
+```
+
+### Retrieving individual Models
+In addition to retrieving all the documents matching a given query, you may also retrieve single documents using the `find`, `first`, or `firstWhere` methods.
+Instead of returning a collection of models, these methods return a single model instance:
+
+```php
+use App\Models\Post;
+
+// Retrieve a model by its ID...
+$posts = Post::find('AVp_tCaAoV7YQD3Esfmp');
+
+// Retrieve the first model matching the query constraints...
+$post = Post::where('published', 1)->first();
+
+// Alternative to retrieving the first model matching the query constraints...
+$post = Post::firstWhere('published', 1);```
+```
+
+Sometimes you may wish to retrieve the first result of a query or perform some other action if no results are found. The `firstOr` method will return the first
+result matching the query or, if no results are found, execute the given closure. The value returned by the closure will be considered the result of the
+`firstOr` method:
+
+```php
+use App\Models\Post;
+
+$model = Post::where('tags', '>', 3)->firstOr(function () {
+    // ...
+});
+```
+
+### Not Found Exceptions
+Sometimes you may wish to throw an exception if a model is not found. This is particularly useful in routes or controllers. The `findOrFail` and `firstOrFail`
+methods will retrieve the first result of the query; however, if no result is found, a
+[`Matchory\Elasticsearch\Exceptions\DocumentNotFoundException`](./src/Exceptions/DocumentNotFoundException.php) will be thrown:
+
+```php
+$post = Post::findOrFail('AVp_tCaAoV7YQD3Esfmp');
+
+$post = Post::where('published', true)->firstOrFail();
+```
+
+If the `DocumentNotFoundException` is not caught, a 404 HTTP response is automatically sent back to the client:
+
+```php
+use App\Models\Post;
+
+Route::get('/api/posts/{id}', function ($id) {
+    return Post::findOrFail($id);
+});
+```
+
+### Inserting and Updating Models
+#### Inserts
+To insert a new document into the index, you should instantiate a new model instance and set attributes on the model. Then, call the `save` method on the model
+instance:
 
 ```php
 namespace App\Http\Controllers;
 
-use App\Post;
+use App\Models\Post;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
 use App\Http\Controllers\Controller;
@@ -398,80 +596,493 @@ class PostController extends Controller
 }
 ```
 
-##### Updating Models
-The `save()` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and 
+In this example, we assign the `name` field from the incoming HTTP request to the `name` attribute of the `App\Models\Post` model instance. When we call the
+`save` method, a document will be inserted into the index.
+
+Alternatively, you may use the `create` method to "save" a new model using a single PHP statement. The inserted model instance will be returned to you by the
+`create` method:
+
+```php
+use App\Models\Post;
+
+$post = Post::create([
+'title' => 'Searching efficiently',
+]);
+```
+
+However, before using the create method, you will need to specify either a `fillable` or `guarded` property on your model class. These properties are required
+because all Elasticsearch models are protected against mass assignment vulnerabilities by default. To learn more about mass assignment, please consult the
+[mass assignment documentation](https://laravel.com/docs/8.x/eloquent#mass-assignment).
+
+#### Updates
+The `save` method may also be used to update models that already exist in the index. To update a model, you should retrieve it and set any attributes you wish
+to update. Then, you should call the model's `save` method.
+
+The `save()` method may also be used to update models that already exist. To update a model, you should retrieve it, set any attributes you wish to update, and
 then call the save method.
 
 ```php
-$post = App\Post::find(1);
+use App\Models\Post;
 
-$post->title = 'New Post Title';
+$post = Post::find('AVp_tCaAoV7YQD3Esfmp');
+
+$post->title = 'Modified Post Title';
 
 $post->save();
 ```
 
-##### Deleting Models
-To delete a model, call the `delete()` method on a model instance:
+#### Examining Attribute Changes
+Elasticsearch provides the `isDirty`, `isClean`, and `wasChanged` methods to examine the internal state of your model and determine how its attributes have
+changed from when the model was originally retrieved.
+
+The `isDirty` method determines if any of the model's attributes have been changed since the model was retrieved. You may pass a specific attribute name to the
+`isDirty` method to determine if a particular attribute is _dirty_. The `isClean` will determine if an attribute has remained unchanged since the model was
+retrieved. This method also accepts an optional attribute argument:
 
 ```php
-$post = App\Post::find(1);
+use App\Models\Author;
+
+$author = Author::create([
+'first_name' => 'Moritz',
+'last_name' => 'Friedrich',
+'title' => 'Developer',
+]);
+
+$author->title = 'Painter';
+
+$author->isDirty(); // true
+$author->isDirty('title'); // true
+$author->isDirty('first_name'); // false
+
+$author->isClean(); // false
+$author->isClean('title'); // false
+$author->isClean('first_name'); // true
+
+$author->save();
+
+$author->isDirty(); // false
+$author->isClean(); // true
+```
+
+The `wasChanged` method determines if any attributes were changed when the model was last saved within the current request cycle. If needed, you may pass an
+attribute name to see if a particular attribute was changed:
+
+```php
+use App\Models\Author;
+
+$author = Author::create([
+'first_name' => 'Taylor',
+'last_name' => 'Otwell',
+'title' => 'Developer',
+]);
+
+$author->title = 'Painter';
+
+$author->save();
+
+$author->wasChanged(); // true
+$author->wasChanged('title'); // true
+$author->wasChanged('first_name'); // false
+```
+
+The `getOriginal` method returns an array containing the original attributes of the model regardless of any changes to the model since it was retrieved. If
+needed, you may pass a specific attribute name to get the original value of a particular attribute:
+
+```php
+use App\Models\Author;
+
+$author = Author::find(1);
+
+$author->name; // John
+$author->email; // john@example.com
+
+$author->name = "Jack";
+$author->name; // Jack
+
+$author->getOriginal('name'); // John
+$author->getOriginal(); // Array of original attributes...
+```
+
+#### Mass Assignment
+You may use the `create` method to "save" a new model using a single PHP statement. The inserted model instance will be returned to you by the method:
+
+```php
+use App\Models\Post;
+
+$post = Post::create([
+    'title' => 'Searching effectively',
+]);
+```
+
+However, before using the `create` method, you will need to specify either a `fillable` or `guarded` property on your model class. These properties are required
+because all Elasticsearch models are protected against mass assignment vulnerabilities by default.
+
+A mass assignment vulnerability occurs when a user passes an unexpected HTTP request field and that field changes a field in your index that you did not expect.
+
+So, to get started, you should define which model attributes you want to make mass assignable. You may do this using the `fillable` property on the model. For
+example, let's make the `title` attribute of our `Post` model mass assignable:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    /**
+     * The attributes that are mass assignable.
+     *
+     * @var array
+     */
+    protected $fillable = ['title'];
+}
+```
+
+Once you have specified which attributes are mass assignable, you may use the `create` method to insert a new document in the index. The `create` method returns
+the newly created model instance:
+
+```php
+$post = Post::create(['title' => 'Searching effectively']);
+```
+
+If you already have a model instance, you may use the `fill` method to populate it with an array of attributes:
+
+```php
+$post->fill(['title' => 'Searching more effectively']);
+```
+
+#### Allowing Mass Assignment
+If you would like to make all of your attributes mass assignable, you may define your model's `guarded` property as an empty array. If you choose to un-guard
+your model, you should take special care to always hand-craft the arrays passed to Elasticsearch's `fill`, `create`, and `update` methods:
+
+```php
+/**
+ * The attributes that aren't mass assignable.
+ *
+ * @var array
+ */
+protected $guarded = [];
+```
+
+#### Upserts
+There is currently no convenience wrapper for upserting documents (inserting or updating depending on whether models exist). If you're interested in such a
+capability, please open an issue.
+
+##### Deleting Models
+To delete a model, call the `delete` method on a model instance:
+
+```php
+use App\Models\Post;
+
+$post = Post::find('AVp_tCaAoV7YQD3Esfmp');
 
 $post->delete();
 ```
 
-##### Query Scopes
-Scopes allow you to define common sets of constraints that you may easily re-use throughout your application. For example, you may need to frequently retrieve
-all posts that are considered "popular". To define a scope, simply prefix an Eloquent model method with scope.
-
-Scopes should always return a Query instance.
+#### Deleting An Existing Model By Its ID
+In the example above, we are retrieving the model from the index before calling the `delete` method. However, if you know the ID of the model, you may delete
+the model without explicitly retrieving it by calling the `destroy` method. In addition to accepting the single ID, the `destroy` method will accept multiple
+IDs, an array of IDs, or a collection of IDs:
 
 ```php
-namespace App;
+use App\Models\Post;
+
+Post::destroy(1);
+
+Post::destroy(1, 2, 3);
+
+Post::destroy([1, 2, 3]);
+
+Post::destroy(collect([1, 2, 3]));
+```
+
+> **Important:**  
+> The `destroy` method loads each model individually and calls the `delete` method so that the `deleting` and `deleted` events are properly dispatched for
+> each model.
+
+### Query Scopes
+Query scopes are implemented exactly the way as they are in Eloquent.
+
+#### Global Scopes
+Global scopes allow you to add constraints to all queries for a given model. Writing your own global scopes can provide a convenient, easy way to make sure
+every query for a given model receives certain constraints.
+
+##### Writing Global Scopes
+Writing a global scope is simple. First, define a class that implements the
+[`Matchory\Elasticsearch\Interfaces\ScopeInterface`](./src/Interfaces/ScopeInterface.php) interface. Laravel does not have a conventional location that you
+should place scope classes, so you are free to place this class in any directory that you wish.
+
+The `ScopeInterface` requires you to implement one method: `apply`. The `apply` method may add constraints or other types of clauses to the query as needed:
+
+```php
+namespace App\Scopes;
+
+use Matchory\Elasticsearch\Query;
+use Matchory\Elasticsearch\Model;
+use Matchory\Elasticsearch\Interfaces\ScopeInterface;
+
+class AncientScope implements ScopeInterface
+{
+    /**
+     * Apply the scope to a given Elasticsearch query builder.
+     *
+     * @param  \Matchory\Elasticsearch\Query  $query
+     * @param  \Matchory\Elasticsearch\Model  $model
+     * @return void
+     */
+    public function apply(Query $query, Model $model)
+    {
+        $query->where('created_at', '<', now()->subYears(2000));
+    }
+}
+```
+
+##### Applying Global Scopes
+To assign a global scope to a model, you should override the model's booted method and invoke the model's `addGlobalScope` method. The `addGlobalScope` method
+accepts an instance of your scope as its only argument:
+
+```php
+namespace App\Models;
+
+use App\Scopes\AncientScope;
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::addGlobalScope(new AncientScope);
+    }
+}
+```
+
+##### Anonymous Global Scopes
+Elasticsearch also allows you to define global scopes using closures, which is particularly useful for simple scopes that do not warrant a separate class of
+their own. When defining a global scope using a closure, you should provide a scope name of your own choosing as the first argument to the
+`addGlobalScope` method:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Query;
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted(): void
+    {
+        static::addGlobalScope('ancient', function (Query $query) {
+            $query->where('created_at', '<', now()->subYears(2000));
+        });
+    }
+}
+```
+
+##### Removing Global Scopes
+If you would like to remove a global scope for a given query, you may use the `withoutGlobalScope` method. This method accepts the class name of the global
+scope as its only argument:
+
+```php
+Post::withoutGlobalScope(AncientScope::class)->get();
+```
+
+Or, if you defined the global scope using a closure, you should pass the string name that you assigned to the global scope:
+
+```php
+Post::withoutGlobalScope('ancient')->get();
+```
+
+If you would like to remove several or even all of the query's global scopes, you may use the `withoutGlobalScopes` method:
+
+```php
+// Remove all of the global scopes...
+Post::withoutGlobalScopes()->get();
+```
+
+```
+// Remove some of the global scopes...
+Post::withoutGlobalScopes([
+    FirstScope::class,
+    SecondScope::class
+])->get();
+```
+
+#### Local Scopes
+Local scopes allow you to define common sets of query constraints that you may easily re-use throughout your application. For example, you may need to
+frequently retrieve all posts that are considered "popular".
+
+##### Writing local scopes
+To define a scope, prefix an Elasticsearch model method with scope. Scopes should always return a query builder instance:
+
+```php
+namespace App\Models;
 
 use Matchory\Elasticsearch\Model;
-use Matchory\Elasticsearch\Query;
 
 class Post extends Model
 {
     /**
      * Scope a query to only include popular posts.
      *
-     * @param Query $query
-     * @param int $votes
-     * @return Query
+     * @param  \Matchory\Elasticsearch\Query  $query
+     * @return \Matchory\Elasticsearch\Query
      */
-    public function scopePopular(Query $query, int $votes): Query
+    public function scopePopular(Query $query): Query
     {
-        return $query->where('votes', '>', $votes);
+        return $query->where('votes', '>', 100);
     }
 
     /**
-     * Scope a query to only include active posts.
+     * Scope a query to only include published posts.
      *
-     * @param Query $query
-     * @return Query
+     * @param  \Matchory\Elasticsearch\Query  $query
+     * @return \Matchory\Elasticsearch\Query
      */
-    public function scopeActive(Query $query): Query
+    public function scopePublished(Query $query): Query
     {
-        return $query->where('active', 1);
+        return $query->where('published', 1);
     }
 }
 ```
 
-Once the scope has been defined, you may call the scope methods when querying the model. However, you do not need to include the scope prefix when calling the 
-method. You can even chain calls to various scopes, for example:
+##### Utilizing local scopes
+Once the scope has been defined, you may call the scope methods when querying the model. However, you should not include the scope prefix when calling the
+method. You can even chain calls to various scopes:
 
-```php
-$posts = App\Post::popular(100)->active()->orderBy('created_at')->get();
+```
+use App\Models\Post;
+
+$posts = Post::popular()->published()->orderBy('created_at')->get();
 ```
 
+#### Dynamic Scopes
+Sometimes you may wish to define a scope that accepts parameters. To get started, just add your additional parameters to your scope method's signature. Scope
+parameters should be defined after the `$query` parameter:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    /**
+     * Scope a query to only include posts of a given type.
+     *
+     * @param  \Matchory\Elasticsearch\Query  $query
+     * @param  mixed  $type
+     * @return \Matchory\Elasticsearch\Query
+     */
+    public function scopeOfType(Query $query, $type): Query
+    {
+        return $query->where('type', $type);
+    }
+}
+```
+
+Once the expected arguments have been added to your scope method's signature, you may pass the arguments when calling the scope:
+
+```
+$posts = Post::ofType('news')->get();
+```
+
+### Comparing Models
+Sometimes you may need to determine if two models are the "same". The is method may be used to quickly verify two models have the same ID, index, type, and
+connection:
+
+```php
+if ($post->is($anotherPost)) {
+    //
+}
+```
+
+### Events
+Elasticsearch models dispatch several events, allowing you to hook into the following moments in a model's lifecycle: `retrieved`, `creating`, `created`,
+`updating`, `updated`, `saving`, `saved`, `deleting`, `deleted`, `restoring`, `restored`, and `replicating`.
+
+The `retrieved` event will dispatch when an existing model is retrieved from the index. When a new model is saved for the first time, the `creating` and
+`created` events will dispatch. The `updating` / `updated` events will dispatch when an existing model is modified, and the `save` method is called. The
+`saving` / `saved` events will dispatch when a model is created or updated - even if the model's attributes have not been changed.
+
+To start listening to model events, define a `dispatchesEvents` property on your Elasticsearch model. This property maps various points of the Elasticsearch
+model's lifecycle to your own [event classes](https://laravel.com/docs/8.x/events). Each model event class should expect to receive an instance of the affected
+model via its constructor:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+use App\Events\UserDeleted;
+use App\Events\UserSaved;
+
+class Post extends Model
+{
+    /**
+     * The event map for the model.
+     *
+     * @var array
+     */
+    protected $dispatchesEvents = [
+        'saved' => PostSaved::class,
+        'deleted' => PostDeleted::class,
+    ];
+}
+```
+
+After defining and mapping your events, you may use [event listeners](https://laravel.com/docs/8.x/events#defining-listeners) to handle the events.
+
+#### Using Closures
+Instead of using custom event classes, you may register closures that execute when various model events are dispatched. Typically, you should register these
+closures in the `booted` method of your model:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class Post extends Model
+{
+    /**
+     * The "booted" method of the model.
+     *
+     * @return void
+     */
+    protected static function booted()
+    {
+        static::created(function ($post) {
+            //
+        });
+    }
+}
+```
+
+If needed, you may utilize [queueable anonymous event listeners](https://laravel.com/docs/8.x/events#queuable-anonymous-event-listeners) when registering model
+events. This will instruct Laravel to execute the model event listener in the background using your application's [queue](https://laravel.com/docs/8.x/queues):
+
+```
+use function Illuminate\Events\queueable;
+
+static::created(queueable(function ($post) {
+    //
+}));
+```
 
 ##### Accessors & Mutators
 
 ###### Defining An Accessor
-To define an `accessor`, create a getFooAttribute method on your model where `Foo` is the "studly" cased name of the column you wish to access. In this
-example, we'll define an accessor for the `title` attribute. The accessor will automatically be called by model when attempting to retrieve the value of
-the `title` attribute:
+To define an `accessor`, create a `getFooAttribute` method on your model where `Foo` is the "studly" cased name of the field you wish to access. In this
+example, we'll define an accessor for the `title` attribute. The accessor will automatically be called by model when attempting to retrieve the value of the
+`title` attribute:
 ```php
 
 namespace App;
@@ -493,8 +1104,8 @@ class post extends Model
 }
 ```
 
-As you can see, the original value of the column is passed to the accessor, allowing you to manipulate and return the value. To access the value of the 
-accessor, you may simply access the `title` attribute on a model instance:
+As you can see, the original value of the field is passed to the accessor, allowing you to manipulate and return the value. To access the value of the accessor,
+you may simply access the `title` attribute on a model instance:
 ```php
 $post = App\Post::find(1);
 
@@ -518,7 +1129,7 @@ protected $appends = ['is_published'];
 Once the attribute has been added to the appends list, it will be included in model's array.
 
 ###### Defining A Mutator
-To define a mutator, define a `setFooAttribute` method on your model where `Foo` is the "studly" cased name of the column you wish to access. So, again, let's 
+To define a mutator, define a `setFooAttribute` method on your model where `Foo` is the "studly" cased name of the field you wish to access. So, again, let's
 define a mutator for the `title` attribute. This mutator will be automatically called when we attempt to set the value of the `title`attribute on the model:
 ```php
 namespace App;
@@ -540,7 +1151,7 @@ class post extends Model
 }
 ```
 
-The mutator will receive the value that is being set on the attribute, allowing you to manipulate the value and set the manipulated value on the model's 
+The mutator will receive the value that is being set on the attribute, allowing you to manipulate the value and set the manipulated value on the model's
 internal `$attributes` property. So, for example, if we attempt to set the title attribute to `Awesome post to read`:
 ```php
 $post = App\Post::find(1);
@@ -548,39 +1159,578 @@ $post = App\Post::find(1);
 $post->title = 'Awesome post to read';
 ```
 
-In this example, the setTitleAttribute function will be called with the value `Awesome post to read`. The mutator will then apply the strtolower function
-to the name and set its resulting value in the internal $attributes array.
+In this example, the setTitleAttribute function will be called with the value `Awesome post to read`. The mutator will then apply the strtolower function to the
+name and set its resulting value in the internal $attributes array.
 
-### Attribute Casting
-The `$casts` property on your model provides a convenient method of converting attributes to common data types. The `$casts` property should be an array
-where the key is the name of the casted attribute, and the value is the type you wish to cast the column to. The supported cast types are: `integer`, 
-`float`, `double`, `string`, `boolean`, `object` and `array`.
+#### Muting Events
+You may occasionally need to temporarily "mute" all events fired by a model. You may achieve this using the `withoutEvents` method. The `withoutEvents` method
+accepts a closure as its only argument. Any code executed within this closure will not dispatch model events. For example, the following example will fetch and
+delete an `App\Models\Post` instance without dispatching any model events. Any value returned by the closure will be returned by the `withoutEvents` method:
 
-For example, let's cast the `is_published` attribute, which is stored in our index as an integer (0 or  1) to a `boolean` value:
 ```php
-namespace App;
+use App\Models\Post;
+
+$post = Post::withoutEvents(function () use () {
+Post::findOrFail(1)->delete();
+
+    return Post::find(2);
+});
+```
+
+#### Saving A Single Model Without Events
+Sometimes you may wish to "save" a given model without dispatching any events. You may accomplish this using the `saveQuietly` method:
+
+```php
+$post = Post::findOrFail(1);
+
+$post->title = 'Other search strategies';
+
+$post->saveQuietly();
+```
+
+### Replicating Models
+You may create an unsaved copy of an existing model instance using the replicate method. This method is particularly useful when you have model instances that
+share many of the same attributes:
+
+```php
+use App\Models\Address;
+
+$shipping = Address::create([
+    'type' => 'shipping',
+    'line_1' => '123 Example Street',
+    'city' => 'Victorville',
+    'state' => 'CA',
+    'postcode' => '90001',
+]);
+
+$billing = $shipping->replicate()->fill([
+    'type' => 'billing'
+]);
+
+$billing->save();
+```
+
+### Mutators and Casting
+Accessors, mutators, and attribute casting allow you to transform Elasticsearch attribute values when you retrieve or set them on model instances. For example,
+you may want to use the [Laravel encrypter](https://laravel.com/docs/8.x/encryption) to encrypt a value while it is stored in the index, and then automatically
+decrypt the attribute when you access it on an Elasticsearch model. Or, you may want to convert a JSON string that is stored in your index to an array when it
+is accessed via your Elasticsearch model.
+
+#### Accessors & Mutators
+##### Defining An Accessor
+An accessor transforms an Elasticsearch attribute value when it is accessed. To define an accessor, create a `get{Attribute}Attribute` method on your model
+where `{Attribute}` is the "studly" cased name of the field you wish to access.
+
+In this example, we'll define an accessor for the `first_name` attribute. The accessor will automatically be called by Elasticsearch when attempting to retrieve
+the value of the `first_name` attribute:
+
+```php
+namespace App\Models;
 
 use Matchory\Elasticsearch\Model;
 
-class Post extends Model
+class User extends Model
 {
     /**
-     * The attributes that should be cast to native types.
+     * Get the user's first name.
+     *
+     * @param  string  $value
+     * @return string
+     */
+    public function getFirstNameAttribute(string $value): string
+    {
+        return ucfirst($value);
+    }
+}
+```
+
+As you can see, the original value of the field is passed to the accessor, allowing you to manipulate and return the value. To access the value of the accessor,
+you may simply access the `first_name` attribute on a model instance:
+
+```php
+use App\Models\User;
+
+$user = User::find(1);
+
+$firstName = $user->first_name;
+```
+
+You are not limited to interacting with a single attribute within your accessor. You may also use accessors to return new, computed values from existing
+attributes:
+
+```php
+/**
+ * Get the user's full name.
+ *
+ * @return string
+ */
+public function getFullNameAttribute(): string
+{
+    return "{$this->first_name} {$this->last_name}";
+}
+```
+
+##### Defining A Mutator
+A mutator transforms an Elasticsearch attribute value when it is set. To define a mutator, define a `set{Attribute}Attribute` method on your model where
+`{Attribute}` is the "studly" cased name of the field you wish to access.
+
+Let's define a mutator for the `first_name` attribute. This mutator will be automatically called when we attempt to set the value of the `first_name` attribute
+on the model:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class User extends Model
+{
+    /**
+     * Set the user's first name.
+     *
+     * @param  string  $value
+     * @return void
+     */
+    public function setFirstNameAttribute(string $value): void
+    {
+        $this->attributes['first_name'] = strtolower($value);
+    }
+}
+```
+
+The mutator will receive the value that is being set on the attribute, allowing you to manipulate the value and set the manipulated value on the Elasticsearch
+model's internal `$attributes` property. To use our mutator, we only need to set the `first_name` attribute on an Elasticsearch model:
+
+```php
+use App\Models\User;
+
+$user = User::find(1);
+
+$user->first_name = 'Sally';
+```
+
+In this example, the `setFirstNameAttribute` function will be called with the value `Sally`. The mutator will then apply the `strtolower` function to the name
+and set its resulting value in the internal `$attributes` array.
+
+#### Attribute Casting
+Attribute casting provides functionality similar to accessors and mutators without requiring you to define any additional methods on your model. Instead, your
+model's `$casts` property provides a convenient method of converting attributes to common data types.
+
+The `$casts` property should be an array where the key is the name of the attribute being cast, and the value is the type you wish to cast the field to. The
+supported cast types are:
+
+- `array`
+- `boolean`
+- `collection`
+- `date`
+- `datetime`
+- `decimal:<digits>`
+- `double`
+- `encrypted`
+- `encrypted:array`
+- `encrypted:collection`
+- `encrypted:object`
+- `float`
+- `integer`
+- `object`
+- `real`
+- `string`
+- `timestamp`
+
+To demonstrate attribute casting, let's cast the `is_admin` attribute, which is stored in our index as an integer (`0` or `1`) to a boolean value:
+
+```php
+namespace App\Models;
+
+use Matchory\Elasticsearch\Model;
+
+class User extends Model
+{
+    /**
+     * The attributes that should be cast.
      *
      * @var array
      */
     protected $casts = [
-        'is_published' => 'boolean',
+        'is_admin' => 'boolean',
     ];
 }
 ```
 
-Now the `is_published` attribute will always be cast to a `boolean` when you access it, even if the underlying, stored value in the index as an integer:
-```php
-$post = App\Post::find(1);
+After defining the cast, the `is_admin` attribute will always be cast to a boolean when you access it, even if the underlying value is stored in the index as an
+integer:
 
-if ($post->is_published) {
+```php
+$user = App\Models\User::find(1);
+
+if ($user->is_admin) {
     //
+}
+```
+
+> **Note:** Attributes that are `null` will not be cast.
+
+##### Date Casting
+You may cast date attributes by defining them within your model's `$cast` property array. Typically, dates should be cast using the `datetime` cast.
+
+When defining a `date` or `datetime` cast, you may also specify the date's format. This format will be used when the
+[model is serialized to an array or JSON](https://laravel.com/docs/8.x/eloquent-serialization):
+
+```php
+/**
+ * The attributes that should be cast.
+ *
+ * @var array
+ */
+protected $casts = [
+    'created_at' => 'datetime:Y-m-d',
+];
+```
+
+When a field is cast as a date, you may set its value to a UNIX timestamp, date string (`Y-m-d`), date-time string, or a `DateTime` / `Carbon` instance. The
+date's value will be correctly converted and stored in your index:
+
+You may customize the default serialization format for all of your model's dates by defining a `serializeDate` method on your model. This method does not affect
+how your dates are formatted for storage in the index:
+
+```php
+/**
+ * Prepare a date for array / JSON serialization.
+ *
+ * @param  \DateTimeInterface  $date
+ * @return string
+ */
+protected function serializeDate(DateTimeInterface $date)
+{
+    return $date->format('Y-m-d');
+}
+```
+
+To specify the format that should be used when actually storing a model's dates within your index, you should define a `$dateFormat` property on your model:
+
+```php
+/**
+ * The storage format of the model's date fields.
+ *
+ * @var string
+ */
+protected $dateFormat = 'U';
+```
+
+#### Custom Casts
+Laravel has a variety of built-in, helpful cast types; however, you may occasionally need to define your own cast types. You may accomplish this by defining a
+class that implements the `CastsAttributes` interface.
+
+Classes that implement this interface must define a `get` and `set` method. The `get` method is responsible for transforming a raw value from the index into a
+cast value, while the `set` method should transform a cast value into a raw value that can be stored in the index. As an example, we will re-implement the
+built-in `json` cast type as a custom cast type:
+
+> **Note:** Due to type incompatibility, you will need to use different casts for Eloquent and Elasticsearch models, or omit the parameter type.
+
+```php
+namespace App\Casts;
+
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+
+class Json implements CastsAttributes
+{
+    /**
+     * Cast the given value.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+     * @param  string  $key
+     * @param  mixed  $value
+     * @param  array  $attributes
+     * @return array
+     */
+    public function get($model, $key, $value, $attributes)
+    {
+        return json_decode($value, true);
+    }
+
+    /**
+     * Prepare the given value for storage.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+     * @param  string  $key
+     * @param  array  $value
+     * @param  array  $attributes
+     * @return string
+     */
+    public function set($model, $key, $value, $attributes)
+    {
+        return json_encode($value);
+    }
+}
+```
+
+Once you have defined a custom cast type, you may attach it to a model attribute using its class name:
+
+```php
+    namespace App\Models;
+
+    use App\Casts\Json;
+    use Matchory\Elasticsearch\Model;
+
+    class User extends Model
+    {
+        /**
+         * The attributes that should be cast.
+         *
+         * @var array
+         */
+        protected $casts = [
+            'options' => Json::class,
+        ];
+    }
+```
+
+##### Value Object Casting
+You are not limited to casting values to primitive types. You may also cast values to objects. Defining custom casts that cast values to objects is very similar
+to casting to primitive types; however, the `set` method should return an array of key / value pairs that will be used to set raw, storable values on the model.
+
+As an example, we will define a custom cast class that casts multiple model values into a single `Address` value object. We will assume the `Address` value has
+two public properties: `lineOne` and `lineTwo`:
+
+```php
+namespace App\Casts;
+
+use App\Models\Address as AddressModel;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+use InvalidArgumentException;
+
+class Address implements CastsAttributes
+{
+    /**
+     * Cast the given value.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+     * @param  string  $key
+     * @param  mixed  $value
+     * @param  array  $attributes
+     * @return \App\Models\Address
+     */
+    public function get($model, $key, $value, $attributes)
+    {
+        return new AddressModel(
+            $attributes['address_line_one'],
+            $attributes['address_line_two']
+        );
+    }
+
+    /**
+     * Prepare the given value for storage.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+     * @param  string  $key
+     * @param  \App\Models\Address  $value
+     * @param  array  $attributes
+     * @return array
+     */
+    public function set($model, $key, $value, $attributes)
+    {
+        if (! $value instanceof AddressModel) {
+            throw new InvalidArgumentException('The given value is not an Address instance.');
+        }
+
+        return [
+            'address_line_one' => $value->lineOne,
+            'address_line_two' => $value->lineTwo,
+        ];
+    }
+}
+```
+
+When casting to value objects, any changes made to the value object will automatically be synced back to the model before the model is saved:
+```php
+use App\Models\User;
+
+$user = User::find(1);
+
+$user->address->lineOne = 'Updated Address Value';
+
+$user->save();
+```
+
+> **Tip:** If you plan to serialize your Elasticsearch models containing value objects to JSON or arrays, you should implement the
+> `Illuminate\Contracts\Support\Arrayable` and `JsonSerializable` interfaces on the value object.
+
+##### Array / JSON Serialization
+When an Elasticsearch model is converted to an array or JSON using the `toArray` and `toJson` methods, your custom cast value objects will typically be
+serialized as well as long as they implement the `Illuminate\Contracts\Support\Arrayable` and `JsonSerializable` interfaces. However, when using value objects
+provided by third-party libraries, you may not have the ability to add these interfaces to the object.
+
+Therefore, you may specify that your custom cast class will be responsible for serializing the value object. To do so, your custom class cast should implement
+the `Illuminate\Contracts\Database\Eloquent\SerializesCastableAttributes` interface. This interface states that your class should contain a `serialize` method
+which should return the serialized form of your value object:
+
+```php
+/**
+ * Get the serialized representation of the value.
+ *
+ * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+ * @param  string  $key
+ * @param  mixed  $value
+ * @param  array  $attributes
+ * @return mixed
+ */
+public function serialize($model, string $key, $value, array $attributes)
+{
+    return (string) $value;
+}
+```
+
+##### Inbound Casting
+
+Occasionally, you may need to write a custom cast that only transforms values that are being set on the model and does not perform any operations when
+attributes are being retrieved from the model. A classic example of an inbound only cast is a "hashing" cast. Inbound only custom casts should implement the
+`CastsInboundAttributes` interface, which only requires a `set` method to be defined.
+
+```php
+    namespace App\Casts;
+
+    use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
+
+    class Hash implements CastsInboundAttributes
+    {
+        /**
+         * The hashing algorithm.
+         *
+         * @var string
+         */
+        protected $algorithm;
+
+        /**
+         * Create a new cast class instance.
+         *
+         * @param  string|null  $algorithm
+         * @return void
+         */
+        public function __construct($algorithm = null)
+        {
+            $this->algorithm = $algorithm;
+        }
+
+        /**
+         * Prepare the given value for storage.
+         *
+         * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+         * @param  string  $key
+         * @param  array  $value
+         * @param  array  $attributes
+         * @return string
+         */
+        public function set($model, $key, $value, $attributes)
+        {
+            return is_null($this->algorithm)
+                        ? bcrypt($value)
+                        : hash($this->algorithm, $value);
+        }
+    }
+```
+
+##### Cast Parameters
+When attaching a custom cast to a model, cast parameters may be specified by separating them from the class name using a `:` character and comma-delimiting
+multiple parameters. The parameters will be passed to the constructor of the cast class:
+
+```php
+/**
+ * The attributes that should be cast.
+ *
+ * @var array
+ */
+protected $casts = [
+    'secret' => Hash::class.':sha256',
+];
+```
+
+##### Castables
+You may want to allow your application's value objects to define their own custom cast classes. Instead of attaching the custom cast class to your model, you
+may alternatively attach a value object class that implements the `Illuminate\Contracts\Database\Eloquent\Castable` interface:
+
+```php
+use App\Models\Address;
+
+protected $casts = [
+    'address' => Address::class,
+];
+```
+
+Objects that implement the `Castable` interface must define a `castUsing` method that returns the class name of the custom caster class that is responsible for
+casting to and from the `Castable` class:
+
+```php
+namespace App\Models;
+
+use Illuminate\Contracts\Database\Eloquent\Castable;
+use App\Casts\Address as AddressCast;
+
+class Address implements Castable
+{
+    /**
+     * Get the name of the caster class to use when casting from / to this cast target.
+     *
+     * @param  array  $arguments
+     * @return string
+     */
+    public static function castUsing(array $arguments): string
+    {
+        return AddressCast::class;
+    }
+}
+```
+
+When using `Castable` classes, you may still provide arguments in the `$casts` definition. The arguments will be passed to the `castUsing` method:
+
+```php
+use App\Models\Address;
+
+protected $casts = [
+    'address' => Address::class.':argument',
+];
+```
+
+##### Castables & Anonymous Cast Classes
+By combining "castables" with PHP's [anonymous classes](https://www.php.net/manual/en/language.oop5.anonymous.php), you may define a value object and its
+casting logic as a single castable object. To accomplish this, return an anonymous class from your value object's `castUsing` method. The anonymous class should
+implement the `CastsAttributes` interface:
+
+```php
+namespace App\Models;
+
+use Illuminate\Contracts\Database\Eloquent\Castable;
+use Illuminate\Contracts\Database\Eloquent\CastsAttributes;
+
+class Address implements Castable
+{
+    // ...
+
+    /**
+     * Get the caster class to use when casting from / to this cast target.
+     *
+     * @param  array  $arguments
+     * @return object|string
+     */
+    public static function castUsing(array $arguments)
+    {
+        return new class implements CastsAttributes
+        {
+            public function get($model, $key, $value, $attributes)
+            {
+                return new Address(
+                    $attributes['address_line_one'],
+                    $attributes['address_line_two']
+                );
+            }
+
+            public function set($model, $key, $value, $attributes)
+            {
+                return [
+                    'address_line_one' => $value->lineOne,
+                    'address_line_two' => $value->lineTwo,
+                ];
+            }
+        };
+    }
 }
 ```
 
@@ -596,7 +1746,7 @@ ES::create('my_index');
     
 ES::index('my_index')->create();
 ```
-    
+
 ### Creating index with custom options (optional)
 ```php
 use Matchory\Elasticsearch\Facades\ES;
@@ -737,7 +1887,7 @@ ES::type("my_type")->whereExists("hobbies", true)->get();
 ES::type("my_type")->whereIn("id", [100, 150])->get();
 ```
 
-### Where between clause 
+### Where between clause
 ```php
 ES::type("my_type")->whereBetween("id", 100, 150)->get();
 
@@ -794,7 +1944,7 @@ ES::type("my_type")->whereExists("hobbies", true)->get();
 ES::type("my_type")->whereNotIn("id", [100, 150])->get();
 ```
 
-### Where not between clause 
+### Where not between clause
 ```php
 ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
 
@@ -802,8 +1952,8 @@ ES::type("my_type")->whereNotBetween("id", 100, 150)->get();
 
 ES::type("my_type")->whereNotBetween("id", [100, 150])->get();
 ```
-   
-### Search by a distance from a geo point 
+
+### Search by a distance from a geo point
 ```php
 ES::type("my_type")->distance("location", ["lat" => -33.8688197, "lon" => 151.20929550000005], "10km")->get();
 
@@ -898,7 +2048,7 @@ Array
 )
 */
 ```
-  
+
 ### Search the entire document
 ```php
 ES::type("my_type")->search("hello")->get();
@@ -931,11 +2081,11 @@ $doc->getHighlights();
 $doc->getHighlights("title");
 ```
 
-### Return only first record
+### Return only first document
 ```php
 ES::type("my_type")->search("hello")->first();
 ```
-  
+
 ### Return only count
 ```php
 ES::type("my_type")->search("hello")->count();
@@ -968,8 +2118,8 @@ $documents = ES::type("my_type")->search("hello")
 ES::type("my_type")->scrollID("DnF1ZXJ5VGhlbkZldGNoBQAAAAAAAAFMFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABSxZSUDhLU3ZySFJJYXFNRV9laktBMGZ3AAAAAAAAAU4WUlA4S1N2ckhSSWFxTUVfZWpLQTBmdwAAAAAAAAFPFlJQOEtTdnJIUklhcU1FX2VqS0EwZncAAAAAAAABTRZSUDhLU3ZySFJJYXFNRV9laktBMGZ3")
         ->clear();
 ```
-    
-### Paginate results with 5 records per page
+
+### Paginate results with 5 documents per page
 ```php
 $documents = ES::type("my_type")->search("hello")->paginate(5);
     
@@ -1053,7 +2203,7 @@ ES::raw()->search([
     ]
 ]);
 ```
-   
+
 ### Insert a new document
 ```php
 ES::type("my_type")->id(3)->insert([
@@ -1066,7 +2216,7 @@ ES::type("my_type")->id(3)->insert([
 ```
 
 ### Bulk insert a multiple of documents at once.
-     
+
 ```php
 # Main query
 ES::index("my_index")->type("my_type")->bulk(function ($bulk){
@@ -1129,7 +2279,7 @@ ES::type("my_type")->bulk(function ($bulk){
     $bulk->id(11)->update(["title" => "Test document 2","content" => "Sample content 2"]);
 });
 ```
-   
+
 ### Incrementing field
 ```php
 ES::type("my_type")->id(3)->increment("views");
@@ -1142,7 +2292,7 @@ ES::type("my_type")->id(3)->increment("views", 3);
 
 # [id is required]
 ```
-   
+
 ### Decrementing field
 ```php
 ES::type("my_type")->id(3)->decrement("views");
@@ -1155,7 +2305,7 @@ ES::type("my_type")->id(3)->decrement("views", 3);
 
 # [id is required]
 ```
-   
+
 ### Update using script
 ```php
 # increment field by script
@@ -1176,7 +2326,7 @@ ES::type("my_type")->id(3)->script(
     ["tag" => "mongodb"]
 );
 ```
-   
+
 ### Delete a document
 ```php
 ES::type("my_type")->id(3)->delete();
@@ -1204,7 +2354,7 @@ Authors
 
 Bugs, Suggestions and Contributions
 -----------------------------------
-Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors) who has contributed to the original project and 
+Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors) who has contributed to the original project and
 [everyone else](https://github.com/matchory/elasticsearch/graphs/contributors) who has contributed to this fork!  
 Please use [Github](https://github.com/matchory/elasticsearch) for reporting bugs, and making comments or suggestions.
 
