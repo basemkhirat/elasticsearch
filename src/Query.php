@@ -658,7 +658,7 @@ class Query implements Arrayable, JsonSerializable, Jsonable, IteratorAggregate
         switch ((string)$operator) {
             case self::OPERATOR_EQUAL:
                 if ($name === self::FIELD_ID) {
-                    return $this->id($value);
+                    return $this->id((string)$value);
                 }
 
                 $this->filter[] = ['term' => [$name => $value]];
