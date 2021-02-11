@@ -40,13 +40,13 @@ If you're interested in contributing to this fork, please submit a PR or open an
         + [Laravel Installation](#laravel-installation)
         + [Lumen Installation](#lumen-installation)
     * [Generic app installation](#generic-app-installation)
-- [Configuration (Laravel & Lumen)](#configuration--laravel---lumen-)
-- [Artisan commands (Laravel & Lumen)](#artisan-commands--laravel---lumen-)
-    * [`es:indices:list`: List all indices on server](#-es-indices-list---list-all-indices-on-server)
-    * [`es:indices:create`: Create indices defined in `config/es.php`](#-es-indices-create---create-indices-defined-in--config-esphp-)
-    * [`es:indices:update`: Update indices defined in `config/es.php`](#-es-indices-update---update-indices-defined-in--config-esphp-)
-    * [`es:indices:drop`: Drop index](#-es-indices-drop---drop-index)
-    * [Reindexing data (with zero downtime)](#reindexing-data--with-zero-downtime-)
+- [Configuration (Laravel & Lumen)](#configuration-laravel-lumen)
+- [Artisan commands (Laravel & Lumen)](#artisan-commands-laravel-lumen)
+    * [`es:indices:list`: List all indices on server](#es-indices-list-list-all-indices-on-server)
+    * [`es:indices:create`: Create indices defined in `config/es.php`](#es-indices-create-create-indices-defined-in-config-esphp)
+    * [`es:indices:update`: Update indices defined in `config/es.php`](#es-indices-update-update-indices-defined-in--config-esphp)
+    * [`es:indices:drop`: Drop index](#es-indices-drop-drop-index)
+    * [Reindexing data (with zero downtime)](#reindexing-data-with-zero-downtime)
 - [Usage as a Laravel Scout driver](#usage-as-a-laravel-scout-driver)
 - [Elasticsearch models](#elasticsearch-models)
     * [Index Names](#index-names)
@@ -78,7 +78,7 @@ If you're interested in contributing to this fork, please submit a PR or open an
 - [Usage as a query builder](#usage-as-a-query-builder)
 - [Releases](#releases)
 - [Authors](#authors)
-- [Bugs, Suggestions and Contributions](#bugs--suggestions-and-contributions)
+- [Bugs, Suggestions and Contributions](#bugs-suggestions-and-contributions)
 - [License](#license)
 
 
@@ -2357,6 +2357,9 @@ Bugs, Suggestions and Contributions
 Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contributors) who has contributed to the original project and
 [everyone else](https://github.com/matchory/elasticsearch/graphs/contributors) who has contributed to this fork!  
 Please use [Github](https://github.com/matchory/elasticsearch) for reporting bugs, and making comments or suggestions.
+
+If you're interested in helping out, the most pressing issues would be modernizing the query builder to provide better support for Elasticsearch features as 
+well as completing the test suite!
 
 License
 -------
