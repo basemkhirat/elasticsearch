@@ -206,47 +206,47 @@ trait ExecutesQueries
     /**
      * Paginate collection of results
      *
-     * @param int      $per_page
-     * @param string   $page_name
+     * @param int      $perPage
+     * @param string   $pageName
      * @param int|null $page
      *
      * @return Pagination
      */
     public function paginate(
-        int $per_page = 10,
-        string $page_name = 'page',
+        int $perPage = 10,
+        string $pageName = 'page',
         ?int $page = null
     ): Pagination {
         // Check if the request from PHP CLI
         if (PHP_SAPI === 'cli') {
-            $this->take($per_page);
+            $this->take($perPage);
 
             $page = $page ?: 1;
 
-            $this->skip(($page * $per_page) - $per_page);
+            $this->skip(($page * $perPage) - $perPage);
 
             $collection = $this->get();
 
             return new Pagination(
                 $collection,
                 $collection->getTotal() ?? 0,
-                $per_page,
+                $perPage,
                 $page
             );
         }
 
-        $this->take($per_page);
+        $this->take($perPage);
 
-        $page = $page ?: Request::get($page_name, 1);
+        $page = $page ?: Request::get($pageName, 1);
 
-        $this->skip(($page * $per_page) - $per_page);
+        $this->skip(($page * $perPage) - $perPage);
 
         $collection = $this->get();
 
         return new Pagination(
             $collection,
             $collection->getTotal() ?? 0,
-            $per_page,
+            $perPage,
             $page,
             [
                 'path' => Request::url(),
@@ -339,19 +339,19 @@ trait ExecutesQueries
     /**
      * Insert a document
      *
-     * @param mixed       $data
+     * @param array       $attributes
      * @param string|null $id
      *
      * @return object
      */
-    public function insert($data, ?string $id = null): object
+    public function insert(array $attributes, ?string $id = null): object
     {
         if ($id) {
             $this->id($id);
         }
 
         $parameters = [
-            'body' => $data,
+            'body' => $attributes,
             'client' => ['ignore' => $this->getIgnores()],
         ];
 
