@@ -266,10 +266,12 @@ trait ExecutesQueries
     {
         $scrollId = $scrollId ?? $this->getScrollId();
 
-        return new Collection($this->getConnection()->clearScroll([
-            'scroll_id' => $scrollId,
-            'client' => ['ignore' => $this->getIgnores()],
-        ]));
+        return new Collection(
+            $this->getConnection()->getClient()->clearScroll([
+                'scroll_id' => $scrollId,
+                'client' => ['ignore' => $this->getIgnores()],
+            ])
+        );
     }
 
     /**
@@ -398,7 +400,9 @@ trait ExecutesQueries
 
         $parameters = $this->addBaseParams($parameters);
 
-        return (object)$this->getConnection()->update($parameters);
+        return (object)$this->getConnection()->getClient()->update(
+            $parameters
+        );
     }
 
     /**
@@ -421,7 +425,9 @@ trait ExecutesQueries
 
         $parameters = $this->addBaseParams($parameters);
 
-        return (object)$this->getConnection()->delete($parameters);
+        return (object)$this->getConnection()->getClient()->delete(
+            $parameters
+        );
     }
 
     /**
@@ -441,7 +447,10 @@ trait ExecutesQueries
             $query['body']['sort']
         );
 
-        return (int)$this->getConnection()->count($query)['count'];
+        return (int)$this
+                        ->getConnection()
+                        ->getClient()
+                        ->count($query)['count'];
     }
 
     /**
@@ -467,7 +476,9 @@ trait ExecutesQueries
 
         $parameters = $this->addBaseParams($parameters);
 
-        return (object)$this->getConnection()->update($parameters);
+        return (object)$this->getConnection()->getClient()->update(
+            $parameters
+        );
     }
 
     /**
@@ -534,7 +545,9 @@ trait ExecutesQueries
             }
         }
 
-        return (object)$this->getConnection()->bulk($params);
+        return (object)$this->getConnection()->getClient()->bulk(
+            $params
+        );
     }
 
     /**
@@ -548,11 +561,12 @@ trait ExecutesQueries
     {
         $scrollId = $scrollId ?? $this->getScrollId();
         $result = $scrollId
-            ? $this->getConnection()->scroll([
+            ? $this->getConnection()->getClient()->scroll([
                 Query::PARAM_SCROLL => $this->getScroll(),
                 Query::PARAM_SCROLL_ID => $scrollId,
             ])
-            : $this->getConnection()->search($this->toArray());
+            : $this->getConnection()->getClient()->search(
+                $this->toArray());
 
         if ( ! is_null($this->cacheTtl)) {
             $this->getCache()->put(
