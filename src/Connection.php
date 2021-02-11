@@ -67,7 +67,6 @@ use Monolog\Logger;
  * @method array getScriptContext(array $params = [])
  * @method array getScriptLanguages(array $params = [])
  * @method array getSource(array $params = [])
- * @method array index(array $params = [])
  * @method array info(array $params = [])
  * @method array mget(array $params = [])
  * @method array msearch(array $params = [])
@@ -118,6 +117,7 @@ use Monolog\Logger;
  * @method TransformNamespace transform()
  * @method WatcherNamespace watcher()
  * @method XpackNamespace xpack()
+ *
  * @package Matchory\Elasticsearch
  */
 class Connection implements ConnectionInterface
@@ -307,6 +307,14 @@ class Connection implements ConnectionInterface
         return $this->client;
     }
 
+    /**
+     * @inheritDoc
+     */
+    public function index(string $index): Query
+    {
+        return $this->newQuery()->index($index);
+    }
+
     public function insert(
         array $parameters,
         ?string $index = null,
@@ -327,7 +335,7 @@ class Connection implements ConnectionInterface
     }
 
     /**
-     * route the request to the query class
+     * Route the request to the query class
      *
      * @param string|null $connection Deprecated parameter: Use the proper
      *                                connection instance directly instead of

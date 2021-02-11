@@ -41,6 +41,15 @@ interface ConnectionInterface
     ): object;
 
     /**
+     * Create a new query on the given index.
+     *
+     * @param string $index Name of the index to query.
+     *
+     * @return Query Query builder instance.
+     */
+    public function index(string $index): Query;
+
+    /**
      * Retrieves the Elasticsearch client
      *
      * @return Client
