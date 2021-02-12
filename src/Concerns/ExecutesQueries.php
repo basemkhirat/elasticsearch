@@ -60,6 +60,11 @@ trait ExecutesQueries
      */
     protected $cachePrefix = Query::DEFAULT_CACHE_PREFIX;
 
+    /**
+     * Retrieves the connection instance.
+     *
+     * @return ConnectionInterface
+     */
     abstract public function getConnection(): ConnectionInterface;
 
     /**
