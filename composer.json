@@ -1,15 +1,19 @@
 {
     "name": "matchory/elasticsearch",
-    "description": "Laravel, Lumen and Native php elasticsearch query builder to build complex queries using an elegant syntax",
+    "description": "The missing elasticsearch ORM for Laravel!",
     "keywords": [
-        "elasticsearch",
         "php",
+        "caching",
+        "search-engine",
+        "elasticsearch",
         "laravel",
+        "eloquent",
+        "orm",
+        "model",
         "lumen",
-        "scout",
-        "fulltext",
         "indexing",
-        "builder"
+        "query-builder",
+        "scout"
     ],
     "license": "MIT",
     "type": "package",
