@@ -327,6 +327,9 @@ class Model implements Arrayable,
      * @param string|null $connection
      *
      * @return Connection
+     * @internal This method is used by the package during initialization to get
+     *           the models to resolve the Elasticsearch connection. You won't
+     *           need it during normal operation. It may change at any time.
      */
     public static function resolveConnection(
         ?string $connection = null
@@ -338,6 +341,9 @@ class Model implements Arrayable,
      * Get the connection resolver instance.
      *
      * @return Resolver
+     * @internal This method is used by the package during initialization to get
+     *           the models to resolve the Elasticsearch connection. You won't
+     *           need it during normal operation. It may change at any time.
      */
     public static function getConnectionResolver(): Resolver
     {
@@ -350,6 +356,9 @@ class Model implements Arrayable,
      * @param Resolver $resolver
      *
      * @return void
+     * @internal This method is used by the package during initialization to get
+     *           the models to resolve the Elasticsearch connection. You won't
+     *           need it during normal operation. It may change at any time.
      */
     public static function setConnectionResolver(Resolver $resolver): void
     {
@@ -360,6 +369,9 @@ class Model implements Arrayable,
      * Unset the connection resolver for models.
      *
      * @return void
+     * @internal This method is used by the package during initialization to get
+     *           the models to resolve the Elasticsearch connection. You won't
+     *           need it during normal operation. It may change at any time.
      */
     public static function unsetConnectionResolver(): void
     {
@@ -443,6 +455,24 @@ class Model implements Arrayable,
                 );
             }
         }
+    }
+
+    /**
+     * Handle dynamic method calls into the model.
+     *
+     * @param string $method
+     * @param array  $parameters
+     *
+     * @return mixed
+     * @throws BadMethodCallException
+     */
+    public function __call(string $method, array $parameters)
+    {
+        return $this->forwardCallTo(
+            $this->newQuery(),
+            $method,
+            $parameters
+        );
     }
 
     /**
@@ -946,24 +976,6 @@ class Model implements Arrayable,
         $id = $this->getAttribute(self::FIELD_ID);
 
         return $id ? (string)$id : null;
-    }
-
-    /**
-     * Handle dynamic method calls into the model.
-     *
-     * @param string $method
-     * @param array  $parameters
-     *
-     * @return mixed
-     * @throws BadMethodCallException
-     */
-    public function __call(string $method, array $parameters)
-    {
-        return $this->forwardCallTo(
-            $this->newQuery(),
-            $method,
-            $parameters
-        );
     }
 
     /**
