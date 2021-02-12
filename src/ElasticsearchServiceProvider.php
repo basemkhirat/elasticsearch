@@ -125,12 +125,11 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
     protected function registerCommands(): void
     {
-        // Package commands available for laravel or lumen higher than 5.1
         $version = $this->app->version();
 
         if (
-            version_compare($version, '5.1', '>=') &&
-            Str::startsWith($version, 'Lumen') &&
+            version_compare($version, '5.1', '>=') ||
+            Str::startsWith($version, 'Lumen') ||
             $this->app->runningInConsole()
         ) {
             // Registering commands
