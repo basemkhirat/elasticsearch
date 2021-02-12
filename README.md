@@ -1,39 +1,33 @@
 [![Latest Stable Version](https://poser.pugx.org/matchory/elasticsearch/v)](https://packagist.org/packages/matchory/elasticsearch) [![Total Downloads](https://poser.pugx.org/matchory/elasticsearch/downloads)](https://packagist.org/packages/matchory/elasticsearch) [![Latest Unstable Version](https://poser.pugx.org/matchory/elasticsearch/v/unstable)](https://packagist.org/packages/matchory/elasticsearch) [![License](https://poser.pugx.org/matchory/elasticsearch/license)](https://packagist.org/packages/matchory/elasticsearch)
 
-Laravel Elasticsearch integration
+Laravel Elasticsearch Integration
 =================================
 This is a fork of the excellent library by [@basemkhirat](https://github.com/basemkhirat), who sadly seems to have abandoned it by now.  
 As we rely on this library quite heavily, we will attempt to keep it up to date and compatible with newer Laravel and Elasticsearch versions.
 
-**Goals of this fork:**
-- Support for newer versions of Elasticsearch, Laravel and PHP
-- Limited backwards compatibility: PHP version requirement of `>= 7.3`
-- Strong typing and accurate documentation comments
-- New features and convenience methods
-
 **Changes in this fork:**
 - [x] Support for Elasticsearch 7.10 and newer
+- [x] Support for PHP 7.3 and newer (PHP 8 included!)
 - [x] Broadened support for Laravel libraries, allowing you to use it with almost all versions of Laravel
 - [x] Type hints in all supported places, giving confidence in all parameters
+- [x] Docblock annotations for advanced autocompletion, extensive inline documentation
 - [x] Clean separation of connection management into a [`ConnectionManager` class](./src/ConnectionManager.php), while preserving backwards compatibility
 - [x] Support for _most_ Eloquent model behaviour ([see below](#elasticsearch-models))
 - [x] Removed dependencies on Laravel internals
-- [x] Docblock annotations for advanced autocompletion
 
-If you're interested in contributing to this fork, please submit a PR or open an issue.
+If you're interested in contributing, please submit a PR or open an issue!
 
-**Features:**  
-- Keeps you away from wasting your time by replacing array queries with a simple and elegant syntax you will love.
-- Elasticsearch data model for types and indices inspired from laravel eloquent.
-- Feeling free to create, drop, mapping and reindexing through easy artisan console commands.
-- Lumen framework support.
-- Native php and composer based applications support.
-- Can be used as a [laravel scout](https://laravel.com/docs/5.4/scout) driver.
-- Dealing with multiple elasticsearch connections at the same time.
-- Awesome pagination based on [LengthAwarePagination](https://github.com/illuminate/pagination).
-- Caching queries using a caching layer over query builder built on [laravel cache](https://laravel.com/docs/5.4/cache).
+**Features:**
+- Fluent Elasticsearch query builder with an elegant syntax
+- Elasticsearch models inspired by Laravel's Eloquent
+- Index management using simple artisan commands
+- Limited support for the [Lumen framework](https://lumen.laravel.com/)
+- Can be used as a [Laravel Scout](https://laravel.com/docs/8.x/scout) driver
+- Parallel usage of multiple Elasticsearch connections
+- Built-in pagination based on [Laravel Pagination](https://laravel.com/docs/8.x/pagination)
+- Caching queries using a caching layer based on [laravel cache](https://laravel.com/docs/8.x/cache).
 
-**Table of Contents**  
+**Table of Contents**
 - [Requirements](#requirements)
 - [Installation](#installation)
     * [Install package using composer](#install-package-using-composer)
@@ -80,7 +74,6 @@ If you're interested in contributing to this fork, please submit a PR or open an
 - [Authors](#authors)
 - [Bugs, Suggestions and Contributions](#bugs-suggestions-and-contributions)
 - [License](#license)
-
 
 Requirements
 ------------
@@ -909,7 +902,7 @@ If you would like to remove several or even all of the query's global scopes, yo
 Post::withoutGlobalScopes()->get();
 ```
 
-```
+```php
 // Remove some of the global scopes...
 Post::withoutGlobalScopes([
     FirstScope::class,
@@ -959,7 +952,7 @@ class Post extends Model
 Once the scope has been defined, you may call the scope methods when querying the model. However, you should not include the scope prefix when calling the
 method. You can even chain calls to various scopes:
 
-```
+```php
 use App\Models\Post;
 
 $posts = Post::popular()->published()->orderBy('created_at')->get();
@@ -1057,7 +1050,7 @@ class Post extends Model
      *
      * @return void
      */
-    protected static function booted()
+    protected static function booted(): void
     {
         static::created(function ($post) {
             //
@@ -1069,10 +1062,10 @@ class Post extends Model
 If needed, you may utilize [queueable anonymous event listeners](https://laravel.com/docs/8.x/events#queuable-anonymous-event-listeners) when registering model
 events. This will instruct Laravel to execute the model event listener in the background using your application's [queue](https://laravel.com/docs/8.x/queues):
 
-```
+```php
 use function Illuminate\Events\queueable;
 
-static::created(queueable(function ($post) {
+static::created(queueable(function ($post): void {
     //
 }));
 ```
@@ -1586,46 +1579,46 @@ attributes are being retrieved from the model. A classic example of an inbound o
 `CastsInboundAttributes` interface, which only requires a `set` method to be defined.
 
 ```php
-    namespace App\Casts;
+namespace App\Casts;
 
-    use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
+use Illuminate\Contracts\Database\Eloquent\CastsInboundAttributes;
 
-    class Hash implements CastsInboundAttributes
+class Hash implements CastsInboundAttributes
+{
+    /**
+     * The hashing algorithm.
+     *
+     * @var string
+     */
+    protected $algorithm;
+
+    /**
+     * Create a new cast class instance.
+     *
+     * @param  string|null  $algorithm
+     * @return void
+     */
+    public function __construct($algorithm = null)
     {
-        /**
-         * The hashing algorithm.
-         *
-         * @var string
-         */
-        protected $algorithm;
-
-        /**
-         * Create a new cast class instance.
-         *
-         * @param  string|null  $algorithm
-         * @return void
-         */
-        public function __construct($algorithm = null)
-        {
-            $this->algorithm = $algorithm;
-        }
-
-        /**
-         * Prepare the given value for storage.
-         *
-         * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
-         * @param  string  $key
-         * @param  array  $value
-         * @param  array  $attributes
-         * @return string
-         */
-        public function set($model, $key, $value, $attributes)
-        {
-            return is_null($this->algorithm)
-                        ? bcrypt($value)
-                        : hash($this->algorithm, $value);
-        }
+        $this->algorithm = $algorithm;
     }
+
+    /**
+     * Prepare the given value for storage.
+     *
+     * @param  \Illuminate\Database\Eloquent\Model|\Matchory\Elasticsearch\Model  $model
+     * @param  string  $key
+     * @param  array  $value
+     * @param  array  $attributes
+     * @return string
+     */
+    public function set($model, $key, $value, $attributes)
+    {
+        return is_null($this->algorithm)
+                    ? bcrypt($value)
+                    : hash($this->algorithm, $value);
+    }
+}
 ```
 
 ##### Cast Parameters
@@ -2528,7 +2521,7 @@ Thanks to [everyone](https://github.com/basemkhirat/elasticsearch/graphs/contrib
 [everyone else](https://github.com/matchory/elasticsearch/graphs/contributors) who has contributed to this fork!  
 Please use [Github](https://github.com/matchory/elasticsearch) for reporting bugs, and making comments or suggestions.
 
-If you're interested in helping out, the most pressing issues would be modernizing the query builder to provide better support for Elasticsearch features as 
+If you're interested in helping out, the most pressing issues would be modernizing the query builder to provide better support for Elasticsearch features as
 well as completing the test suite!
 
 License
