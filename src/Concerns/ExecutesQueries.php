@@ -79,7 +79,7 @@ trait ExecutesQueries
      *
      * @return $this
      */
-    abstract public function id(?string $id): self;
+    abstract public function id(?string $id = null): self;
 
     abstract public function getIgnores(): array;
 
@@ -95,7 +95,7 @@ trait ExecutesQueries
 
     abstract public function take(int $size): self;
 
-    abstract public function skip(int $from): self;
+    abstract public function skip(int $from = 0): self;
 
     abstract public function getModel(): Model;
 
@@ -629,11 +629,15 @@ trait ExecutesQueries
      */
     protected function transformIntoCollection(array $response = []): Collection
     {
-        $items = array_map(function (array $document): Model {
+        $results = $response[Query::FIELD_HITS][Query::FIELD_NESTED_HITS] ?? [];
+        $documents = array_map(function (array $document): Model {
             return $this->createModelInstance($document);
-        }, $response[Query::FIELD_HITS][Query::FIELD_NESTED_HITS] ?? []);
+        }, $results);
 
-        return Collection::fromResponse($response, $items);
+        return Collection::fromResponse(
+            $response,
+            $documents
+        );
     }
 
     /**
@@ -647,7 +651,9 @@ trait ExecutesQueries
      */
     protected function transformIntoModel(array $response = []): ?Model
     {
-        if ( ! isset($response[Query::FIELD_HITS][Query::FIELD_NESTED_HITS][0])) {
+        if ( ! isset(
+            $response[Query::FIELD_HITS][Query::FIELD_NESTED_HITS][0]
+        )) {
             return null;
         }
 

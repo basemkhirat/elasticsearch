@@ -34,6 +34,7 @@ class DocumentNotFoundException extends ModelNotFoundException
      * @param string|array        $ids
      *
      * @return $this
+     * @psalm-suppress MoreSpecificImplementedParamType
      */
     public function setModel($model, $ids = []): self
     {

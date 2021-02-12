@@ -35,21 +35,25 @@ class Connection implements ConnectionInterface
 
     /**
      * @var Resolver
+     * @deprecated
      * @todo remove in next major version
      */
     private static $resolver;
 
     /**
-     * Elastic config content
+     * Used to hold all connections.
      *
-     * @var array
+     * @var Client[]
+     * @deprecated
+     * @todo remove in next major version
      */
-    protected $config;
+    protected $clients = [];
 
     /**
-     * The current connection
+     * Elasticsearch client instance used for this connection.
      *
      * @var Client
+     * @see Connection::getClient()
      */
     protected $client;
 
@@ -94,7 +98,8 @@ class Connection implements ConnectionInterface
      * @return void
      * @internal
      * @deprecated
-     * @todo remove in next major version
+     * @todo         remove in next major version
+     * @noinspection PhpDeprecationInspection
      */
     public static function setConnectionResolver(Resolver $resolver): void
     {
@@ -187,10 +192,11 @@ class Connection implements ConnectionInterface
      * @param string $name
      *
      * @return bool
-     * @deprecated Use the connection manager to create connections instead. It
+     * @deprecated   Use the connection manager to create connections instead. It
      *             provides a simpler way to manage connections. This method
      *             will be removed in the next major version.
-     * @see        ConnectionManager
+     * @see          ConnectionManager
+     * @noinspection PhpDeprecationInspection
      */
     public function isLoaded(string $name): bool
     {
@@ -273,6 +279,7 @@ class Connection implements ConnectionInterface
         // TODO: This is deprecated behaviour and should be removed in the next
         //       major version.
         if ($connection) {
+            /** @noinspection PhpDeprecationInspection */
             return static::$resolver
                 ->connection($connection)
                 ->newQuery();

@@ -23,6 +23,16 @@ use function is_null;
  */
 class ConnectionManager implements ConnectionResolverInterface
 {
+    public const CONFIG_KEY_CONNECTIONS = 'connections';
+
+    public const CONFIG_KEY_DEFAULT_CONNECTION = 'default';
+
+    public const CONFIG_KEY_HANDLER = 'handler';
+
+    public const CONFIG_KEY_INDEX = 'index';
+
+    public const CONFIG_KEY_SERVERS = 'servers';
+
     /**
      * All of the registered connections.
      *
@@ -98,7 +108,7 @@ class ConnectionManager implements ConnectionResolverInterface
      */
     public function getDefaultConnection(): string
     {
-        return $this->configuration['default'];
+        return $this->configuration[self::CONFIG_KEY_DEFAULT_CONNECTION] ?? '';
     }
 
     /**
@@ -110,7 +120,7 @@ class ConnectionManager implements ConnectionResolverInterface
      */
     public function setDefaultConnection(string $name): void
     {
-        $this->configuration['default'] = $name;
+        $this->configuration[self::CONFIG_KEY_DEFAULT_CONNECTION] = $name;
     }
 
     /**
@@ -162,7 +172,8 @@ class ConnectionManager implements ConnectionResolverInterface
      */
     protected function makeConnection(string $name): ConnectionInterface
     {
-        $config = $this->configuration['connections'][$name] ?? null;
+        $config = $this->configuration[self::CONFIG_KEY_CONNECTIONS][$name]
+                  ?? null;
 
         if ( ! $config) {
             throw new InvalidArgumentException(
@@ -176,6 +187,10 @@ class ConnectionManager implements ConnectionResolverInterface
             $config[self::CONFIG_KEY_HANDLER] ?? null
         );
 
-        return new Connection($client, $config['index'] ?? null);
+        return new Connection(
+            $client,
+            $this->cache,
+            $config[self::CONFIG_KEY_INDEX] ?? null
+        );
     }
 }

@@ -57,6 +57,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
         ));
 
         // TODO: Remove in next major version
+        /** @noinspection PhpDeprecationInspection */
         Connection::setConnectionResolver($this->app->make(
             ConnectionResolverInterface::class
         ));

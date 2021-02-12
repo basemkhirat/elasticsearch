@@ -141,7 +141,7 @@ class Query implements Arrayable, JsonSerializable, Jsonable, IteratorAggregate
     /**
      * Elastic model instance.
      *
-     * @var Model|null
+     * @var Model
      * @deprecated Use getModel() instead
      * @see        Query::getModel()
      */

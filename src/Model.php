@@ -212,13 +212,15 @@ class Model implements Arrayable,
      * @param string $key
      *
      * @return static|null
+     * @psalm-suppress MismatchingDocblockReturnType
      */
     public static function find(string $key): ?self
     {
-        return static::query()
-                     ->id($key)
-                     ->take(1)
-                     ->first();
+        return static
+            ::query()
+            ->id($key)
+            ->take(1)
+            ->first();
     }
 
     /**
@@ -228,6 +230,7 @@ class Model implements Arrayable,
      *
      * @return static
      * @throws DocumentNotFoundException
+     * @psalm-suppress MismatchingDocblockReturnType
      */
     public static function findOrFail(string $key): self
     {
@@ -249,6 +252,7 @@ class Model implements Arrayable,
      * @param array $attributes
      *
      * @return static
+     * @psalm-suppress LessSpecificReturnStatement
      */
     public static function create(array $attributes): self
     {
@@ -1041,8 +1045,8 @@ class Model implements Arrayable,
      * @param mixed       $value
      * @param string|null $field
      *
-     * @return static|null
-     * @throws JsonException
+     * @return Model|null
+     * @psalm-suppress ImplementedReturnTypeMismatch
      */
     final public function resolveChildRouteBinding(
         $childType,
@@ -1061,14 +1065,17 @@ class Model implements Arrayable,
      * @param mixed       $value
      * @param string|null $field
      *
-     * @return static|null
-     * @throws JsonException
+     * @return Model|null
+     * @psalm-suppress ImplementedReturnTypeMismatch
      */
     public function resolveRouteBinding($value, $field = null): ?self
     {
         return $this
             ->newQuery()
-            ->firstWhere($field ?? $this->getRouteKeyName(), $value);
+            ->firstWhere(
+                $field ?? $this->getRouteKeyName(),
+                $value
+            );
     }
 
     /**

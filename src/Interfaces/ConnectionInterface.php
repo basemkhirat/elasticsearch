@@ -51,7 +51,7 @@ interface ConnectionInterface
     public function index(string $index): Query;
 
     /**
-     * Retrieves the Elasticsearch client
+     * Retrieves the Elasticsearch client.
      *
      * @return Client
      */
