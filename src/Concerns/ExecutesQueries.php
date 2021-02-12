@@ -338,7 +338,7 @@ trait ExecutesQueries
         }
 
         throw (new DocumentNotFoundException())->setModel(
-            get_class($this->model),
+            get_class($this->getModel()),
             $this->id
         );
     }
