@@ -17,6 +17,7 @@ use JsonException;
 use JsonSerializable;
 use Matchory\Elasticsearch\Classes\Search;
 use Matchory\Elasticsearch\Concerns\ExecutesQueries;
+use Matchory\Elasticsearch\Concerns\ExplainsQueries;
 use Matchory\Elasticsearch\Concerns\ManagesIndices;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Interfaces\ScopeInterface;
@@ -52,6 +53,7 @@ class Query implements Arrayable, JsonSerializable, Jsonable, IteratorAggregate
     use ForwardsCalls;
     use ExecutesQueries;
     use ManagesIndices;
+    use ExplainsQueries;
 
     public const DEFAULT_CACHE_PREFIX = 'es';
 
