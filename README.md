@@ -1734,6 +1734,176 @@ class Address implements Castable
 }
 ```
 
+### Route Model Binding
+When injecting a model ID to a route or controller action, you will often query the Elasticsearch index to retrieve the model that corresponds to that ID.
+Laravel route model binding provides a convenient way to automatically inject the model instances directly into your routes. For example, instead of injecting a
+user's ID, you can inject the entire User model instance that matches the given ID.
+
+#### Implicit Binding
+Laravel automatically resolves Elasticsearch models defined in routes or controller actions whose type-hinted variable names match a route segment name. For
+example:
+
+```php
+use App\Models\Post;
+
+Route::get('/posts/{post}', function (Post $post) {
+    return $post->content;
+});
+```
+
+Since the `$post` variable is type-hinted as the `App\Models\Post` Elasticsearch model, and the variable name matches the `{post}` URI segment, Laravel will 
+automatically inject the model instance that has an ID matching the corresponding value from the request URI. If a matching model instance is not found in the 
+database, a `404` HTTP response will automatically be generated.
+
+Of course, implicit binding is also possible when using controller methods. Again, note the `{post}` URI segment matches the `$post` variable in the controller
+which contains an `App\Models\Post` type-hint:
+
+```php
+use App\Http\Controllers\PostController;
+use App\Models\Post;
+
+// Route definition...
+Route::get('/posts/{post}', [PostController::class, 'show']);
+
+// Controller method definition...
+public function show(Post $post): View
+{
+    return view('post.full', ['post' => $post]);
+}
+```
+
+#### Customizing The Key
+Sometimes you may wish to resolve Elasticsearch models using a field other than `_id`. To do so, you may specify the field in the route parameter definition:
+
+```php
+use App\Models\Post;
+
+Route::get('/posts/{post:slug}', fn(Post $post): Post => $post);
+```
+
+If you would like model binding to always use an index field other than `_id` when retrieving a given model class, you may override the `getRouteKeyName` method
+on the Elasticsearch model:
+
+```php
+/**
+ * Get the route key for the model.
+ *
+ * @return string
+ */
+public function getRouteKeyName(): string
+{
+    return 'slug';
+}
+```
+
+#### Customizing Missing Model Behavior
+Typically, a `404` HTTP response will be generated if an implicitly bound model is not found. However, you may customize this behavior by calling the missing
+method when defining your route. The missing method accepts a closure that will be invoked if an implicitly bound model can not be found:
+
+```php
+use App\Http\Controllers\LocationsController;
+use Illuminate\Http\Request;
+
+Route::get('/locations/{location:slug}', [LocationsController::class, 'show'])
+    ->missing(fn(Request $request) => Redirect::route('locations.index')
+    ->name('locations.view');
+```
+
+#### Explicit Binding
+You are not required to use Laravel's implicit, convention based model resolution in order to use model binding. You can also explicitly define how route
+parameters correspond to models. To register an explicit binding, use the router's model method to specify the class for a given parameter. You should define
+your explicit model bindings at the beginning of the `boot` method of your `RouteServiceProvider` class:
+
+```php
+use App\Models\Post;
+use Illuminate\Support\Facades\Route;
+
+/**
+ * Define your route model bindings, pattern filters, etc.
+ *
+ * @return void
+ */
+public function boot():void
+{
+    Route::model('post', Post::class);
+
+    // ...
+}
+```  
+
+Next, define a route that contains a `{post}` parameter:
+
+```php
+use App\Models\Post;
+
+Route::get('/posts/{post}', function (Post $post) {
+    // ...
+});
+```
+
+Since we have bound all `{post}` parameters to the `App\Models\Post` model, an instance of that class will be injected into the route. So, for example, a
+request to `posts/1` will inject the `Post` instance from the index which has an ID of `1`.
+
+If a matching model instance is not found in the index, a `404` HTTP response will be automatically generated.
+
+#### Customizing The Resolution Logic
+If you wish to define your own model binding resolution logic, you may use the `Route::bind` method. The closure you pass to the bind method will receive the
+value of the URI segment and should return the instance of the class that should be injected into the route. Again, this customization should take place in the
+`boot` method of your application's `RouteServiceProvider`:
+
+```php
+use App\Models\Post;
+use Illuminate\Support\Facades\Route;
+
+/**
+ * Define your route model bindings, pattern filters, etc.
+ *
+ * @return void
+ */
+public function boot(): void
+{
+    Route::bind('post', function (string $value): Post {
+        return Post::where('title', $value)->firstOrFail();
+    });
+
+    // ...
+}
+```
+
+Alternatively, you may override the `resolveRouteBinding` method on your Elasticsearch model. This method will receive the value of the URI segment and should
+return the instance of the class that should be injected into the route:
+
+```php
+/**
+ * Retrieve the model for a bound value.
+ *
+ * @param  mixed  $value
+ * @param  string|null  $field
+ * @return \Matchory\Elasticsearch\Model|null
+ */
+public function resolveRouteBinding($value, ?string $field = null): ?self
+{
+    return $this->where('name', $value)->firstOrFail();
+}
+```
+
+If a route is utilizing implicit binding scoping, the `resolveChildRouteBinding` method will be used to resolve the child binding of the parent model:
+
+```php
+/**
+ * Retrieve the child model for a bound value.
+ *
+ * @param  string  $childType
+ * @param  mixed  $value
+ * @param  string|null  $field
+ * @return \Matchory\Elasticsearch\Model|null
+ */
+public function resolveChildRouteBinding(string $childType, $value, ?string $field): ?self
+{
+    return parent::resolveChildRouteBinding($childType, $value, $field);
+}
+```
+
 Usage as a query builder
 ------------------------
 You can use the `ES` facade to access the query builder directly, from anywhere in your application.
