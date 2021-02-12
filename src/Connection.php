@@ -7,9 +7,11 @@ namespace Matchory\Elasticsearch;
 use BadMethodCallException;
 use Elasticsearch\Client;
 use Elasticsearch\ClientBuilder;
+use Illuminate\Cache\Repository;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\App;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Traits\ForwardsCalls;
 use InvalidArgumentException;
 use Matchory\Elasticsearch\Interfaces\ClientFactoryInterface;
@@ -17,6 +19,7 @@ use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface as Resolver;
 use Monolog\Handler\StreamHandler;
 use Monolog\Logger;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Connection
@@ -51,11 +54,15 @@ class Connection implements ConnectionInterface
     protected $client;
 
     /**
-     * all available connections
+     * Cache instance to be used for this connection. In Laravel applications,
+     * this will be an instance of the Cache Repository, which is the same as
+     * the instance returned from the Cache facade.
      *
-     * @var Client[]
+     * @var CacheInterface|null
+     * @see Repository
+     * @see Cache
      */
-    protected $clients = [];
+    protected $cache;
 
     /**
      * @var string|null
@@ -63,15 +70,20 @@ class Connection implements ConnectionInterface
     protected $index;
 
     /**
-     * Creates a new connection manager
+     * Creates a new connection
      *
-     * @param Client      $client
-     * @param string|null $index
+     * @param Client              $client
+     * @param CacheInterface|null $cache
+     * @param string|null         $index
      */
-    public function __construct(Client $client, ?string $index = null)
-    {
+    public function __construct(
+        Client $client,
+        ?CacheInterface $cache = null,
+        ?string $index = null
+    ) {
         $this->client = $client;
         $this->index = $index;
+        $this->cache = $cache;
     }
 
     /**
@@ -201,6 +213,14 @@ class Connection implements ConnectionInterface
             $name,
             $arguments
         );
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getCache(): ?CacheInterface
+    {
+        return $this->cache;
     }
 
     /**

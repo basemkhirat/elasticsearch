@@ -43,6 +43,18 @@ return [
 
     /*
     |--------------------------------------------------------------------------
+    | Elasticsearch Logger
+    |--------------------------------------------------------------------------
+    |
+    | This setting defines which logging channel will be used by the
+    | Elasticsearch library to write log messages. You are free to specify any
+    | of your logging channels listed inside the "logging" configuration file.
+    |
+    */
+    'logger' => env('ELASTIC_LOGGER'),
+
+    /*
+    |--------------------------------------------------------------------------
     | Elasticsearch Indices
     |--------------------------------------------------------------------------
     |

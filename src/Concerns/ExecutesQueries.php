@@ -5,9 +5,6 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch\Concerns;
 
 use DateTime;
-use Illuminate\Cache\CacheManager;
-use Illuminate\Contracts\Cache\Repository as Cache;
-use Illuminate\Support\Facades\App;
 use JsonException;
 use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Collection;
@@ -17,7 +14,9 @@ use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Pagination;
 use Matchory\Elasticsearch\Query;
 use Matchory\Elasticsearch\Request;
+use Psr\SimpleCache\CacheInterface;
 use Psr\SimpleCache\InvalidArgumentException;
+use Throwable;
 
 use function array_diff_key;
 use function array_flip;
@@ -45,13 +44,6 @@ trait ExecutesQueries
      * @var DateTime|int|null
      */
     protected $cacheTtl;
-
-    /**
-     * The cache driver to be used.
-     *
-     * @var string
-     */
-    protected $cacheDriver;
 
     /**
      * A cache prefix.
@@ -106,20 +98,6 @@ trait ExecutesQueries
     abstract public function skip(int $from): self;
 
     abstract public function getModel(): Model;
-
-    /**
-     * Indicate that the results, if cached, should use the given cache driver.
-     *
-     * @param string $cacheDriver
-     *
-     * @return $this
-     */
-    public function cacheDriver(string $cacheDriver): self
-    {
-        $this->cacheDriver = $cacheDriver;
-
-        return $this;
-    }
 
     /**
      * Set the cache prefix.
@@ -565,16 +543,27 @@ trait ExecutesQueries
     public function performSearch(?string $scrollId = null): ?array
     {
         $scrollId = $scrollId ?? $this->getScrollId();
-        $result = $scrollId
-            ? $this->getConnection()->getClient()->scroll([
-                Query::PARAM_SCROLL => $this->getScroll(),
-                Query::PARAM_SCROLL_ID => $scrollId,
-            ])
-            : $this->getConnection()->getClient()->search(
-                $this->toArray());
 
-        if ( ! is_null($this->cacheTtl)) {
-            $this->getCache()->put(
+        if ($scrollId) {
+            $result = $this
+                ->getConnection()
+                ->getClient()
+                ->scroll([
+                    Query::PARAM_SCROLL => $this->getScroll(),
+                    Query::PARAM_SCROLL_ID => $scrollId,
+                ]);
+        } else {
+            $query = $this->buildQuery();
+            $result = $this
+                ->getConnection()
+                ->getClient()
+                ->search($query);
+        }
+
+        // We attempt to cache the results if we have a cache instance, and the
+        // TTl is truthy. This allows to use values such as `-1` to flush it.
+        if ($this->cacheTtl && ($cache = $this->getCache())) {
+            $cache->put(
                 $this->getCacheKey(),
                 $result,
                 $this->cacheTtl
@@ -605,34 +594,29 @@ trait ExecutesQueries
      */
     protected function getResult(?string $scrollId = null): ?array
     {
-        if (is_null($this->cacheTtl)) {
+        if ( ! $this->cacheTtl) {
             return $this->performSearch($scrollId);
         }
 
-        try {
-            $result = $this->getCache()->get($this->getCacheKey());
-        } catch (InvalidArgumentException $e) {
-            $result = null;
+        if ($cache = $this->getCache()) {
+            try {
+                return $cache->get($this->getCacheKey());
+            } catch (Throwable | InvalidArgumentException $exception) {
+                // If the cache didn't like our cache key (which should be
+                // impossible), we regard it as a cache failure and perform a
+                // normal search instead.
+            }
         }
 
-        if (is_null($result)) {
-            return $this->performSearch($scrollId);
-        }
-
-        return $result;
+        return $this->performSearch($scrollId);
     }
 
     /**
-     * @return Cache
-     * @todo         Make caching use dependency injection
-     * @noinspection PhpDocMissingThrowsInspection
+     * @return CacheInterface|null
      */
-    protected function getCache(): Cache
+    protected function getCache(): ?CacheInterface
     {
-        /** @noinspection PhpUnhandledExceptionInspection */
-        return App::getFacadeApplication()
-                  ->make(CacheManager::class)
-                  ->driver($this->cacheDriver);
+        return $this->getConnection()->getCache();
     }
 
     /**

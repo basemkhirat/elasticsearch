@@ -6,6 +6,7 @@ namespace Matchory\Elasticsearch\Interfaces;
 
 use Elasticsearch\Client;
 use Matchory\Elasticsearch\Query;
+use Psr\SimpleCache\CacheInterface;
 
 /**
  * Interface ConnectionInterface
@@ -55,4 +56,11 @@ interface ConnectionInterface
      * @return Client
      */
     public function getClient(): Client;
+
+    /**
+     * Retrieves the cache instance, if configured.
+     *
+     * @return CacheInterface|null
+     */
+    public function getCache(): ?CacheInterface;
 }

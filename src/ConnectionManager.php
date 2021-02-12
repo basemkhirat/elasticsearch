@@ -8,6 +8,8 @@ use InvalidArgumentException;
 use Matchory\Elasticsearch\Interfaces\ClientFactoryInterface;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
+use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 use function is_null;
 
@@ -39,17 +41,33 @@ class ConnectionManager implements ConnectionResolverInterface
     protected $clientFactory;
 
     /**
+     * @var CacheInterface|null
+     */
+    protected $cache;
+
+    /**
+     * @var LoggerInterface|null
+     */
+    protected $logger;
+
+    /**
      * Create a new connection resolver instance.
      *
      * @param array                  $configuration
      * @param ClientFactoryInterface $clientFactory
+     * @param CacheInterface|null    $cache
+     * @param LoggerInterface|null   $logger
      */
     public function __construct(
         array $configuration,
-        ClientFactoryInterface $clientFactory
+        ClientFactoryInterface $clientFactory,
+        ?CacheInterface $cache = null,
+        ?LoggerInterface $logger = null
     ) {
         $this->configuration = $configuration;
         $this->clientFactory = $clientFactory;
+        $this->cache = $cache;
+        $this->logger = $logger;
     }
 
     /**
@@ -153,9 +171,9 @@ class ConnectionManager implements ConnectionResolverInterface
         }
 
         $client = $this->clientFactory->createClient(
-            $config['servers'],
-            null,
-            $config['handler'] ?? null
+            $config[self::CONFIG_KEY_SERVERS],
+            $this->logger,
+            $config[self::CONFIG_KEY_HANDLER] ?? null
         );
 
         return new Connection($client, $config['index'] ?? null);

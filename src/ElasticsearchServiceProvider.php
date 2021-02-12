@@ -6,6 +6,7 @@ use Elasticsearch\ClientBuilder as ElasticBuilder;
 use Illuminate\Contracts\Container\BindingResolutionException;
 use Illuminate\Contracts\Events\Dispatcher;
 use Illuminate\Contracts\Foundation\Application;
+use Illuminate\Log\Logger;
 use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
@@ -20,6 +21,8 @@ use Matchory\Elasticsearch\Factories\ClientFactory;
 use Matchory\Elasticsearch\Interfaces\ClientFactoryInterface;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface;
+use Psr\Log\LoggerInterface;
+use Psr\SimpleCache\CacheInterface;
 
 use function class_exists;
 use function config_path;
@@ -73,6 +76,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
         Model::clearBootedModels();
 
         $this->registerCommands();
+        $this->registerLogger();
         $this->registerClientFactory();
         $this->registerConnectionResolver();
         $this->registerDefaultConnection();
@@ -144,6 +148,20 @@ class ElasticsearchServiceProvider extends ServiceProvider
     }
 
     /**
+     * Bind the Elasticsearch logger.
+     *
+     * @return void
+     */
+    protected function registerLogger(): void
+    {
+        $this->app->bind('es.logger', function ($app) {
+            return new Logger(
+                $app->make('log')->channel(Config::get('es.logger'))
+            );
+        });
+    }
+
+    /**
      * @throws LogicException
      */
     protected function registerClientFactory(): void
@@ -173,9 +191,19 @@ class ElasticsearchServiceProvider extends ServiceProvider
             function (Application $app) {
                 $factory = $app->make(ClientFactoryInterface::class);
 
+                $cache = $app->bound(CacheInterface::class)
+                    ? $app->make(CacheInterface::class)
+                    : null;
+
+                $logger = Config::get('es.logger') && $app->bound('es.logger')
+                    ? $app->make(LoggerInterface::class)
+                    : null;
+
                 return new ConnectionManager(
                     Config::get('es', []),
-                    $factory
+                    $factory,
+                    $cache,
+                    $logger
                 );
             }
         );
