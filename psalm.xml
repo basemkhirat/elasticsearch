@@ -17,15 +17,14 @@
     <issueHandlers>
 
         <!--
-         As these functions are included with Laravel and don't come bundled in a separate package, we have to ignore
-         them for now. They should ultimately be removed still, to allow using the package with other apps.
+         Thanks to the ridiculous PSR-6 spec which refuses to just use proper exceptions for bogus reasons, we'll have
+         have to fix this in Psalm.
          -->
-        <UndefinedFunction>
+        <InvalidThrow>
             <errorLevel type="suppress">
-                <referencedFunction name="app"/>
-                <referencedFunction name="config"/>
+                <referencedClass name="Psr\SimpleCache\InvalidArgumentException"/>
             </errorLevel>
-        </UndefinedFunction>
+        </InvalidThrow>
 
         <!--
          Due to the way Laravel handles console commands, psalm cannot be sure argument values are actually strings. We
