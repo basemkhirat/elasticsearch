@@ -21,7 +21,7 @@ trait ManagesIndices
     {
         $index = new Index($name, $callback);
 
-        $index->setClient($this->getConnection()->getClient());
+        $index->setConnection($this->getConnection());
 
         return $index->create();
     }
@@ -37,11 +37,13 @@ trait ManagesIndices
      */
     public function create(?callable $callback = null): array
     {
-        if ( ! $this->getIndex()) {
-            throw new RuntimeException('No index name configured');
+        $index = $this->getIndex();
+
+        if ( ! $index) {
+            throw new RuntimeException('No index configured');
         }
 
-        return $this->createIndex($this->getIndex(), $callback);
+        return $this->createIndex($index, $callback);
     }
 
     /**
@@ -52,13 +54,15 @@ trait ManagesIndices
      */
     public function exists(): bool
     {
-        if ( ! $this->getIndex()) {
+        $index = $this->getIndex();
+
+        if ( ! $index) {
             throw new RuntimeException('No index configured');
         }
 
-        $index = new Index($this->getIndex());
+        $index = new Index($index);
 
-        $index->setClient($this->getConnection()->getClient());
+        $index->setConnection($this->getConnection());
 
         return $index->exists();
     }
@@ -74,7 +78,7 @@ trait ManagesIndices
     {
         $index = new Index($name);
 
-        $index->client = $this->getConnection();
+        $index->connection = $this->getConnection();
 
         return $index->drop();
     }
@@ -87,10 +91,12 @@ trait ManagesIndices
      */
     public function drop(): array
     {
-        if ( ! $this->getIndex()) {
+        $index = $this->getIndex();
+
+        if ( ! $index) {
             throw new RuntimeException('No index name configured');
         }
 
-        return $this->dropIndex($this->getIndex());
+        return $this->dropIndex($index);
     }
 }

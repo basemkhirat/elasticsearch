@@ -229,7 +229,12 @@ class Bulk
             return null;
         }
 
-        $result = $this->query->getConnection()->bulk($this->body);
+        $result = $this
+            ->query
+            ->getConnection()
+            ->getClient()
+            ->bulk($this->body);
+
         $this->operationCount = 0;
         $this->body = [];
 

@@ -3,6 +3,7 @@
 namespace Matchory\Elasticsearch;
 
 use Elasticsearch\Client;
+use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 
 use function array_merge;
 use function array_unique;
@@ -20,9 +21,9 @@ class Index
     /**
      * Native elasticsearch client instance
      *
-     * @var Client
+     * @var ConnectionInterface
      */
-    public $client;
+    public $connection;
 
     /**
      * Ignored HTTP errors
@@ -79,7 +80,7 @@ class Index
     }
 
     /**
-     * Set index shards
+     * Configures the index shards.
      *
      * @param int $shards
      *
@@ -93,7 +94,7 @@ class Index
     }
 
     /**
-     * Set index replicas
+     * Configures the index replicas.
      *
      * @param int $replicas
      *
@@ -107,7 +108,7 @@ class Index
     }
 
     /**
-     * Ignore bad HTTP requests
+     * Configures the client to ignore bad HTTP requests.
      *
      * @return $this
      */
@@ -130,7 +131,7 @@ class Index
     }
 
     /**
-     * Check existence of index
+     * Checks whether an index exists.
      *
      * @return bool
      */
@@ -140,11 +141,15 @@ class Index
             'index' => $this->name,
         ];
 
-        return $this->client->indices()->exists($params);
+        return $this
+            ->connection
+            ->getClient()
+            ->indices()
+            ->exists($params);
     }
 
     /**
-     * Create a new index
+     * Creates a new index
      *
      * @return array
      */
@@ -152,6 +157,8 @@ class Index
     {
         $callback = $this->callback;
 
+        // TODO: Why would you call a callback before actually creating
+        //       the index? This should probably be removed
         if ($callback) {
             $callback($this);
         }
@@ -173,13 +180,15 @@ class Index
             $params['body']['mappings'] = $this->mappings;
         }
 
-        return $this->client
+        return $this
+            ->connection
+            ->getClient()
             ->indices()
             ->create($params);
     }
 
     /**
-     * Drop index
+     * Drops an index.
      *
      * @return array
      */
@@ -190,11 +199,15 @@ class Index
             'client' => ['ignore' => $this->ignores],
         ];
 
-        return $this->client->indices()->delete($params);
+        return $this
+            ->connection
+            ->getClient()
+            ->indices()
+            ->delete($params);
     }
 
     /**
-     * Fields mappings
+     * Sets the fields mappings.
      *
      * @param array $mappings
      *
@@ -209,12 +222,17 @@ class Index
 
     public function getClient(): Client
     {
-        return $this->client;
+        return $this->connection->getClient();
     }
 
-    public function setClient(Client $client): void
+    public function getConnection(): ConnectionInterface
     {
-        $this->client = $client;
+        return $this->connection;
+    }
+
+    public function setConnection(ConnectionInterface $connection): void
+    {
+        $this->connection = $connection;
     }
 }
 
