@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch\Concerns;
 
 use Closure;
-use Illuminate\Database\Eloquent\Scope;
 use InvalidArgumentException;
 use Matchory\Elasticsearch\Interfaces\ScopeInterface;
 
@@ -27,7 +26,7 @@ use function spl_object_hash;
 trait HasGlobalScopes
 {
     /**
-     * @var array<class-string, array<string, Closure>>
+     * @var array<class-string, array<string, Closure|ScopeInterface>>
      */
     protected static $globalScopes = [];
 
@@ -37,14 +36,14 @@ trait HasGlobalScopes
      * @param ScopeInterface|Closure|string $scope
      * @param Closure|null                  $implementation
      *
-     * @return mixed
+     * @return Closure|ScopeInterface
      *
      * @throws InvalidArgumentException
      */
     public static function addGlobalScope(
         $scope,
         ?Closure $implementation = null
-    ): Closure {
+    ) {
         if (is_string($scope) && ! is_null($implementation)) {
             return static::$globalScopes[static::class][$scope] = $implementation;
         }
@@ -65,7 +64,7 @@ trait HasGlobalScopes
     /**
      * Determine if a model has a global scope.
      *
-     * @param Scope|string $scope
+     * @param ScopeInterface|string $scope
      *
      * @return bool
      */
@@ -77,9 +76,9 @@ trait HasGlobalScopes
     /**
      * Get a global scope registered with the model.
      *
-     * @param Scope|string $scope
+     * @param ScopeInterface|string $scope
      *
-     * @return Scope|Closure|null
+     * @return ScopeInterface|Closure|null
      */
     public static function getGlobalScope($scope)
     {
@@ -93,7 +92,7 @@ trait HasGlobalScopes
     /**
      * Get the global scopes for this class instance.
      *
-     * @return array
+     * @return array<string, Closure|ScopeInterface>
      */
     public function getGlobalScopes(): array
     {

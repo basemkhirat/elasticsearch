@@ -250,7 +250,7 @@ trait ExecutesQueries
             return $model;
         }
 
-        return $callback();
+        return $callback ? $callback() : null;
     }
 
     /**
@@ -267,9 +267,11 @@ trait ExecutesQueries
             return $model;
         }
 
+        $id = $this->getId();
+
         throw (new DocumentNotFoundException())->setModel(
             get_class($this->getModel()),
-            $this->id
+            $id ?? []
         );
     }
 
@@ -491,6 +493,7 @@ trait ExecutesQueries
      * @param string|null $scrollId
      *
      * @return array
+     * @throws InvalidArgumentException
      */
     public function performSearch(?string $scrollId = null): ?array
     {
@@ -515,10 +518,12 @@ trait ExecutesQueries
         // We attempt to cache the results if we have a cache instance, and the
         // TTl is truthy. This allows to use values such as `-1` to flush it.
         if ($this->cacheTtl && ($cache = $this->getCache())) {
-            $cache->put(
+            $cache->set(
                 $this->getCacheKey(),
                 $result,
-                $this->cacheTtl
+                $this->cacheTtl instanceof DateTime
+                    ? $this->cacheTtl->getTimestamp()
+                    : $this->cacheTtl
             );
         }
 
