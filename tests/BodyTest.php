@@ -4,6 +4,14 @@ namespace Matchory\Elasticsearch\Tests;
 
 use Matchory\Elasticsearch\Tests\Traits\ESQueryTrait;
 use PHPUnit\Framework\ExpectationFailedException;
+use PHPUnit\Framework\MockObject\ClassAlreadyExistsException;
+use PHPUnit\Framework\MockObject\ClassIsFinalException;
+use PHPUnit\Framework\MockObject\DuplicateMethodException;
+use PHPUnit\Framework\MockObject\InvalidMethodNameException;
+use PHPUnit\Framework\MockObject\OriginalConstructorInvocationRequiredException;
+use PHPUnit\Framework\MockObject\ReflectionException;
+use PHPUnit\Framework\MockObject\RuntimeException;
+use PHPUnit\Framework\MockObject\UnknownTypeException;
 use PHPUnit\Framework\TestCase;
 use SebastianBergmann\RecursionContext\InvalidArgumentException;
 
@@ -45,12 +53,7 @@ class BodyTest extends TestCase
      */
     protected function getExpected(array $body = []): array
     {
-        $query = $this->getQueryArray();
-
-
-        $query['body'] = $body;
-
-        return $query;
+        return $this->getQueryArray($body);
     }
 
     /**
@@ -59,6 +62,15 @@ class BodyTest extends TestCase
      * @param $body array
      *
      * @return array
+     * @throws \PHPUnit\Framework\InvalidArgumentException
+     * @throws ClassAlreadyExistsException
+     * @throws ClassIsFinalException
+     * @throws DuplicateMethodException
+     * @throws InvalidMethodNameException
+     * @throws OriginalConstructorInvocationRequiredException
+     * @throws ReflectionException
+     * @throws RuntimeException
+     * @throws UnknownTypeException
      */
     protected function getActual(array $body = []): array
     {
