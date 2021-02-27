@@ -4,8 +4,6 @@ declare(strict_types=1);
 
 namespace Matchory\Elasticsearch\Concerns;
 
-use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
-
 trait ExplainsQueries
 {
     /**
@@ -46,15 +44,4 @@ trait ExplainsQueries
             '_source' => $source ?? false,
         ]);
     }
-
-    /**
-     * Retrieves the connection instance.
-     *
-     * @return ConnectionInterface
-     */
-    abstract public function getConnection(): ConnectionInterface;
-
-    abstract public function getIndex(): ?string;
-
-    abstract protected function getBody(): array;
 }

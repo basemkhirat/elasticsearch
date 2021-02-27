@@ -7,7 +7,6 @@ namespace Matchory\Elasticsearch\Concerns;
 use Closure;
 use Illuminate\Support\Arr;
 use Matchory\Elasticsearch\Interfaces\ScopeInterface;
-use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Query;
 
 use function array_keys;
@@ -186,13 +185,6 @@ trait AppliesScopes
 
         return $query;
     }
-
-    /**
-     * Retrieves the Elasticsearch model instance.
-     *
-     * @return Model
-     */
-    abstract public function getModel(): Model;
 
     /**
      * Apply the given scope on the current builder instance.

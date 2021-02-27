@@ -9,7 +9,6 @@ use JsonException;
 use Matchory\Elasticsearch\Classes\Bulk;
 use Matchory\Elasticsearch\Collection;
 use Matchory\Elasticsearch\Exceptions\DocumentNotFoundException;
-use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use Matchory\Elasticsearch\Model;
 use Matchory\Elasticsearch\Pagination;
 use Matchory\Elasticsearch\Query;
@@ -51,53 +50,6 @@ trait ExecutesQueries
      * @var string
      */
     protected $cachePrefix = Query::DEFAULT_CACHE_PREFIX;
-
-    /**
-     * Retrieves the connection instance.
-     *
-     * @return ConnectionInterface
-     */
-    abstract public function getConnection(): ConnectionInterface;
-
-    /**
-     * Converts the current query into an array
-     *
-     * @return array
-     */
-    abstract public function toArray(): array;
-
-    /**
-     * Converts the current query to JSON
-     *
-     * @return string
-     * @throws JsonException
-     */
-    abstract public function toJson(): string;
-
-    /**
-     * @param string|null $id
-     *
-     * @return $this
-     */
-    abstract public function id(?string $id = null): self;
-
-    abstract public function getIgnores(): array;
-
-    abstract public function getScroll(): ?string;
-
-    abstract public function getScrollId(): ?string;
-
-    abstract public function getId(): ?string;
-
-    abstract public function getIndex(): ?string;
-
-    abstract public function getType(): ?string;
-
-    abstract public function take(int $size): self;
-
-    abstract public function skip(int $from = 0): self;
-
-    abstract public function getModel(): Model;
 
     /**
      * Set the cache prefix.

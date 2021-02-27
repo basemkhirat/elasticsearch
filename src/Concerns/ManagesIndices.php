@@ -5,25 +5,10 @@ declare(strict_types=1);
 namespace Matchory\Elasticsearch\Concerns;
 
 use Matchory\Elasticsearch\Index;
-use Matchory\Elasticsearch\Interfaces\ConnectionInterface;
 use RuntimeException;
 
 trait ManagesIndices
 {
-    /**
-     * Retrieves the underlying Elasticsearch connection.
-     *
-     * @return ConnectionInterface
-     */
-    abstract public function getConnection(): ConnectionInterface;
-
-    /**
-     * Retrieves the name of the current index.
-     *
-     * @return string|null
-     */
-    abstract public function getIndex(): ?string;
-
     /**
      * Create a new index
      *
