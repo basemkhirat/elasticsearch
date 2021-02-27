@@ -52,14 +52,16 @@ trait ESQueryTrait
     /**
      * Expected query array
      *
+     * @param array $body
+     *
      * @return array
      */
-    protected function getQueryArray(): array
+    protected function getQueryArray(array $body = []): array
     {
         return [
             'index' => $this->index,
             'type' => $this->type,
-            'body' => [],
+            'body' => $body,
             'from' => $this->skip,
             'size' => $this->take,
         ];
