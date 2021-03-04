@@ -15,17 +15,18 @@ use Illuminate\Database\Eloquent\Concerns\GuardsAttributes;
 use Illuminate\Database\Eloquent\Concerns\HasAttributes;
 use Illuminate\Database\Eloquent\Concerns\HasEvents;
 use Illuminate\Database\Eloquent\Concerns\HidesAttributes;
-use Illuminate\Database\Eloquent\InvalidCastException;
 use Illuminate\Database\Eloquent\MassAssignmentException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Collection as BaseCollection;
 use Illuminate\Support\Traits\ForwardsCalls;
 use JsonException;
 use JsonSerializable;
+use Matchory\Elasticsearch\Concerns\HasAttributesCompatibility;
 use Matchory\Elasticsearch\Concerns\HasGlobalScopes;
 use Matchory\Elasticsearch\Exceptions\DocumentNotFoundException;
 use Matchory\Elasticsearch\Interfaces\ConnectionInterface as Connection;
 use Matchory\Elasticsearch\Interfaces\ConnectionResolverInterface as Resolver;
+use Matchory\Elasticsearch\Exceptions\InvalidCastException;
 
 use function array_key_exists;
 use function array_merge;
@@ -72,6 +73,16 @@ class Model implements Arrayable,
     use HasEvents;
     use HasGlobalScopes;
     use GuardsAttributes;
+    use HasAttributesCompatibility {
+        HasAttributesCompatibility::getDates insteadof HasAttributes;
+        HasAttributesCompatibility::isClassCastable insteadof HasAttributes;
+        HasAttributesCompatibility::mergeAttributesFromClassCasts insteadof HasAttributes;
+        HasAttributesCompatibility::mergeCasts insteadof HasAttributes;
+        HasAttributesCompatibility::normalizeCastClassResponse insteadof HasAttributes;
+        HasAttributesCompatibility::originalIsEquivalent insteadof HasAttributes;
+        HasAttributesCompatibility::parseCasterClass insteadof HasAttributes;
+        HasAttributesCompatibility::resolveCasterClass insteadof HasAttributes;
+    }
 
     protected const FIELD_ID = '_id';
 
@@ -1371,6 +1382,16 @@ class Model implements Arrayable,
             ? $this->transformModelValue($key, $this->resultMetadata[$key])
             : null;
     }
+
+    /**
+     * Get the model instance being queried.
+     * @return $this
+     */
+    public function getModel()
+    {
+        return $this;
+    }
+
 
     /**
      * Perform the actual delete query on this model instance.
