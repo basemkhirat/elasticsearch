@@ -39,7 +39,7 @@
     },
     "require": {
         "php": ">=5.6.6",
-        "elasticsearch/elasticsearch": "^5.0|^6.0",
+        "elasticsearch/elasticsearch": "^5.0|^6.0|^7.0",
         "illuminate/pagination": "*",
         "illuminate/support": "*",
         "symfony/var-dumper": "*",
