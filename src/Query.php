@@ -1331,6 +1331,45 @@ class Query
 
         return (object)$this->connection->delete($parameters);
     }
+    
+    /**
+     * Remove a document by Query
+     * @param null $_id
+     * @return object
+     */
+    public function deleteByQuery()
+    {
+
+        $body = $this->body;
+
+        $body["query"] = isset($body["query"]) ? $body["query"]: [];
+
+        if (count($this->must)) {
+            $body["query"]["bool"]["must"] = $this->must;
+        }
+
+        if (count($this->must_not)) {
+            $body["query"]["bool"]["must_not"] = $this->must_not;
+        }
+
+        if (count($this->filter)) {
+            $body["query"]["bool"]["filter"] = $this->filter;
+        }
+
+        $parameters["body"] = $body;
+
+        if ($index = $this->getIndex()) {
+            $parameters["index"] = $index;
+        }
+
+        if ($type = $this->getType()) {
+            $parameters["type"] = $type;
+        }
+
+        $parameters["ignore_unavailable"] = true;
+
+        return (object)$this->connection->deleteByQuery($parameters);
+    }
 
     /**
      * Return the native connection to execute native query
