@@ -5,7 +5,7 @@ namespace Basemkhirat\Elasticsearch;
 use Basemkhirat\Elasticsearch\Classes\Bulk;
 use Basemkhirat\Elasticsearch\Classes\LikeThis;
 use Basemkhirat\Elasticsearch\Classes\Search;
-
+use Basemkhirat\Elasticsearch\Classes\Aggregation;
 
 /**
  * Class Query
@@ -791,6 +791,22 @@ class Query
 
         return $this;
     }
+    
+    /**
+     * Query aggregation
+     * @param null $label
+     * @param $callback
+     * @return $this
+     */
+    public function agg($label = null, $callback)
+    {
+
+        if ($label) {
+            Aggregation::set($this, $label, $callback);
+        }
+
+        return $this;
+    }
 
     /**
      * Generate the query body
@@ -1063,6 +1079,7 @@ class Query
             $new->timed_out = $result["timed_out"];
             $new->scroll_id = isset($result["_scroll_id"]) ? $result["_scroll_id"] : NULL;
             $new->shards = (object)$result["_shards"];
+            $new->aggs = isset($result["aggregations"]) ? $result["aggregations"] : [];
 
             return $new;
 
