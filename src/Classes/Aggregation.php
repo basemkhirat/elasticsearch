@@ -152,6 +152,8 @@ class Aggregation
         $this->parameters = [];
 
         self::set($this->query, $name, $callback, $this);
+        
+        return $this;
     }
 
     /**
