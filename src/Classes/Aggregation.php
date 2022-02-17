@@ -177,10 +177,7 @@ class Aggregation
         }
 
         array_set($this->query->body, trim($this->depth, "."), [
-            $this->type => array_merge($this->body, [
-                ...$params,
-                ...$this->parameters
-            ])
+            $this->type => array_merge($this->body, array_merge($params, $this->parameters))
         ]);
     }
 
