@@ -845,8 +845,6 @@ class Query
             $body["sort"] = array_unique(array_merge($sortFields, $this->sort), SORT_REGULAR);
         }
 
-        $body["track_total_hits"] = true;
-
         $this->body = $body;
 
         return $body;
@@ -934,6 +932,8 @@ class Query
     {
 
         $scroll_id = NULL;
+        
+        $this->body["track_total_hits"] = true;
 
         $result = $this->getResult($scroll_id);
 
