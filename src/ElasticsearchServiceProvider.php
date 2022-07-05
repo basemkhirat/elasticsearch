@@ -79,7 +79,16 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
 
     }
-
+    
+    private function starts_with( $haystack, $needle){
+        if(function_exists("starts_with"))
+            return starts_with($haystack, $needle);
+        else if (function_exists("str_starts_with"))
+            return str_starts_with($haystack, $needle);
+        else
+            return substr( $haystack, 0, strlen($needle) ) === $needle;
+    }
+    
     /**
      * Register any application services.
      *
@@ -90,7 +99,7 @@ class ElasticsearchServiceProvider extends ServiceProvider
 
         // Package commands available for laravel or lumen higher than 5.1
 
-        if(version_compare($this->app->version(), '5.1', ">=") or starts_with($this->app->version(), "Lumen")) {
+        if(version_compare($this->app->version(), '5.1', ">=") or $this->starts_with($this->app->version(), "Lumen")) {
 
             if ($this->app->runningInConsole()) {
 
