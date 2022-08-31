@@ -41,6 +41,12 @@ class Model
      * @var array
      */
     protected $unselectable = [];
+    
+    /**
+     * Model sortable fields
+     * @var array
+     */
+    protected $sortable = [];
 
     /**
      * Model hidden fields
@@ -279,8 +285,28 @@ class Model
         foreach ($this->appends as $name) {
             $attributes[$name] = $this->getAppendsAttribute($name);
         }
+        
+        if (count($this->sortable) == 0) {
+            return $attributes;
+        }
+        
+        $sorted_fields = [];
 
-        return $attributes;
+        $offset = count($this->sortable);
+        foreach($attributes as $name => $value) {
+            if(in_array($name, $this->sortable)){
+                $sorted_fields[array_search($name, $this->sortable)] = $name;
+            }else{
+                $sorted_fields[++$offset] = $name;
+            }
+        }
+        
+        ksort($sorted_fields);
+
+        return array_reduce($sorted_fields, function ($new_attributes, $field) use ($attributes) {
+            $new_attributes[$field] = $attributes[$field];
+            return $new_attributes;
+        }, []);
     }
 
     /**
