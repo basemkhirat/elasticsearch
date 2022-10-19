@@ -86,14 +86,6 @@ class ReindexCommand extends Command
 
         $new_index = $this->argument('new_index');
 
-        if (!in_array($original_index, array_keys(config("es.indices")))) {
-            return $this->warn("Missing configuration for index: {$original_index}");
-        }
-
-        if (!in_array($new_index, array_keys(config("es.indices")))) {
-            return $this->warn("Missing configuration for index: {$new_index}");
-        }
-
         $this->migrate($original_index, $new_index);
     }
 
