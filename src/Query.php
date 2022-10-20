@@ -776,6 +776,17 @@ class Query
 
         return $this;
     }
+    
+    /**
+     * Get highlight result in raw syntax
+     * @return $this
+     */
+    public function highlightRaw($highlights = [])
+    {
+        $this->body["highlight"] = $highlights;
+
+        return $this;
+    }
 
     /**
      * Set the Collapsing field
