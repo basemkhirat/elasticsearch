@@ -805,11 +805,11 @@ class Query
     
     /**
      * Query aggregation
-     * @param null $label
+     * @param $label
      * @param $callback
      * @return $this
      */
-    public function agg($label = null, $callback)
+    public function agg($label, $callback)
     {
 
         if ($label) {
