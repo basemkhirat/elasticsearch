@@ -1147,7 +1147,6 @@ class Query
      */
     public function paginate($per_page = 10, $page_name = "page", $page = null)
     {
-
         // Check if the request from PHP CLI
         if (php_sapi_name() == "cli") {
             $this->take($per_page);
@@ -1165,7 +1164,9 @@ class Query
 
         $objects = $this->get();
 
-        return new Pagination($objects, $objects->total, $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
+        $total = isset($objects->total) ? $objects->total : 0;
+
+        return new Pagination($objects, $total, $per_page, $page, ['path' => Request::url(), 'query' => Request::query()]);
     }
 
     /**
