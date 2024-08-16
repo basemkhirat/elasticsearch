@@ -33,25 +33,31 @@ class LikeThis
      * the min_term_freq
      * @var int
      */
-    protected $min_term_freq = 2;
+    protected $min_term_freq = null;
 
     /**
      * the max_query_terms
      * @var int
      */
-    protected $max_query_terms = 25;
+    protected $max_query_terms = null;
 
     /**
      * The min_word_length
      * @var int
      */
-    protected $min_word_length = 0;
+    protected $min_word_length = null;
 
     /**
      * The max_word_length
      * @var int
      */
-    protected $max_word_length = 0;
+    protected $max_word_length = null;
+
+    /**
+     * The min_should_match
+     * @var int
+     */
+    protected $minimum_should_match = null;
 
     /**
      * The stop_words
@@ -161,20 +167,53 @@ class LikeThis
     }
 
     /**
+     * set minimum_should_match
+     * @param $minimum_should_match
+     * @return $this
+     */
+    public function minimumShouldMatch($minimum_should_match)
+    {
+        $this->minimum_should_match = $minimum_should_match;
+
+        return $this;
+    }
+
+    /**
      * Build the native query
      */
     public function build()
     {
+        $parameters = [
+            "fields" => $this->fields,
+            "like" => $this->q,
+        ];
+
+        if($this->min_term_freq) {
+            $parameters["min_term_freq"] = $this->min_term_freq;
+        }
+
+        if($this->max_query_terms) {
+            $parameters["max_query_terms"] = $this->max_query_terms;
+        }
+
+        if($this->min_word_length) {
+            $parameters["min_word_length"] = $this->min_word_length;
+        }
+
+        if($this->max_word_length) {
+            $parameters["max_word_length"] = $this->max_word_length;
+        }
+
+        if(count($this->stop_words)) {
+            $parameters["stop_words"] = $this->stop_words;
+        }
+
+        if($this->minimum_should_match) {
+            $parameters["minimum_should_match"] = $this->minimum_should_match;
+        }
+
         $this->query->must[] = [
-            "more_like_this" => [
-                "fields" => $this->fields,
-                "like" => $this->q,
-                "min_term_freq" => $this->min_term_freq,
-                "max_query_terms" => $this->max_query_terms,
-                "min_word_length" => $this->min_word_length,
-                "max_word_length" => $this->max_word_length,
-                "stop_words" => $this->stop_words,
-            ]
+            "more_like_this" => $parameters
         ];
     }
 }
