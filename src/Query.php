@@ -126,7 +126,7 @@ class Query
      * Query limit
      * @var int
      */
-    protected $take = 10;
+    protected $take;
 
     /**
      * Query offset
@@ -286,7 +286,7 @@ class Query
      * @param int $take
      * @return $this
      */
-    public function take($take = 10)
+    public function take($take)
     {
 
         $this->take = $take;
@@ -332,7 +332,7 @@ class Query
      * @param int $skip
      * @return $this
      */
-    public function skip($skip = 0)
+    public function skip($skip)
     {
 
         $this->skip = $skip;
@@ -776,7 +776,7 @@ class Query
 
         return $this;
     }
-    
+
     /**
      * Get highlight result in raw syntax
      * @return $this
@@ -802,7 +802,7 @@ class Query
 
         return $this;
     }
-    
+
     /**
      * Query aggregation
      * @param $label
@@ -895,9 +895,17 @@ class Query
 
         $query["body"] = $this->getBody();
 
-        $query["from"] = $this->getSkip();
+        $offset = $this->getSkip();
 
-        $query["size"] = $this->getTake();
+        if($offset > 0) {
+            $query["from"] = $offset;
+        }
+
+        $limit = $this->getTake();
+
+        if ($limit) {
+            $query["size"] = $limit;
+        }
 
         if (count($this->ignores)) {
             $query["client"] = ['ignore' => $this->ignores];
@@ -943,7 +951,7 @@ class Query
     {
 
         $scroll_id = NULL;
-        
+
         $this->body["track_total_hits"] = true;
 
         $result = $this->getResult($scroll_id);
@@ -1360,7 +1368,7 @@ class Query
 
         return (object)$this->connection->delete($parameters);
     }
-    
+
     /**
      * Remove a document by Query
      * @param null $_id
