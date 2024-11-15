@@ -3,13 +3,14 @@
 namespace Basemkhirat\Elasticsearch;
 
 use Illuminate\Support\Str;
+use JsonSerializable;
 
 /**
  * Elasticsearch data model
  * Class Model
  * @package Basemkhirat\Elasticsearch
  */
-class Model
+class Model implements JsonSerializable
 {
 
     /**
@@ -41,7 +42,7 @@ class Model
      * @var array
      */
     protected $unselectable = [];
-    
+
     /**
      * Model sortable fields
      * @var array
@@ -285,11 +286,11 @@ class Model
         foreach ($this->appends as $name) {
             $attributes[$name] = $this->getAppendsAttribute($name);
         }
-        
+
         if (count($this->sortable) == 0) {
             return $attributes;
         }
-        
+
         $sorted_fields = [];
 
         $offset = count($this->sortable);
@@ -300,7 +301,7 @@ class Model
                 $sorted_fields[++$offset] = $name;
             }
         }
-        
+
         ksort($sorted_fields);
 
         return array_reduce($sorted_fields, function ($new_attributes, $field) use ($attributes) {
@@ -474,6 +475,19 @@ class Model
     function getID()
     {
         return $this->attributes["_id"];
+    }
+
+    /**
+     * Serialize the model instance to an array.
+     *
+     * This method is used to convert the model instance to a serializable array format,
+     * which can be used for JSON encoding or other serialization purposes.
+     *
+     * @return array The serialized model instance as an array.
+     */
+    public function jsonSerialize(): mixed
+    {
+        return $this->toArray();
     }
 
     /**
