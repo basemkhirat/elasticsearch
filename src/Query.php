@@ -949,9 +949,6 @@ class Query
      */
     public function get($scroll_id = NULL)
     {
-
-        $scroll_id = NULL;
-
         $this->body["track_total_hits"] = true;
 
         $result = $this->getResult($scroll_id);
