@@ -38,7 +38,8 @@ class Query
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
+        "regex"
     ];
 
     /**
@@ -510,6 +511,10 @@ class Query
             $this->whereExists($name, $value);
         }
 
+        if ($operator == "regex") {
+            $this->must[] = ["regexp" => [$name => ["value" => $value]]];
+        }
+
         return $this;
     }
 
@@ -559,6 +564,10 @@ class Query
 
         if ($operator == "exists") {
             $this->whereExists($name, !$value);
+        }
+
+        if ($operator == "regex") {
+            $this->must_not[] = ["regexp" => [$name => ["value" => $value]]];
         }
 
         return $this;
