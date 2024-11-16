@@ -36,15 +36,23 @@ class Search
     public $fields = [];
 
     /**
+     * Search settings
+     * @var mixed
+     */
+    public $settings;
+
+    /**
      * Search constructor.
      * @param Query $query
+     * @param string $q
+     * @param mixed|null $settings
      */
     public function __construct(Query $query, $q, $settings = NULL)
     {
         $this->query = $query;
         $this->q = $q;
 
-        if(is_callback_function($settings)){
+        if(is_callable($settings)){
             $settings($this);
         }
 

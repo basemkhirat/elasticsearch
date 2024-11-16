@@ -3,8 +3,9 @@
 namespace Basemkhirat\Elasticsearch\Tests;
 
 use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\TestCase;
 
-class SkipTest extends \PHPUnit_Framework_TestCase
+class SkipTest extends TestCase
 {
 
     use ESQueryTrait;

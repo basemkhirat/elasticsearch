@@ -3,8 +3,9 @@
 namespace Basemkhirat\Elasticsearch\Tests;
 
 use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\TestCase;
 
-class TakeTest extends \PHPUnit_Framework_TestCase
+class TakeTest extends TestCase
 {
 
     use ESQueryTrait;

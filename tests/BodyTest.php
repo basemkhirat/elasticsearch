@@ -2,13 +2,21 @@
 
 namespace Basemkhirat\Elasticsearch\Tests;
 
+use Basemkhirat\Elasticsearch\Query;
 use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
+use PHPUnit\Framework\TestCase;
 
-class BodyTest extends \PHPUnit_Framework_TestCase
+class BodyTest extends TestCase
 {
-
     use ESQueryTrait;
 
+    protected Query $query;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+        $this->query = $this->getQueryObject();
+    }
 
     /**
      * Test the body() method.
@@ -16,47 +24,29 @@ class BodyTest extends \PHPUnit_Framework_TestCase
      */
     public function testBodyMethod()
     {
-
         $body = [
             "query" => [
-                "bool" => [
-                    "must" => [
-                        ["match" => ["address" => "mill"]],
-                    ]
-                ]
+                "match_all" => new \stdClass()
             ]
         ];
 
-        $this->assertEquals(
-            $this->getExpected($body),
-            $this->getActual($body)
-        );
+        $query = $this->query->body($body);
 
+        $expected = [
+            "index" => "my_index",
+            "type" => "my_type",
+            "body" => [
+                "query" => [
+                    "match_all" => new \stdClass()
+                ],
+                "_source" => [
+                    "include" => ["*"],
+                    "exclude" => []
+                ]
+            ],
+            "size" => 10
+        ];
 
-    }
-
-    /**
-     * Get The expected results.
-     * @param $body array
-     * @return array
-     */
-    protected function getExpected($body = [])
-    {
-        $query = $this->getQueryArray();
-
-        $query["body"] = $body;
-
-        return $query;
-    }
-
-
-    /**
-     * Get The actual results.
-     * @param $body array
-     * @return mixed
-     */
-    protected function getActual($body = [])
-    {
-        return $this->getQueryObject()->body($body)->query();
+        $this->assertEquals($expected, $query->query());
     }
 }

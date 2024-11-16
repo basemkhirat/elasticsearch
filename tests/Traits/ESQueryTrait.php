@@ -9,6 +9,11 @@ use Basemkhirat\Elasticsearch\Query;
  */
 Trait ESQueryTrait
 {
+    /**
+     * Whether to select '*' by default
+     * @var bool
+     */
+    protected $defaultSelect = true;
 
     /**
      * Test index name
@@ -22,13 +27,11 @@ Trait ESQueryTrait
      */
     protected $type = "my_type";
 
-
     /**
      * Test query limit
      * @var int
      */
     protected $take = 10;
-
 
     /**
      * Test query offset
@@ -42,33 +45,39 @@ Trait ESQueryTrait
      */
     protected function getQueryArray()
     {
-        return [
-
+        $query = [
             'index' => $this->index,
-
             'type' => $this->type,
-
             'body' => [],
-
-            'from' => $this->skip,
-
-            'size' => $this->take,
-
+            'size' => $this->take
         ];
+
+        if ($this->defaultSelect) {
+            $query['body']['_source'] = [
+                'include' => ['*'],
+                'exclude' => []
+            ];
+        }
+
+        return $query;
     }
 
     /**
      * ES query object
-     * @return $this
+     * @return Query
      */
     protected function getQueryObject()
     {
+        $query = (new Query())
+            ->index($this->index)
+            ->type($this->type)
+            ->take($this->take)
+            ->skip($this->skip);
 
-        $query = new Query();
+        if ($this->defaultSelect) {
+            $query->select('*');
+        }
 
-        return $query->index($this->index)->type($this->type)->take($this->take)->skip($this->skip);
-
+        return $query;
     }
-
-
 }
