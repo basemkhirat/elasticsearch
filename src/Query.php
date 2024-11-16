@@ -99,6 +99,18 @@ class Query
     public $must_not = [];
 
     /**
+     * Query bool should
+     * @var array
+     */
+    protected $should = [];
+
+    /**
+     * Minimum should match
+     * @var int
+     */
+    protected $minimum_should_match = 1;
+
+    /**
      * Query returned fields list
      * @var array
      */
@@ -179,6 +191,11 @@ class Query
      */
     public $useGlobalScopes = true;
 
+    /**
+     * Nested query flag
+     * @var bool
+     */
+    protected $nested = false;
 
     /**
      * Query constructor.
@@ -477,7 +494,21 @@ class Query
     {
 
         if (is_callback_function($name)) {
-            $name($this);
+            $query = new self($this->connection);
+            $name($query);
+            $body = $query->getBody();
+            
+            if (isset($body['query']['bool'])) {
+                if (isset($body['query']['bool']['must'])) {
+                    $this->must = array_merge($this->must, $body['query']['bool']['must']);
+                }
+                if (isset($body['query']['bool']['filter'])) {
+                    $this->filter = array_merge($this->filter, $body['query']['bool']['filter']);
+                }
+                if (isset($body['query']['bool']['should'])) {
+                    $this->should = array_merge($this->should, $body['query']['bool']['should']);
+                }
+            }
             return $this;
         }
 
@@ -487,11 +518,9 @@ class Query
         }
 
         if ($operator == "=") {
-
             if ($name == "_id") {
                 return $this->_id($value);
             }
-
             $this->filter[] = ["term" => [$name => $value]];
         }
 
@@ -925,6 +954,11 @@ class Query
 
         if (count($this->filter)) {
             $body["query"]["bool"]["filter"] = $this->filter;
+        }
+
+        if (count($this->should)) {
+            $body["query"]["bool"]["should"] = $this->should;
+            $body["query"]["bool"]["minimum_should_match"] = $this->minimum_should_match;
         }
 
         if(count($body["query"]) == 0){
@@ -1680,6 +1714,127 @@ class Query
     {
 
         $this->useGlobalScopes = false;
+
+        return $this;
+    }
+
+    /**
+     * Set the query some clause (OR condition with minimum should match)
+     * @param callable $callback
+     * @return $this
+     */
+    public function some($callback)
+    {
+        $query = new self($this->connection);
+        $query->nested = true;
+        $callback($query);
+        
+        $body = $query->getBody();
+        if (isset($body['query']['bool'])) {
+            if ($this->nested) {
+                // If we're nested, properly structure the bool query
+                if (isset($body['query']['bool']['filter'])) {
+                    $this->should[] = [
+                        'bool' => [
+                            'filter' => $body['query']['bool']['filter']
+                        ]
+                    ];
+                }
+                if (isset($body['query']['bool']['must'])) {
+                    $this->should[] = [
+                        'bool' => [
+                            'must' => $body['query']['bool']['must']
+                        ]
+                    ];
+                }
+                if (isset($body['query']['bool']['should'])) {
+                    foreach ($body['query']['bool']['should'] as $condition) {
+                        $this->should[] = $condition;
+                    }
+                }
+            } else {
+                // If we're at the top level, process conditions individually
+                if (isset($body['query']['bool']['filter'])) {
+                    foreach ($body['query']['bool']['filter'] as $condition) {
+                        $this->should[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['must'])) {
+                    foreach ($body['query']['bool']['must'] as $condition) {
+                        $this->should[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['should'])) {
+                    foreach ($body['query']['bool']['should'] as $condition) {
+                        $this->should[] = $condition;
+                    }
+                }
+            }
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set the query every clause (AND condition using filter)
+     * @param callable $callback
+     * @return $this
+     */
+    public function every($callback)
+    {
+        $query = new self($this->connection);
+        $query->nested = true;
+        $callback($query);
+        
+        $body = $query->getBody();
+        if (isset($body['query']['bool'])) {
+            if ($this->nested) {
+                // If we're nested, wrap all conditions in a bool filter
+                $conditions = [];
+                if (isset($body['query']['bool']['filter'])) {
+                    $conditions = array_merge($conditions, $body['query']['bool']['filter']);
+                }
+                if (isset($body['query']['bool']['must'])) {
+                    $conditions = array_merge($conditions, $body['query']['bool']['must']);
+                }
+                if (isset($body['query']['bool']['should'])) {
+                    $conditions[] = [
+                        'bool' => [
+                            'should' => $body['query']['bool']['should'],
+                            'minimum_should_match' => 1
+                        ]
+                    ];
+                }
+                
+                if (!empty($conditions)) {
+                    $this->filter[] = [
+                        'bool' => [
+                            'filter' => $conditions
+                        ]
+                    ];
+                }
+            } else {
+                // If we're at the top level, add conditions directly
+                if (isset($body['query']['bool']['filter'])) {
+                    foreach ($body['query']['bool']['filter'] as $condition) {
+                        $this->filter[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['must'])) {
+                    foreach ($body['query']['bool']['must'] as $condition) {
+                        $this->filter[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['should'])) {
+                    $this->filter[] = [
+                        'bool' => [
+                            'should' => $body['query']['bool']['should'],
+                            'minimum_should_match' => 1
+                        ]
+                    ];
+                }
+            }
+        }
 
         return $this;
     }
