@@ -19,12 +19,11 @@
 
 ## Requirements
 
-- `php` >= 5.6.6 
+- `php` >= 7.4
   
   See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
 
 - `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
-
 
 ## Documentation
 - [Installation](docs/installation.md)
