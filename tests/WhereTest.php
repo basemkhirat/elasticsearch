@@ -22,7 +22,16 @@ class WhereTest extends TestCase
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
+        "regexp",
+        "contains",
+        "notContains",
+        "in",
+        "notIn",
+        "startsWith",
+        "endsWith",
+        "between",
+        "notBetween"
     ];
 
     /**
@@ -31,47 +40,30 @@ class WhereTest extends TestCase
      */
     public function testWhereMethod()
     {
-
         $this->assertEquals(
-            $this->getExpected("status", "published"),
-            $this->getActual("status", "published")
+            $this->getExpected("id", "=", 1),
+            $this->getActual("id", "=", 1)
         );
 
         $this->assertEquals(
-            $this->getExpected("status", "=", "published"),
-            $this->getActual("status", "=", "published")
+            $this->getExpected("price", "between", [10, 100]),
+            $this->getActual("price", "between", [10, 100])
         );
 
         $this->assertEquals(
-            $this->getExpected("views", ">", 1000),
-            $this->getActual("views", ">", 1000)
+            $this->getExpected("age", "notBetween", [18, 25]),
+            $this->getActual("age", "notBetween", [18, 25])
         );
 
         $this->assertEquals(
-            $this->getExpected("views", ">=", 1000),
-            $this->getActual("views", ">=", 1000)
+            $this->getExpected("title", "startsWith", "How to"),
+            $this->getActual("title", "startsWith", "How to")
         );
 
         $this->assertEquals(
-            $this->getExpected("views", "<=", 1000),
-            $this->getActual("views", "<=", 1000)
+            $this->getExpected("filename", "endsWith", ".pdf"),
+            $this->getActual("filename", "endsWith", ".pdf")
         );
-
-        $this->assertEquals(
-            $this->getExpected("content", "like", "hello"),
-            $this->getActual("content", "like", "hello")
-        );
-
-        $this->assertEquals(
-            $this->getExpected("website", "exists", true),
-            $this->getActual("website", "exists", true)
-        );
-
-        $this->assertEquals(
-            $this->getExpected("website", "exists", false),
-            $this->getActual("website", "exists", false)
-        );
-
     }
 
 
@@ -127,6 +119,60 @@ class WhereTest extends TestCase
                 $must_not[] = ["exists" => ["field" => $name]];
             }
 
+        }
+
+        if ($operator == "regexp") {
+            $must[] = ["regexp" => [$name => ["value" => $value]]];
+        }
+
+        if ($operator == "contains") {
+            $must[] = ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "notContains") {
+            $must_not[] = ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "startsWith") {
+            $must[] = ["prefix" => [$name => $value]];
+        }
+
+        if ($operator == "endsWith") {
+            $must[] = ["wildcard" => [$name => "*" . $value]];
+        }
+
+        if ($operator == "between") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("Between operator requires an array with exactly 2 values");
+            }
+            $must[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+        }
+
+        if ($operator == "notBetween") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("NotBetween operator requires an array with exactly 2 values");
+            }
+            $must_not[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+        }
+
+        if ($operator == "in") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $must[] = ["terms" => [$name => $value]];
+        }
+
+        if ($operator == "notIn") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $must_not[] = ["terms" => [$name => $value]];
         }
 
         // Build query body

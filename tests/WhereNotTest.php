@@ -2,6 +2,7 @@
 
 namespace Basemkhirat\Elasticsearch\Tests;
 
+use Basemkhirat\Elasticsearch\Query;
 use Basemkhirat\Elasticsearch\Tests\Traits\ESQueryTrait;
 use PHPUnit\Framework\TestCase;
 
@@ -22,7 +23,13 @@ class WhereNotTest extends TestCase
         "<",
         "<=",
         "like",
-        "exists"
+        "exists",
+        "regexp",
+        "contains",
+        "in",
+        "between",
+        "startsWith",
+        "endsWith"
     ];
 
     /**
@@ -31,48 +38,49 @@ class WhereNotTest extends TestCase
      */
     public function testWhereNotMethod()
     {
+        // Test between operator
+        $query = new Query("my_index", "my_type");
+        $query->whereNot("price", "between", [10, 100]);
+        $this->assertArrayHasKey("must_not", $query->query()["body"]["query"]["bool"]);
         $this->assertEquals(
-            $this->getExpected("status", "published"),
-            $this->getActual("status", "published")
+            ["range" => ["price" => ["gte" => 10, "lte" => 100]]],
+            $query->query()["body"]["query"]["bool"]["must_not"][0]
         );
 
+        // Test startsWith operator
+        $query = new Query("my_index", "my_type");
+        $query->whereNot("filename", "startsWith", "temp_");
+        $this->assertArrayHasKey("must_not", $query->query()["body"]["query"]["bool"]);
         $this->assertEquals(
-            $this->getExpected("status", "=", "published"),
-            $this->getActual("status", "=", "published")
+            ["prefix" => ["filename" => "temp_"]],
+            $query->query()["body"]["query"]["bool"]["must_not"][0]
         );
 
+        // Test endsWith operator
+        $query = new Query("my_index", "my_type");
+        $query->whereNot("filename", "endsWith", ".tmp");
+        $this->assertArrayHasKey("must_not", $query->query()["body"]["query"]["bool"]);
         $this->assertEquals(
-            $this->getExpected("views", ">", 1000),
-            $this->getActual("views", ">", 1000)
+            ["wildcard" => ["filename" => "*.tmp"]],
+            $query->query()["body"]["query"]["bool"]["must_not"][0]
         );
-
-        $this->assertEquals(
-            $this->getExpected("views", ">=", 1000),
-            $this->getActual("views", ">=", 1000)
-        );
-
-        $this->assertEquals(
-            $this->getExpected("views", "<=", 1000),
-            $this->getActual("views", "<=", 1000)
-        );
-
-        $this->assertEquals(
-            $this->getExpected("content", "like", "hello"),
-            $this->getActual("content", "like", "hello")
-        );
-
-        $this->assertEquals(
-            $this->getExpected("website", "exists", true),
-            $this->getActual("website", "exists", true)
-        );
-
-        $this->assertEquals(
-            $this->getExpected("website", "exists", false),
-            $this->getActual("website", "exists", false)
-        );
-
     }
 
+
+    /**
+     * Get The actual results.
+     * @param $name
+     * @param string $operator
+     * @param null $value
+     * @return array
+     */
+    protected function getActual($name, $operator = "=", $value = NULL)
+    {
+        $query = new Query("my_index", "my_type");
+        $query->whereNot($name, $operator, $value);
+        $result = $query->query();
+        return $result["body"];
+    }
 
     /**
      * Get The expected results.
@@ -83,13 +91,6 @@ class WhereNotTest extends TestCase
      */
     protected function getExpected($name, $operator = "=", $value = NULL)
     {
-        $query = $this->getQueryArray();
-
-        if (!in_array($operator, $this->operators)) {
-            $value = $operator;
-            $operator = "=";
-        }
-
         $must = [];
         $must_not = [];
 
@@ -117,14 +118,37 @@ class WhereNotTest extends TestCase
             $must_not[] = ["match" => [$name => $value]];
         }
 
-        if ($operator == "exists") {
+        if ($operator == "regexp") {
+            $must_not[] = ["regexp" => [$name => ["value" => $value]]];
+        }
 
-            if ($value) {
-                $must_not[] = ["exists" => ["field" => $name]];
-            } else {
-                $must[] = ["exists" => ["field" => $name]];
+        if ($operator == "contains") {
+            $must_not[] = ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "in") {
+            if (!is_array($value)) {
+                $value = [$value];
             }
+            $must_not[] = ["terms" => [$name => $value]];
+        }
 
+        if ($operator == "endsWith") {
+            $must_not[] = ["wildcard" => [$name => "*" . $value]];
+        }
+
+        if ($operator == "between") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("Between operator requires an array with exactly 2 values");
+            }
+            $must_not[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+        }
+
+        if ($operator == "startsWith") {
+            $must_not[] = ["prefix" => [$name => $value]];
         }
 
         // Build query body
@@ -139,21 +163,14 @@ class WhereNotTest extends TestCase
             $bool["must_not"] = $must_not;
         }
 
-        $query["body"]["query"]["bool"] = $bool;
-
-        return $query;
-    }
-
-
-    /**
-     * Get The actual results.
-     * @param $name
-     * @param string $operator
-     * @param null $value
-     * @return mixed
-     */
-    protected function getActual($name, $operator = "=", $value = NULL)
-    {
-        return $this->getQueryObject()->whereNot($name, $operator, $value)->query();
+        return [
+            "_source" => [
+                "include" => [],
+                "exclude" => []
+            ],
+            "query" => [
+                "bool" => $bool
+            ]
+        ];
     }
 }

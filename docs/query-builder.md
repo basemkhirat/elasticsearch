@@ -606,19 +606,19 @@ ES::type("my_type")->bulk(function ($bulk){
 
 ## Regular Expression Queries
 
-You can use regular expressions in your queries using the `regex` operator with `where` and `whereNot` methods. This allows for powerful pattern matching in your searches.
+You can use regular expressions in your queries using the `regexp` operator with `where` and `whereNot` methods. This allows for powerful pattern matching in your searches.
 
 ### Basic Usage
 
 ```php
 // Match titles containing text within parentheses
-$results = ES::where("title", "regex", ".*\\(.*\\).*")->get();
+$results = ES::where("title", "regexp", ".*\\(.*\\).*")->get();
 
 // Match emails from specific domain
-$results = ES::where("email", "regex", ".*@gmail\\.com")->get();
+$results = ES::where("email", "regexp", ".*@gmail\\.com")->get();
 
 // Exclude URLs that don't start with https
-$results = ES::whereNot("url", "regex", "^https://.*")->get();
+$results = ES::whereNot("url", "regexp", "^https://.*")->get();
 ```
 
 ### Common Patterns
@@ -626,36 +626,36 @@ $results = ES::whereNot("url", "regex", "^https://.*")->get();
 1. Text Patterns:
 ```php
 // Starts with
-ES::where("field", "regex", "^start.*");
+ES::where("field", "regexp", "^start.*");
 
 // Ends with
-ES::where("field", "regex", ".*end$");
+ES::where("field", "regexp", ".*end$");
 
 // Contains
-ES::where("field", "regex", ".*contains.*");
+ES::where("field", "regexp", ".*contains.*");
 ```
 
 2. Number Patterns:
 ```php
 // Phone numbers (e.g., 123-456-7890)
-ES::where("phone", "regex", "[0-9]{3}-[0-9]{3}-[0-9]{4}");
+ES::where("phone", "regexp", "[0-9]{3}-[0-9]{3}-[0-9]{4}");
 
 // Years between 1900-2099
-ES::where("year", "regex", "(19|20)[0-9]{2}");
+ES::where("year", "regexp", "(19|20)[0-9]{2}");
 ```
 
 3. Special Characters:
 ```php
 // Text within parentheses
-ES::where("field", "regex", ".*\\(.*\\).*");
+ES::where("field", "regexp", ".*\\(.*\\).*");
 
 // Text within brackets
-ES::where("field", "regex", ".*\\[.*\\].*");
+ES::where("field", "regexp", ".*\\[.*\\].*");
 ```
 
 ### Important Notes
 
-1. Elasticsearch uses Lucene's regex syntax which:
+1. Elasticsearch uses Lucene's regexp syntax which:
    - Does not support backreferences
    - Does not support lookahead/lookbehind
    - Requires escaping special characters with backslashes
@@ -674,9 +674,296 @@ ES::where("field", "regex", ".*\\[.*\\].*");
 
 ```php
 $results = ES::index('books')
-    ->where("title", "regex", "^The.*")
+    ->where("title", "regexp", "^The.*")
     ->where("year", ">", 2000)
-    ->whereNot("category", "regex", "spam|adult")
+    ->whereNot("category", "regexp", "spam|adult")
     ->take(10)
     ->get();
 ```
+
+## StartsWith and EndsWith Operators
+
+The `startsWith` and `endsWith` operators allow you to search for text that begins or ends with specific patterns. The `startsWith` operator uses Elasticsearch's efficient prefix query, while `endsWith` uses a wildcard query.
+
+```php
+// Find titles that start with "How to"
+$query->where('title', 'startsWith', 'How to');
+
+// Find files that end with ".pdf"
+$query->where('filename', 'endsWith', '.pdf');
+
+// Can be combined with other operators
+$query->where('title', 'startsWith', 'Guide:')
+      ->where('category', 'in', ['tutorials', 'howto'])
+      ->where('content', 'notContains', 'deprecated');
+```
+
+The operators are translated to Elasticsearch queries as follows:
+
+```json
+// Using 'startsWith'
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "prefix": {
+                        "title": "How to"
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'endsWith'
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "wildcard": {
+                        "filename": "*.pdf"
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+Note: The `startsWith` operator uses Elasticsearch's prefix query which is optimized for prefix matching. The `endsWith` operator uses a wildcard query which may be slower for large datasets.
+
+## In and NotIn Operators
+
+The `in` operator allows you to match documents where a field's value matches any of the provided values. The `notIn` operator does the opposite - it excludes documents where the field matches any of the provided values.
+
+```php
+// Using 'in' with an array of values
+$query->where('status', 'in', ['published', 'draft']);
+
+// Using 'in' with a single value (will be converted to array internally)
+$query->where('category', 'in', 'news');
+
+// Using 'notIn' to exclude specific values
+$query->where('status', 'notIn', ['deleted', 'archived']);
+
+// Using 'notIn' with a single value
+$query->where('category', 'notIn', 'spam');
+```
+
+The `in` and `notIn` operators are translated to Elasticsearch's `terms` query. For example:
+
+```json
+// Using 'in'
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "terms": {
+                        "status": ["published", "draft"]
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'notIn'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "terms": {
+                        "status": ["deleted", "archived"]
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+## Contains and NotContains Operators
+
+The `contains` operator allows you to search for exact phrases within text fields. The `notContains` operator does the opposite - it excludes documents that contain the exact phrase. Unlike the `like` operator which matches terms individually, both operators match the exact phrase in the specified order.
+
+```php
+// Using 'contains' to find exact phrases
+$query->where('description', 'contains', 'artificial intelligence');
+
+// Using 'notContains' to exclude exact phrases
+$query->where('description', 'notContains', 'machine learning');
+
+// Can be combined with other operators
+$query->where('title', 'contains', 'AI')
+      ->where('content', 'notContains', 'spam')
+      ->where('status', 'in', ['published', 'draft']);
+```
+
+The `contains` and `notContains` operators are translated to Elasticsearch's `match_phrase` query. For example:
+
+```json
+// Using 'contains'
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "match_phrase": {
+                        "description": "artificial intelligence"
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'notContains'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "match_phrase": {
+                        "description": "machine learning"
+                    }
+                }
+            ]
+        }
+    }
+}
+
+```
+
+## Between and NotBetween Operators
+
+The `between` and `notBetween` operators allow you to filter documents where a field's value falls within or outside a specified range. Both operators are inclusive, meaning the boundary values are included in the range.
+
+```php
+// Find products with prices between $10 and $100 (inclusive)
+$query->where('price', 'between', [10, 100]);
+
+// Find users not in the age range 18-25
+$query->where('age', 'notBetween', [18, 25]);
+
+// Can be combined with other operators
+$query->where('price', 'between', [10, 100])
+      ->where('category', 'in', ['electronics', 'gadgets'])
+      ->where('name', 'startsWith', 'iPhone');
+```
+
+The operators are translated to Elasticsearch range queries as follows:
+
+```json
+// Using 'between'
+{
+    "query": {
+        "bool": {
+            "must": [
+                {
+                    "range": {
+                        "price": {
+                            "gte": 10,
+                            "lte": 100
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'notBetween'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "range": {
+                        "age": {
+                            "gte": 18,
+                            "lte": 25
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+```
+
+Note: Both operators require an array with exactly two values `[min, max]`. An `InvalidArgumentException` will be thrown if the input is not in the correct format.
+
+## WhereNot Method with Pattern and Range Operators
+
+The `whereNot()` method now supports `between`, `startsWith`, and `endsWith` operators, allowing you to exclude documents based on ranges and patterns:
+
+```php
+// Exclude products with prices between $10 and $100
+$query->whereNot('price', 'between', [10, 100]);
+
+// Exclude files that start with "temp_"
+$query->whereNot('filename', 'startsWith', 'temp_');
+
+// Exclude files that end with ".tmp"
+$query->whereNot('filename', 'endsWith', '.tmp');
+
+// Can be combined with other operators
+$query->whereNot('price', 'between', [10, 100])
+      ->whereNot('filename', 'startsWith', 'draft_')
+      ->where('status', 'published');
+```
+
+The operators are translated to Elasticsearch queries in the `must_not` clause:
+
+```json
+// Using 'whereNot' with 'between'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "range": {
+                        "price": {
+                            "gte": 10,
+                            "lte": 100
+                        }
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'whereNot' with 'startsWith'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "prefix": {
+                        "filename": "temp_"
+                    }
+                }
+            ]
+        }
+    }
+}
+
+// Using 'whereNot' with 'endsWith'
+{
+    "query": {
+        "bool": {
+            "must_not": [
+                {
+                    "wildcard": {
+                        "filename": "*.tmp"
+                    }
+                }
+            ]
+        }
+    }
+}

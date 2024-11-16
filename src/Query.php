@@ -39,7 +39,15 @@ class Query
         "<=",
         "like",
         "exists",
-        "regex"
+        "regexp",
+        "contains",
+        "notContains",
+        "in",
+        "notIn",
+        "startsWith",
+        "endsWith",
+        "between",
+        "notBetween"
     ];
 
     /**
@@ -508,11 +516,76 @@ class Query
         }
 
         if ($operator == "exists") {
-            $this->whereExists($name, $value);
+
+            if ($value) {
+                $this->must[] = ["exists" => ["field" => $name]];
+            } else {
+                $this->must_not[] = ["exists" => ["field" => $name]];
+            }
+
         }
 
-        if ($operator == "regex") {
+        if ($operator == "in") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $this->must[] = ["terms" => [$name => $value]];
+        }
+
+        if ($operator == "notIn") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $this->must_not[] = ["terms" => [$name => $value]];
+        }
+
+        if ($operator == "regexp") {
             $this->must[] = ["regexp" => [$name => ["value" => $value]]];
+        }
+
+        if ($operator == "contains") {
+            $this->must[] = ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "notContains") {
+            $this->must_not[] = ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "startsWith") {
+            $this->must[] = ["prefix" => [$name => $value]];
+        }
+
+        if ($operator == "endsWith") {
+            $this->must[] = ["wildcard" => [$name => "*" . $value]];
+        }
+
+        if ($operator == "between") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("Between operator requires an array with exactly 2 values");
+            }
+            $this->must[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+            return $this;
+        }
+
+        if ($operator == "notBetween") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("NotBetween operator requires an array with exactly 2 values");
+            }
+            $this->must_not[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+            return $this;
+        }
+
+        if ($operator == "in") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            $this->must[] = ["terms" => [$name => $value]];
         }
 
         return $this;
@@ -525,50 +598,48 @@ class Query
      * @param null $value
      * @return $this
      */
-    public function whereNot($name, $operator = "=", $value = NULL)
+    public function whereNot($name, $operator = null, $value = null)
     {
 
-        if (is_callback_function($name)) {
-            $name($this);
-            return $this;
-        }
-
-        if (!$this->isOperator($operator)) {
+        // Check if value is null and operator is provided then
+        // assume that operator is = and value is operator
+        if (is_null($value) && !is_null($operator)) {
             $value = $operator;
             $operator = "=";
         }
 
-        if ($operator == "=") {
-            $this->must_not[] = ["term" => [$name => $value]];
-        }
-
-        if ($operator == ">") {
-            $this->must_not[] = ["range" => [$name => ["gt" => $value]]];
-        }
-
-        if ($operator == ">=") {
-            $this->must_not[] = ["range" => [$name => ["gte" => $value]]];
-        }
-
-        if ($operator == "<") {
-            $this->must_not[] = ["range" => [$name => ["lt" => $value]]];
-        }
-
-        if ($operator == "<=") {
-            $this->must_not[] = ["range" => [$name => ["lte" => $value]]];
-        }
-
-        if ($operator == "like") {
-            $this->must_not[] = ["match" => [$name => $value]];
+        // Check if the operator is supported
+        if (!in_array($operator, $this->operators)) {
+            $operator = "=";
         }
 
         if ($operator == "exists") {
-            $this->whereExists($name, !$value);
+            $this->must_not[] = ["exists" => ["field" => $name]];
+            return $this;
         }
 
-        if ($operator == "regex") {
-            $this->must_not[] = ["regexp" => [$name => ["value" => $value]]];
+        if ($operator == "between") {
+            if (!is_array($value) || count($value) !== 2) {
+                throw new \InvalidArgumentException("Between operator requires an array with exactly 2 values");
+            }
+            $this->must_not[] = ["range" => [$name => [
+                "gte" => $value[0],
+                "lte" => $value[1]
+            ]]];
+            return $this;
         }
+
+        if ($operator == "startsWith") {
+            $this->must_not[] = ["prefix" => [$name => $value]];
+            return $this;
+        }
+
+        if ($operator == "endsWith") {
+            $this->must_not[] = ["wildcard" => [$name => "*" . $value]];
+            return $this;
+        }
+
+        $this->must_not[] = $this->createFilterQuery($name, $operator, $value);
 
         return $this;
     }
@@ -1611,5 +1682,56 @@ class Query
         $this->useGlobalScopes = false;
 
         return $this;
+    }
+
+    /**
+     * Create a filter query.
+     * @param $name
+     * @param $operator
+     * @param $value
+     * @return array
+     */
+    protected function createFilterQuery($name, $operator, $value)
+    {
+        if ($operator == "=") {
+            return ["term" => [$name => $value]];
+        }
+
+        if ($operator == ">") {
+            return ["range" => [$name => ["gt" => $value]]];
+        }
+
+        if ($operator == ">=") {
+            return ["range" => [$name => ["gte" => $value]]];
+        }
+
+        if ($operator == "<") {
+            return ["range" => [$name => ["lt" => $value]]];
+        }
+
+        if ($operator == "<=") {
+            return ["range" => [$name => ["lte" => $value]]];
+        }
+
+        if ($operator == "like") {
+            return ["match" => [$name => $value]];
+        }
+
+        if ($operator == "regexp") {
+            return ["regexp" => [$name => ["value" => $value]]];
+        }
+
+        if ($operator == "contains") {
+            return ["match_phrase" => [$name => $value]];
+        }
+
+        if ($operator == "in") {
+            if (!is_array($value)) {
+                $value = [$value];
+            }
+            return ["terms" => [$name => $value]];
+        }
+
+        return ["term" => [$name => $value]];
     }
 }
