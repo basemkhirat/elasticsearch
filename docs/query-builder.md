@@ -733,6 +733,7 @@ The operators are translated to Elasticsearch queries as follows:
         }
     }
 }
+
 ```
 
 Note: The `startsWith` operator uses Elasticsearch's prefix query which is optimized for prefix matching. The `endsWith` operator uses a wildcard query which may be slower for large datasets.
@@ -970,3 +971,82 @@ The operators are translated to Elasticsearch queries in the `must_not` clause:
         }
     }
 }
+
+```
+
+## Boolean Logic with some() and every()
+
+The query builder provides powerful methods for complex boolean logic using `some()` and `every()`.
+
+###### Using some() for OR conditions
+```php
+// Match documents where either title is "Example" OR views is greater than 100
+ES::type("my_type")->some(function($query) {
+    $query->where("title", "Example")
+          ->where("views", ">", 100);
+})->get();
+
+// This generates an Elasticsearch query with should clause and minimum_should_match=1
+```
+
+###### Using every() for AND conditions
+```php
+// Match documents where title is "Example" AND views is greater than 100
+ES::type("my_type")->every(function($query) {
+    $query->where("title", "Example")
+          ->where("views", ">", 100);
+})->get();
+
+// This generates an Elasticsearch query with filter clause
+```
+
+###### Combining some() and every() for Complex Logic
+```php
+// Complex query example:
+// Find documents where:
+// - views > 14 AND
+// - views != 100 AND
+// - id = 1 AND
+// - (title.keyword = "المحيط في اللغة" OR id != 3 OR matches "محمود محمد محمود" in description)
+ES::type("my_type")
+    ->where("views", ">", 14)
+    ->where("views", "!=", 100)
+    ->every(function($query) {
+        $query->where("id", "=", "1")
+            ->some(function($query) {
+                $query->where("title.keyword", "=", "المحيط في اللغة")
+                    ->where("id", "!=", "3")
+                    ->search("محمود محمد محمود", function($query) {
+                        $query->fields(["description" => 1]);
+                    });
+            });
+    })->get();
+```
+
+###### Nested some() with Search
+```php
+// Combine some() with search functionality
+ES::type("my_type")->some(function($query) {
+    $query->where("category", "books")
+          ->search("elasticsearch", function($query) {
+              $query->fields(["title" => 2, "description" => 1]);
+          });
+})->get();
+```
+
+###### Using some() with whereNot
+```php
+// Match documents that either:
+// - have status "published" OR
+// - don't have category "draft"
+ES::type("my_type")->some(function($query) {
+    $query->where("status", "published")
+          ->where("category", "!=", "draft");
+})->get();
+```
+
+The `some()` and `every()` methods provide a flexible way to build complex boolean queries:
+- `some()`: Creates a boolean query with `should` clause (OR condition)
+- `every()`: Creates a boolean query with `filter` clause (AND condition)
+- Both methods can be nested to create complex combinations of AND/OR conditions
+- They can be combined with other query builder methods like `search()`, `where()`, `whereNot()`, etc.
