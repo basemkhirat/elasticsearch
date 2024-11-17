@@ -100,7 +100,7 @@ class Model implements JsonSerializable
      */
     public function getConnection()
     {
-        return $this->connection ? $this->connection : config("es.default");
+        return $this->connection;
     }
 
     /**

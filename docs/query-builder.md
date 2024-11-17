@@ -110,6 +110,9 @@ ES::type("my_type")->where("status", "published")->get();
 # or
 
 ES::type("my_type")->where("status", "=", "published")->get();
+
+# Using not equal operator
+ES::type("my_type")->where("status", "!=", "published")->get();
 ```
 ##### Where greater than
 ```php

@@ -524,6 +524,14 @@ class Query
             $this->filter[] = ["term" => [$name => $value]];
         }
 
+        if ($operator == "!=") {
+            if ($name == "_id") {
+                $this->must_not[] = ["ids" => ["values" => [$value]]];
+            } else {
+                $this->must_not[] = ["term" => [$name => $value]];
+            }
+        }
+
         if ($operator == ">") {
             $this->filter[] = ["range" => [$name => ["gt" => $value]]];
         }
@@ -1732,25 +1740,41 @@ class Query
         $body = $query->getBody();
         if (isset($body['query']['bool'])) {
             if ($this->nested) {
-                // If we're nested, properly structure the bool query
+                // If we're nested, combine all conditions into a single should
+                $conditions = [];
+                
                 if (isset($body['query']['bool']['filter'])) {
-                    $this->should[] = [
-                        'bool' => [
-                            'filter' => $body['query']['bool']['filter']
-                        ]
-                    ];
+                    foreach ($body['query']['bool']['filter'] as $condition) {
+                        $conditions[] = $condition;
+                    }
                 }
                 if (isset($body['query']['bool']['must'])) {
-                    $this->should[] = [
-                        'bool' => [
-                            'must' => $body['query']['bool']['must']
-                        ]
-                    ];
+                    foreach ($body['query']['bool']['must'] as $condition) {
+                        $conditions[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['must_not'])) {
+                    foreach ($body['query']['bool']['must_not'] as $condition) {
+                        $conditions[] = [
+                            'bool' => [
+                                'must_not' => [$condition]
+                            ]
+                        ];
+                    }
                 }
                 if (isset($body['query']['bool']['should'])) {
                     foreach ($body['query']['bool']['should'] as $condition) {
-                        $this->should[] = $condition;
+                        $conditions[] = $condition;
                     }
+                }
+                
+                if (!empty($conditions)) {
+                    $this->should[] = [
+                        'bool' => [
+                            'should' => $conditions,
+                            'minimum_should_match' => 1
+                        ]
+                    ];
                 }
             } else {
                 // If we're at the top level, process conditions individually
@@ -1762,6 +1786,15 @@ class Query
                 if (isset($body['query']['bool']['must'])) {
                     foreach ($body['query']['bool']['must'] as $condition) {
                         $this->should[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['must_not'])) {
+                    foreach ($body['query']['bool']['must_not'] as $condition) {
+                        $this->should[] = [
+                            'bool' => [
+                                'must_not' => [$condition]
+                            ]
+                        ];
                     }
                 }
                 if (isset($body['query']['bool']['should'])) {
@@ -1797,6 +1830,15 @@ class Query
                 if (isset($body['query']['bool']['must'])) {
                     $conditions = array_merge($conditions, $body['query']['bool']['must']);
                 }
+                if (isset($body['query']['bool']['must_not'])) {
+                    foreach ($body['query']['bool']['must_not'] as $condition) {
+                        $conditions[] = [
+                            'bool' => [
+                                'must_not' => [$condition]
+                            ]
+                        ];
+                    }
+                }
                 if (isset($body['query']['bool']['should'])) {
                     $conditions[] = [
                         'bool' => [
@@ -1823,6 +1865,15 @@ class Query
                 if (isset($body['query']['bool']['must'])) {
                     foreach ($body['query']['bool']['must'] as $condition) {
                         $this->filter[] = $condition;
+                    }
+                }
+                if (isset($body['query']['bool']['must_not'])) {
+                    foreach ($body['query']['bool']['must_not'] as $condition) {
+                        $this->filter[] = [
+                            'bool' => [
+                                'must_not' => [$condition]
+                            ]
+                        ];
                     }
                 }
                 if (isset($body['query']['bool']['should'])) {

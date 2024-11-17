@@ -21,7 +21,7 @@ class QueryTest extends TestCase
         $query = $this->query->where("views", ">", 14)
             ->some(function($query) {
                 $query->where("id", '=', "1")
-                    ->where("id", '=', "2");
+                    ->where("id", '=', "4");
             })
             ->getBody();
 
@@ -49,7 +49,7 @@ class QueryTest extends TestCase
                         ],
                         [
                             'term' => [
-                                'id' => '2'
+                                'id' => '4'
                             ]
                         ]
                     ],
@@ -110,9 +110,10 @@ class QueryTest extends TestCase
         $query = $this->query->where("views", ">", 14)
             ->some(function($query) {
                 $query->where("id", '=', "1")
+                    ->where("id", '=', "4")
                     ->every(function($query) {
-                        $query->where("title.keyword", '=', "المحيط في اللغة")
-                            ->where("id", '=', "4");
+                        $query->where("is_active", '=', 1)
+                            ->where("is_deleted", '=', 0);
                     });
             })
             ->getBody();
@@ -140,16 +141,21 @@ class QueryTest extends TestCase
                             ]
                         ],
                         [
+                            'term' => [
+                                'id' => '4'
+                            ]
+                        ],
+                        [
                             'bool' => [
                                 'filter' => [
                                     [
                                         'term' => [
-                                            'title.keyword' => 'المحيط في اللغة'
+                                            'is_active' => 1
                                         ]
                                     ],
                                     [
                                         'term' => [
-                                            'id' => '4'
+                                            'is_deleted' => 0
                                         ]
                                     ]
                                 ]
@@ -211,7 +217,7 @@ class QueryTest extends TestCase
                                 'should' => [
                                     [
                                         'bool' => [
-                                            'filter' => [
+                                            'should' => [
                                                 [
                                                     'term' => [
                                                         'id' => '5'
@@ -233,7 +239,8 @@ class QueryTest extends TestCase
                                                         ]
                                                     ]
                                                 ]
-                                            ]
+                                            ],
+                                            'minimum_should_match' => 1
                                         ]
                                     ]
                                 ],
@@ -241,6 +248,81 @@ class QueryTest extends TestCase
                             ]
                         ]
                     ]
+                ]
+            ]
+        ];
+
+        $this->assertEquals($expected, $query);
+    }
+
+    /** @test */
+    public function it_can_build_nested_some_query()
+    {
+        $query = $this->query->where("views", ">", 14)
+            ->where("views", "!=", 100)
+            ->where("id", '=', "1")
+            ->some(function($query) {
+                $query->where("title.keyword", '=', "المحيط في اللغة")
+                    ->where("id", '!=', "3")
+                    ->search("محمود محمد محمود", function($query) {
+                        $query->fields(["description" => 1]);
+                    });
+            })
+            ->getBody();
+
+        $expected = [
+            '_source' => [
+                'include' => [],
+                'exclude' => []
+            ],
+            'query' => [
+                'bool' => [
+                    'filter' => [
+                        [
+                            'range' => [
+                                'views' => [
+                                    'gt' => 14
+                                ]
+                            ]
+                        ],
+                        [
+                            'term' => [
+                                'id' => '1'
+                            ]
+                        ]
+                    ],
+                    'must_not' => [
+                        [
+                            'term' => [
+                                'views' => 100
+                            ]
+                        ]
+                    ],
+                    'should' => [
+                        [
+                            'term' => [
+                                'title.keyword' => 'المحيط في اللغة'
+                            ]
+                        ],
+                        [
+                            'query_string' => [
+                                'query' => 'محمود محمد محمود',
+                                'fields' => ['description']
+                            ]
+                        ],
+                        [
+                            'bool' => [
+                                'must_not' => [
+                                    [
+                                        'term' => [
+                                            'id' => '3'
+                                        ]
+                                    ]
+                                ]
+                            ]
+                        ]
+                    ],
+                    'minimum_should_match' => 1
                 ]
             ]
         ];
