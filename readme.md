@@ -1,5 +1,4 @@
 <p align="center">
-<a href="https://travis-ci.org/basemkhirat/elasticsearch"><img src="https://travis-ci.org/basemkhirat/elasticsearch.svg?branch=master" alt="Build Status"></a>
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/v/stable.svg" alt="Latest Stable Version"></a>
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/d/total.svg" alt="Total Downloads"></a>
 <a href="https://packagist.org/packages/basemkhirat/elasticsearch"><img src="https://poser.pugx.org/basemkhirat/elasticsearch/license.svg" alt="License"></a>
@@ -20,10 +19,7 @@
 ## Requirements
 
 - `php` >= 7.4
-  
-  See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
-
-- `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
+- `laravel/laravel` >= 6.0 or `laravel/lumen` >= 6.0 or `composer application`
 
 ## Documentation
 - [Installation](docs/installation.md)

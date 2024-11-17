@@ -3,10 +3,7 @@
 ## Requirements
 
 - `php` >= 7.4 
-  
-  See [Travis CI Builds](https://travis-ci.org/basemkhirat/elasticsearch).
-
-- `laravel/laravel` >= 5.* or `laravel/lumen` >= 5.* or `composer application`
+- `laravel/laravel` >= 6.0 or `laravel/lumen` >= 6.0 or `composer application`
 
 ### <u>Laravel Installation</u>
 
@@ -101,4 +98,3 @@ $connection = Connection::create([
 # access the query builder using created connection
 
 $documents = $connection->search("hello")->get();
-```
